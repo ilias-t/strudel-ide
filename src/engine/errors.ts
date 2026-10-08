@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type { PlayerError } from "./types";
+import { mapPosition } from "../compile/sourcemap.ts";
 
 /**
  * Build a PlayerError from an exception. The song-file location is resolved
@@ -32,10 +33,67 @@ export function errorFrom(
 // source map to the line/column you see in the editor.
 const SONG_FRAME = /(https?:\/\/[^\s()]+\/src\/songs\/([\w.-]+\.ts)(?:\?[^\s():]*)?):(\d+):(\d+)/;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Compiled songs (src/compile/evaluate.ts): modules imported from blob: URLs
+// with an in-memory source map back to the song text
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Compiled modules kept for locating errors (a song may throw long after it was imported) */
+const MAX_COMPILED = 16;
+const compiled = new Map<string, { file: string; mappings: string }>();
+
+/**
+ * Locate errors from a compiled song module: frames at `url` map back to
+ * `file` through `map` (source map v3 JSON, generated → song text). The
+ * newest MAX_COMPILED modules are kept.
+ */
+export function registerCompiledModule(url: string, module: { file: string; map: string }): void {
+  compiled.delete(url);
+  compiled.set(url, { file: module.file, mappings: (JSON.parse(module.map) as { mappings: string }).mappings });
+  for (const old of compiled.keys()) {
+    if (compiled.size <= MAX_COMPILED) break;
+    compiled.delete(old);
+  }
+}
+
+/**
+ * The first stack frame in a registered compiled module that maps into the
+ * song text, with its index in `stack`. Frames in injected helpers (e.g. the
+ * knob() wrapper appended to the module) map nowhere, so the song's call site
+ * further down wins; if no frame maps, the first one (file only).
+ */
+function compiledFrame(stack: string | undefined) {
+  if (!stack || !compiled.size) return null;
+  const frames: { index: number; url: string; line: number; column: number }[] = [];
+  for (const url of compiled.keys()) {
+    for (let index = stack.indexOf(`${url}:`); index >= 0; index = stack.indexOf(`${url}:`, index + 1)) {
+      const pos = /^:(\d+):(\d+)/.exec(stack.slice(index + url.length, index + url.length + 24));
+      if (pos) frames.push({ index, url, line: Number(pos[1]), column: Number(pos[2]) });
+    }
+  }
+  frames.sort((a, b) => a.index - b.index);
+  return frames.find((f) => locateFrame(f).line !== undefined) ?? frames[0] ?? null;
+}
+
+/** Map a compiled frame back to the song file (1-based line/column) */
+function locateFrame(frame: { url: string; line: number; column: number }): Pick<PlayerError, "file" | "line" | "column"> {
+  const module = compiled.get(frame.url)!;
+  const pos = mapPosition(module.mappings, frame.line - 1, frame.column - 1);
+  return pos ? { file: module.file, line: pos.line + 1, column: pos.column + 1 } : { file: module.file };
+}
+
+/** The song-file location of the first compiled-module frame in `stack`, or null */
+export function locateCompiled(stack: string | undefined): Pick<PlayerError, "file" | "line" | "column"> | null {
+  const frame = compiledFrame(stack);
+  return frame && locateFrame(frame);
+}
+
 async function locateInSongFile(
   stack: string | undefined
 ): Promise<Pick<PlayerError, "file" | "line" | "column"> | null> {
   const match = stack?.match(SONG_FRAME);
+  const frame = compiledFrame(stack);
+  if (frame && (!match || frame.index < match.index!)) return locateFrame(frame);
   if (!match) return null;
   const [, url, file, lineStr, colStr] = match;
   const generated = { line: Number(lineStr), column: Number(colStr) };
@@ -49,45 +107,4 @@ async function locateInSongFile(
   } catch {
     return { file, ...generated };
   }
-}
-
-const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-function decodeVlq(segment: string): number[] {
-  const out: number[] = [];
-  let value = 0;
-  let shift = 0;
-  for (const ch of segment) {
-    const digit = B64.indexOf(ch);
-    value += (digit & 31) << shift;
-    if (digit & 32) {
-      shift += 5;
-    } else {
-      out.push(value & 1 ? -(value >> 1) : value >> 1);
-      value = 0;
-      shift = 0;
-    }
-  }
-  return out;
-}
-
-/** Map a 0-based generated position to a 0-based source position using source-map v3 mappings */
-function mapPosition(mappings: string, line: number, column: number) {
-  let srcLine = 0;
-  let srcCol = 0;
-  let best: { line: number; column: number } | null = null;
-  const lines = mappings.split(";");
-  for (let l = 0; l <= line && l < lines.length; l++) {
-    let genCol = 0;
-    for (const segment of lines[l].split(",")) {
-      if (!segment) continue;
-      const fields = decodeVlq(segment);
-      genCol += fields[0];
-      if (fields.length < 4) continue;
-      srcLine += fields[2];
-      srcCol += fields[3];
-      if (l === line && (genCol <= column || best === null)) best = { line: srcLine, column: srcCol };
-    }
-  }
-  return best;
 }

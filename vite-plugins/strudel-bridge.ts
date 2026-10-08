@@ -56,6 +56,7 @@ import {
   type ServerInfoMsg,
 } from "../src/live/protocol.ts";
 import { LiveEvalError, createLiveEval, type LiveEval } from "./strudel-live-eval.ts";
+import { localRequestProblem, requestHeaders } from "./local-request.ts";
 
 export interface StrudelBridgeOptions {
   /** Write the discovery file (default true). */
@@ -134,16 +135,9 @@ const MAX_PAYLOAD = 1024 * 1024;
 const HELLO_TIMEOUT_MS = 5000;
 
 /** Reject cross-site pages; editors (Node clients) send no Origin at all. */
+/** Only pages served from this machine, and editors (no Origin), may connect (see local-request.ts: DNS rebinding) */
 function originAllowed(req: IncomingMessage): boolean {
-  const origin = req.headers.origin;
-  if (!origin) return true;
-  try {
-    const host = new URL(origin).hostname;
-    const reqHost = (req.headers.host ?? "").replace(/:\d+$/, "");
-    return ["localhost", "127.0.0.1", "[::1]", "::1", reqHost].includes(host);
-  } catch {
-    return false;
-  }
+  return localRequestProblem(requestHeaders(req)) === null;
 }
 
 export function createBridgeRelay(log: (msg: string) => void = () => {}, info: RelayInfo = {}): BridgeRelay {

@@ -33,6 +33,7 @@ import ts from "typescript";
 import type { ModuleNode, ViteDevServer } from "vite";
 import { LIVE_QUERY, MAX_EVAL_CHARS, contentVersion, type PlayerError } from "../src/live/protocol.ts";
 import { isSongFile } from "./strudel-locations.ts";
+import { syntaxError as sharedSyntaxError } from "../src/compile/syntax.ts";
 
 /** Versions kept per file: the browser imports the newest; errors are located through older ones' source maps */
 const KEEP_VERSIONS = 8;
@@ -112,22 +113,9 @@ export class LiveBuffers {
 
 }
 
-/** Syntax errors of a TS buffer, located (1-based), or null */
+/** Syntax errors of a TS buffer, located (1-based), or null (shared: src/compile/syntax.ts) */
 export function syntaxError(text: string, file: string): PlayerError | null {
-  const out = ts.transpileModule(text, {
-    fileName: file,
-    reportDiagnostics: true,
-    compilerOptions: { target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext },
-  });
-  const d = out.diagnostics?.find((x) => x.category === ts.DiagnosticCategory.Error && x.file && x.start !== undefined);
-  if (!d) return null;
-  const { line, character } = d.file!.getLineAndCharacterOfPosition(d.start!);
-  return {
-    message: `Syntax error: ${ts.flattenDiagnosticMessageText(d.messageText, "\n")}`,
-    file,
-    line: line + 1,
-    column: character + 1,
-  };
+  return sharedSyntaxError(ts, text, file);
 }
 
 /** A Vite/esbuild transform error → PlayerError (loc.column is 0-based) */

@@ -42,6 +42,16 @@ const song: Song = {
     const offsets = s("hh*4").degradeBy(0.3).sometimesBy("0.5", (x: Pattern) => x.speed("2"));
     const arranged = arrange([2, stack(kick, snare)], [2, cat("c3 e3", "g3").note()]);
     const wrapped = s(["bd", "sd"][1]); // element access → plain string
+    // explicit parsers: literal mini()/reify() get locations; mini(CONST),
+    // templates with ${} and chord(CONST) must carry none (not even relative ones)
+    const PROG = "<Am C>";
+    const parsers = stack(
+      s(mini("bd sd", "~ hh")),
+      s(reify("cp*2")),
+      n(mini(PROG === "<Am C>" ? "0 2" : "1")), // computed → not rewritten
+      s(`${ids[0]} ~ sd`),
+      chord(PROG).voicing(),
+    );
     return {
       kick,
       snare,
@@ -53,6 +63,7 @@ const song: Song = {
       offsets,
       arranged,
       wrapped,
+      parsers,
       label: s(label),
     };
   },

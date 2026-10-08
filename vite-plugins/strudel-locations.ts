@@ -37,8 +37,13 @@
 //   ✔ whose raw source text equals its cooked value (no escapes, no CRLF in
 //     templates — otherwise offsets would drift) and which parses as mini
 //     notation (an unparsable string is left alone, so runtime is unchanged)
+//   ✔ special case: `mini("a b", …)` with only such literals becomes
+//     `__strudel_mini(__strudel_m("a b", o), …)` (= sequence(m(…)), what mini builds)
 // Everything else is left exactly as written. With `miniAllStrings()` those
-// strings still become patterns at runtime, just without file locations.
+// strings still become patterns at runtime, just without file locations: the
+// highlighter installs location-free versions of the string parser and of the
+// global `mini`/`h` (src/live/highlights.ts, stripImplicitLocations), so only
+// __strudel_m patterns carry offsets.
 //
 // Names are introspected from the installed @strudel/core|mini|tonal, so new
 // controls work without touching this file.
@@ -60,6 +65,7 @@ import path from "node:path";
 import ts from "typescript";
 import MagicString from "magic-string";
 import type { Plugin } from "vite";
+import { contentVersion } from "../src/live/protocol.ts";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Name sets
@@ -76,7 +82,9 @@ const EXTRA_FUNCTIONS = [
 const FUNCTION_DENY = new Set([
   "require", "fetch", "register", "samples", "pure", "evalScope", "setStringParser",
   "aliasBank", "soundAlias", "initStrudel", "String", "Number", "Boolean", "Symbol",
-  "parseInt", "parseFloat", "alert", "setTimeout", "setInterval", "m", "h", "mini",
+  "parseInt", "parseFloat", "alert", "setTimeout", "setInterval", "m", "h",
+  // its args must stay strings; literal-only mini(...) calls are handled in transformSong
+  "mini",
 ]);
 
 /** Never rewrite arguments of these methods, even though Pattern has them */
@@ -153,16 +161,9 @@ export function loadStrudelNames(): Promise<StrudelNames> {
   })());
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Version hash (must match contentVersion() in src/live/protocol.ts)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** FNV-1a 32-bit over UTF-16 code units, as hex */
-export function contentVersion(text: string): string {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
-  return (h >>> 0).toString(16);
-}
+// Version hash: contentVersion() from the shared protocol (FNV-1a 32-bit over
+// UTF-16 code units, 8 hex digits), so editors compute the identical value
+export { contentVersion };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Transform
@@ -247,21 +248,41 @@ export function transformSong(code: string, file: string, names: StrudelNames): 
   const s = new MagicString(code);
   const rewrites: Rewrite[] = [];
 
+  /** The literal if it can carry locations, else null */
+  const rewritable = (arg: ts.Expression): StringLike | null => {
+    if (!isStringLike(arg)) return null;
+    const inner = code.slice(arg.getStart(sf) + 1, arg.getEnd() - 1);
+    if (inner !== arg.text) return null; // escapes / line continuations / CRLF → offsets would drift
+    return names.parses(inner) ? arg : null;
+  };
+  const wrap = (arg: StringLike, callee: string) => {
+    const start = arg.getStart(sf);
+    const end = arg.getEnd();
+    s.prependRight(start, "__strudel_m(");
+    s.appendLeft(end, `, ${start})`);
+    rewrites.push({ start, end, value: arg.text, callee });
+  };
+
   const visit = (node: ts.Node) => {
     if (ts.isCallExpression(node)) {
       const callee = patternCallee(node, names, local);
       if (callee) {
         for (const arg of node.arguments) {
-          if (!isStringLike(arg)) continue;
-          const start = arg.getStart(sf);
-          const end = arg.getEnd();
-          const inner = code.slice(start + 1, end - 1);
-          if (inner !== arg.text) continue; // escapes / line continuations / CRLF → offsets would drift
-          if (!names.parses(inner)) continue;
-          s.prependRight(start, "__strudel_m(");
-          s.appendLeft(end, `, ${start})`);
-          rewrites.push({ start, end, value: inner, callee });
+          const lit = rewritable(arg);
+          if (lit) wrap(lit, callee);
         }
+      } else if (
+        // mini("a b", …) parses its args itself, so they must stay strings. When
+        // all are literals, call __strudel_mini instead: sequence(m(str, offset), …)
+        // is exactly what mini() builds, plus file locations.
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === "mini" &&
+        !local.has("mini") &&
+        node.arguments.length > 0 &&
+        node.arguments.every((arg) => rewritable(arg))
+      ) {
+        s.overwrite(node.expression.getStart(sf), node.expression.getEnd(), "__strudel_mini");
+        for (const arg of node.arguments) wrap(arg as StringLike, "mini");
       }
     }
     ts.forEachChild(node, visit);
@@ -277,6 +298,7 @@ export function transformSong(code: string, file: string, names: StrudelNames): 
   s.append(
     `\n// ── injected by vite-plugins/strudel-locations.ts ──\n` +
       `function __strudel_m(str: string, offset: number): Pattern { return (globalThis as any).m(str.replace(/[\\n\\r\\t\\xA0]/g, " "), offset); }\n` +
+      `function __strudel_mini(...pats: Pattern[]): Pattern { return (globalThis as any).sequence(...pats); }\n` +
       `export const __strudel_file = ${JSON.stringify(file)};\n` +
       `export const __strudel_version = ${JSON.stringify(version)};\n`,
   );

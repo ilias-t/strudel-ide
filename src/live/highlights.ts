@@ -13,7 +13,7 @@
 // `file`/`version` are the `__strudel_file`/`__strudel_version` exports of the
 // playing song's module (see vite-plugins/strudel-locations.ts), captured when
 // the pattern was built. Offsets come from `hap.context.locations`, which only
-// transformed song literals carry (see installLocationFreeStringParser below).
+// transformed song literals carry (see stripImplicitLocations below).
 // ═══════════════════════════════════════════════════════════════════════════
 
 export type Range = [start: number, end: number];
@@ -35,9 +35,9 @@ export interface HighlighterOptions {
   /** Max update rate, default 30 */
   maxFps?: number;
   /**
-   * Call installLocationFreeStringParser() on creation (default true). Without
-   * it, strings that were not rewritten (variables, arrays, …) carry offsets
-   * relative to the string itself, which would show up as bogus highlights.
+   * Call stripImplicitLocations() on creation (default true). Without it,
+   * strings that were not rewritten (variables, templates, mini(CONST), …) carry
+   * offsets relative to the string itself, which show up as bogus highlights.
    */
   stripImplicitLocations?: boolean;
 }
@@ -91,16 +91,27 @@ export function fromScheduler(scheduler: SchedulerLike) {
 }
 
 /**
- * Make strudel's implicit string → pattern conversion (miniAllStrings) stop
- * attaching locations. Only literals rewritten by the strudel-locations plugin
- * (which call `m(str, offset)` directly) then carry locations, and those are
- * absolute file offsets. Must run after initStrudel() (which installs `mini`).
+ * Make every mini-notation parse that is NOT a rewritten song literal stop
+ * attaching locations. Stock strudel tags each atom with offsets relative to
+ * its own string (1:3 for "bd" in "bd sd"), which would light up the top of the
+ * file. Covers all three entry points songs use:
+ *   - the implicit string → pattern conversion (miniAllStrings → reify)
+ *   - the global `mini(...)` (e.g. mini(CONST), mini(`…${x}…`))
+ *   - the global `h(...)`
+ * The plugin's `__strudel_m` calls the global `m(str, offset)` directly, so
+ * only those patterns carry (absolute) offsets. Idempotent. Must run after
+ * initStrudel() has put strudel's functions on globalThis.
  */
-export function installLocationFreeStringParser(): boolean {
-  const { setStringParser, sequence, m } = g;
+export function stripImplicitLocations(): boolean {
+  const { setStringParser, sequence, m, patternifyAST, mini2ast } = g;
   if (typeof setStringParser !== "function" || typeof sequence !== "function" || typeof m !== "function") return false;
-  // same as @strudel/mini's `mini`, but offset -1 = "skip location handling"
-  setStringParser((...strings: string[]) => sequence(...strings.map((str) => m(str, -1))));
+  // same as @strudel/mini's `mini`/`h`, but offset -1 = "skip location handling"
+  const mini = (...strings: string[]) => sequence(...strings.map((str) => m(str, -1)));
+  setStringParser(mini);
+  g.mini = mini;
+  if (typeof patternifyAST === "function" && typeof mini2ast === "function") {
+    g.h = (str: string) => patternifyAST(mini2ast(str), str, null, -1);
+  }
   return true;
 }
 
@@ -115,7 +126,7 @@ const num = (x: any): number => (typeof x === "number" ? x : x.valueOf());
 export function createHighlighter(options: HighlighterOptions): Highlighter {
   const { getPattern, getTime, getCps, onRanges, latency = audioOutputLatency } = options;
   const interval = 1000 / (options.maxFps ?? 30);
-  if (options.stripImplicitLocations !== false && !installLocationFreeStringParser()) {
+  if (options.stripImplicitLocations !== false && !stripImplicitLocations()) {
     console.warn("[highlights] strudel globals missing — create the highlighter after initStrudel()");
   }
 
@@ -123,6 +134,9 @@ export function createHighlighter(options: HighlighterOptions): Highlighter {
   let cur = new Float64Array(256);
   let last = new Float64Array(256);
   let lastLen = -1; // -1 = nothing emitted yet
+  // a new pattern (hot-swap, other song) always re-emits, so listeners can attach
+  // the new file/version even when the offsets happen to be identical
+  let lastPattern: Pattern | null | undefined = null;
   let timer: ReturnType<typeof setInterval> | undefined;
 
   const emit = (len: number) => {
@@ -139,6 +153,8 @@ export function createHighlighter(options: HighlighterOptions): Highlighter {
   const tick = () => {
     let len = 0;
     const pattern = getPattern();
+    if (pattern && pattern !== lastPattern) lastLen = -1;
+    lastPattern = pattern;
     if (pattern) {
       const cps = getCps?.() ?? 0.5;
       const lat = typeof latency === "function" ? latency() : latency;

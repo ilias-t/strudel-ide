@@ -1,7 +1,9 @@
 import * as strudelWeb from "@strudel/web";
 import { linkEditor } from "./live/editor-link";
+import { createHighlighter, fromScheduler } from "./live/highlights";
 import type {
   Song,
+  SongSource,
   VisualizationType,
   VisualizationConfig,
 } from "./songs";
@@ -155,6 +157,8 @@ let playWhenReady = false;
 
 /** The last bare (un-visualized, un-guarded) pattern known to work. Fallback for the next swap. */
 let lastGood: Pattern | null = null;
+/** File + text version the scheduler's pattern was built from (highlight offsets refer to it) */
+let activeSource: SongSource | null = null;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DOM
@@ -531,6 +535,7 @@ async function swap({ start = false } = {}): Promise<boolean> {
   lastGood = bare;
   activeViz = viz.type;
   activeTracks = tracks;
+  activeSource = songsModule.songSources[songId] ?? null;
   repl.setCps(bpmToCps(song.bpm));
   await repl.setPattern(playable, true);
   swapCount++;
@@ -722,7 +727,7 @@ window.__strudel = {
 };
 
 // VS Code extension link (dev only; no-op without the bridge)
-linkEditor({
+const bridge = linkEditor({
   getState,
   onStateChange,
   play,
@@ -732,6 +737,20 @@ linkEditor({
   stepSong,
   songs: () => songsModule.getAllSongs().map(({ id, song }) => ({ id, name: song.name })),
 });
+
+// Live highlights: the mini-notation tokens sounding now → the editor (≤ 30 Hz,
+// only on change, [] when stopped). Created after initStrudel(): it swaps in
+// location-free string parsing so only song literals carry offsets.
+let highlightedFile: string | null = null;
+createHighlighter({
+  ...fromScheduler(repl.scheduler),
+  onRanges: (ranges) => {
+    const source = activeSource;
+    if (highlightedFile && highlightedFile !== source?.file) bridge.sendHighlight(highlightedFile, []);
+    highlightedFile = source?.file ?? null;
+    if (source) bridge.sendHighlight(source.file, ranges, source.version);
+  },
+}).start();
 
 loading = "Loading samples…";
 changed();

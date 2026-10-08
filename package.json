@@ -10,6 +10,9 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.types.json && tsc -p tsconfig.node.json && tsc -p e2e/tsconfig.json",
     "check:songs": "node scripts/check-songs.mjs",
+    "export": "node scripts/strudel-cc/export.mjs",
+    "import": "node scripts/strudel-cc/import.mjs",
+    "test:strudel-cc": "node scripts/test-strudel-cc.mjs",
     "render": "node scripts/render.mjs",
     "analyze": "node scripts/analyze.mjs",
     "test:render": "node scripts/test-render.mjs",
@@ -22,7 +25,7 @@
     "test:all": "npm run -s check && npm run -s test:build && npm run -s test:e2e",
     "gen:types": "node scripts/gen-strudel-types.mjs && node scripts/gen-sound-types.mjs",
     "audit:types": "node scripts/audit-types.mjs",
-    "check": "npm run -s typecheck && node scripts/audit-types.mjs --strict --quiet && node scripts/check-songs.mjs && node scripts/test-locations.mjs && npm run -s test:bridge && npm run -s test:knobs && npm run -s ext:check",
+    "check": "npm run -s typecheck && node scripts/audit-types.mjs --strict --quiet && node scripts/check-songs.mjs && node scripts/test-locations.mjs && npm run -s test:bridge && npm run -s test:knobs && npm run -s ext:check && node scripts/test-strudel-cc.mjs",
     "ext:build": "node scripts/ext.mjs build",
     "ext:check": "node scripts/ext.mjs check",
     "ext:package": "node scripts/ext.mjs package"

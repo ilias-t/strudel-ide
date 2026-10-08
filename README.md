@@ -106,3 +106,9 @@ export default song;
 than real time). `npm run analyze -- <song>` measures loudness, peaks, clipping,
 spectral balance and each track's level against the mix. See
 [docs/audio-tools.md](docs/audio-tools.md).
+
+## Share on strudel.cc
+
+`npm run export -- <song> --url` turns a song into a strudel.cc share link, and
+`npm run import -- '<strudel.cc link>'` turns strudel.cc code into a song in
+`src/songs/`. See [docs/strudel-cc.md](docs/strudel-cc.md).

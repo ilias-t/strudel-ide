@@ -265,7 +265,9 @@ export class EditSession {
     }
     if (this.disposed || seq !== this.seq) return result; // superseded
     this.inFlight = null;
-    if (result === null) {
+    if (result && !result.ok && result.error.superseded) {
+      // the engine evaluated something newer for this song first: nothing changed
+    } else if (result === null) {
       this.result = { kind: "offline", text: "not evaluated (engine pending)" };
     } else if (result.ok) {
       this.result = { kind: "ok", text: "live" };

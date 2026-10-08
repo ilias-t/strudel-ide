@@ -49,6 +49,11 @@ export function startLive(repl: Repl, bridge: BridgeClient): Live {
       currentSource = source;
       for (const listener of listeners) listener(ranges, source);
     },
+    // Per-hit pulses for the editor (≤ 30 Hz, only when something was hit)
+    onOnsets: (ranges) => {
+      const source = playingSource();
+      if (source) bridge.sendOnsets(source.file, ranges, source.version);
+    },
   }).start();
 
   let probeFrom = -1;

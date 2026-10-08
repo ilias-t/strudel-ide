@@ -38,10 +38,13 @@ const cutoff = knob("cutoff", 2200, 200, 8000, { log: true });
 ## Editor integration (VS Code / Cursor)
 
 `vscode-extension/` contains an extension that connects your editor to the
-running player. It outlines the tokens that are playing, shows the song and bar
-in the status bar, plays and stops with Ctrl/Cmd+Enter and Ctrl+., and shows
-player errors as diagnostics. To build it, run `npm run ext:package` and
-install `vscode-extension/strudel-live.vsix`. See
+running player. It outlines the tokens that are playing and flashes them on
+every hit, shows the song, section and bar in the status bar, plays and stops
+with Ctrl/Cmd+Enter and Ctrl+., jumps between and loops sections, puts a
+mute/solo mixer above each track's definition (dimming silent tracks), and
+shows player errors as diagnostics. Clicking code in the browser player opens
+it in the editor. To build it, run `npm run ext:package` and install
+`vscode-extension/strudel-live.vsix`. See
 [vscode-extension/README.md](vscode-extension/README.md).
 
 ## Tests

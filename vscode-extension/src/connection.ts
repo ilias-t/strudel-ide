@@ -3,7 +3,7 @@
 // (so a dev server restarted on another port is picked up).
 
 import WebSocket from "ws";
-import { parseMessage, type BridgeMessage, type CommandMsg } from "../../src/live/protocol.ts";
+import { parseMessage, type BridgeMessage, type CommandMsg, type HelloMsg } from "../../src/live/protocol.ts";
 import type { BridgeStatus } from "./model.ts";
 
 export interface ConnectionOptions {
@@ -14,6 +14,8 @@ export interface ConnectionOptions {
   minDelay?: number;
   maxDelay?: number;
   client?: string;
+  /** The editor's URI scheme (vscode.env.uriScheme), sent in hello */
+  scheme?: string;
 }
 
 export class BridgeConnection {
@@ -83,7 +85,9 @@ export class BridgeConnection {
     ws.on("open", () => {
       if (this.ws !== ws) return;
       this.delay = this.minDelay;
-      ws.send(JSON.stringify({ type: "hello", role: "editor", client: this.opts.client ?? "vscode" }));
+      const hello: HelloMsg = { type: "hello", role: "editor", client: this.opts.client ?? "vscode" };
+      if (this.opts.scheme) hello.scheme = this.opts.scheme;
+      ws.send(JSON.stringify(hello));
       this.opts.onStatus("connected");
     });
     ws.on("message", (data, isBinary) => {

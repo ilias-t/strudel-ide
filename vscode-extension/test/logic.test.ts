@@ -1,7 +1,7 @@
 // Unit tests for the extension's vscode-free logic. Run: npm test
 
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, test } from "node:test";
@@ -10,7 +10,9 @@ import { readDiscovery, resolveEndpoint, toBridgeUrl } from "../src/discovery.ts
 import { LiveModel, planEvaluate, planPlayFile } from "../src/model.ts";
 import { isSongPath, relativeTo, resolveIn, songIdFromPath } from "../src/paths.ts";
 import { LineIndex, findCreatePattern, normalizeRanges, toSpans } from "../src/ranges.ts";
-import { barNumber, currentCycle, cyclesPerSecond, formatStatus } from "../src/status.ts";
+import { Pulses } from "../src/pulses.ts";
+import { barNumber, currentCycle, cyclesPerSecond, formatStatus, songPosition } from "../src/status.ts";
+import { findTracks, isAudible, tokenize } from "../src/tracks.ts";
 
 const state = (over: Partial<StateMsg> = {}): StateMsg => ({
   type: "state",
@@ -167,6 +169,41 @@ describe("LiveModel message handling", () => {
     assert.equal(m.state, null);
   });
 
+  test("onsets become pulses while playing; reveal; mix changes", () => {
+    const m = new LiveModel();
+    m.setBridge("connected");
+    const f = "src/songs/jynx.ts";
+    // not playing yet → ignored
+    let ch = m.handle({ type: "onsets", file: f, ranges: [[1, 3]] }, 0);
+    assert.equal(ch.pulses.size, 0);
+    m.handle(state({ tracks: ["kick", "bass"], muted: [], soloed: [] }), 0);
+    ch = m.handle({ type: "onsets", file: f, ranges: [[1, 3], [5, 6]], version: "v" }, 100);
+    assert.deepEqual([...ch.pulses], [f]);
+    assert.deepEqual(m.pulses.active(f, 120), [[1, 3], [5, 6]]);
+    // stop → pulses cleared and reported
+    ch = m.handle(state({ playing: false, tracks: ["kick", "bass"] }), 150);
+    assert.deepEqual([...ch.pulses], [f]);
+    assert.deepEqual(m.pulses.active(f, 150), []);
+
+    // reveal is passed through (1-based line required)
+    ch = m.handle({ type: "reveal", file: f, line: 7, column: 3 });
+    assert.deepEqual(ch.reveal, { type: "reveal", file: f, line: 7, column: 3 });
+    assert.equal(m.handle({ type: "reveal", file: f, line: 0 }).reveal, null);
+    assert.equal(m.handle({ type: "reveal", file: f } as never).reveal, null);
+
+    // mute/solo/track changes → mix + lens; position-only updates → neither
+    m.handle(state({ tracks: ["kick", "bass"], muted: [], soloed: [] }));
+    ch = m.handle(state({ tracks: ["kick", "bass"], muted: [], soloed: [], position: 3 }));
+    assert.ok(!ch.mix && !ch.lens);
+    ch = m.handle(state({ tracks: ["kick", "bass"], muted: ["bass"], soloed: [] }));
+    assert.ok(ch.mix && ch.lens);
+    assert.deepEqual(m.tracksOf(f), { tracks: ["kick", "bass"], muted: ["bass"], soloed: [] });
+    assert.equal(m.tracksOf("src/songs/other.ts"), null, "the mix belongs to the current song only");
+    ch = m.handle({ type: "player", connected: false });
+    assert.ok(ch.mix);
+    assert.equal(m.tracksOf(f), null);
+  });
+
   test("songIdFor / isCurrent", () => {
     const m = new LiveModel();
     m.handle({ type: "songs", songs: [{ id: "custom-id", name: "X", file: "src/songs/x.ts" }] });
@@ -231,9 +268,12 @@ describe("status formatting", () => {
     assert.equal(formatStatus(m).command, "strudel.openPlayer");
 
     m.handle(state({ cycle: 32.4 }), 1000);
-    assert.equal(formatStatus(m, 1000).text, "▶ Jynx · 126 BPM · bar 33");
+    assert.equal(formatStatus(m, 1000).text, "▶ Jynx · bar 33 · 126 BPM");
     // 126 BPM = 0.525 cycles/s; 2 s later = cycle 33.45 → bar 34
-    assert.equal(formatStatus(m, 3000).text, "▶ Jynx · 126 BPM · bar 34");
+    assert.equal(formatStatus(m, 3000).text, "▶ Jynx · bar 34 · 126 BPM");
+    // `position` (song position, jumps applied) wins over the scheduler cycle
+    m.handle(state({ cycle: 32.4, position: 4.5 }), 1000);
+    assert.equal(formatStatus(m, 1000).text, "▶ Jynx · bar 5 · 126 BPM");
     assert.equal(formatStatus(m).command, "strudel.toggle");
 
     m.handle(state({ playing: false }));
@@ -248,6 +288,198 @@ describe("status formatting", () => {
 
     m.handle(state({ error: { message: "x".repeat(200) } }));
     assert.ok(formatStatus(m).text.length < 80);
+  });
+
+  const sections = [
+    { name: "intro", start: 0, bars: 8 },
+    { name: "verse", start: 8, bars: 16 },
+    { name: "chorus", start: 24, bars: 16 },
+  ]; // 40 bars
+  // 104 BPM, cps = 104/240 → 1 bar = 2.3077 s
+  const neon = (over: Partial<StateMsg> = {}) =>
+    state({ songName: "Neon Drive", bpm: 104, cps: 104 / 240, sections, ...over });
+  const bar = (n: number) => (n * 240 * 1000) / 104; // ms for n bars
+
+  test("song position: sections, wrapping, loops, pending jumps", () => {
+    // chorus, bar 3 of 16
+    let p = songPosition(neon({ position: 26.5, section: 2 }), 0, 0)!;
+    assert.equal(p.section?.name, "chorus");
+    assert.deepEqual([p.bar, p.beat, p.sectionBar], [27, 3, 3]);
+    // extrapolates: 2 bars later → bar 5 of the chorus
+    p = songPosition(neon({ position: 26.5, section: 2 }), 0, bar(2))!;
+    assert.equal(p.sectionBar, 5);
+    // past the end of the song → wraps to the intro (positions are unwrapped)
+    p = songPosition(neon({ position: 39.5, section: 2 }), 0, bar(1))!;
+    assert.deepEqual([p.section?.name, p.sectionBar, p.bar], ["intro", 1, 1]);
+    p = songPosition(neon({ position: 80 + 9, section: 1 }), 0, 0)!; // third pass
+    assert.deepEqual([p.section?.name, p.sectionBar], ["verse", 2]);
+    // looping the chorus: stays inside it instead of moving on
+    p = songPosition(neon({ position: 39.5, section: 2, loop: true }), 0, bar(1))!;
+    assert.deepEqual([p.section?.name, p.sectionBar, p.loop], ["chorus", 1, true]);
+    p = songPosition(neon({ position: 30, section: 2, loop: true }), 0, bar(16 * 3 + 2))!;
+    assert.deepEqual([p.section?.name, p.sectionBar], ["chorus", 9]);
+    // a pending jump is named
+    p = songPosition(neon({ position: 23.9, section: 1, pendingJump: { index: 2 } }), 0, 0)!;
+    assert.equal(p.next, "chorus");
+    // stopped → none
+    assert.equal(songPosition(neon({ playing: false, position: null }), 0, 0), null);
+  });
+
+  test("status bar with sections", () => {
+    const m = new LiveModel();
+    m.setBridge("connected");
+    m.handle(neon({ position: 26.2, section: 2 }), 0);
+    assert.equal(formatStatus(m, 0).text, "▶ Neon Drive · chorus · bar 3/16 · 104 BPM");
+    assert.match(String(formatStatus(m, 0).tooltip), /Section 3\/3: chorus, bar 3 of 16 \(song bar 27\)/);
+    // a jump lands: the next state re-anchors the position
+    m.handle(neon({ position: 8, section: 1 }), 1000);
+    assert.equal(formatStatus(m, 1000).text, "▶ Neon Drive · verse · bar 1/16 · 104 BPM");
+    m.handle(neon({ position: 30, section: 2, loop: true }), 0);
+    assert.equal(formatStatus(m, 0).text, "▶ Neon Drive · $(sync) chorus · bar 7/16 · 104 BPM");
+    m.handle(neon({ position: 23.5, section: 1, pendingJump: { index: 0 } }), 0);
+    assert.equal(formatStatus(m, 0).text, "▶ Neon Drive · verse → intro · bar 16/16 · 104 BPM");
+    m.handle(neon({ playing: false, position: null }), 0);
+    assert.equal(formatStatus(m, 0).text, "■ Neon Drive · 104 BPM");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("track definitions", () => {
+  const SONG = `import type { Song } from ".";
+
+const BANK = "RolandTR808"; // top-level const
+const pad = note("<c3 e3>").s("sawtooth");
+
+const song: Song = {
+  name: "Test",
+  createPattern(): Pattern | Record<string, Pattern> {
+    const helper = (p: Pattern) => {
+      return { not: "the tracks" }; // nested return
+    };
+    const kick = s("bd*4") // a comment with a } brace
+      .bank(BANK)
+      .gain(0.9);
+    let hats = s(\`hh*\${8}\`).gain(/[}]/.test("x") ? 0.3 : 0.2);
+    const unused = s("~");
+    return {
+      kick,
+      hats,
+      "lead": n("0 2 4").scale("C:minor"),
+      bass: note("c2*8")
+        .s("sawtooth")
+        .lpf(400),
+      drums: kick,
+      pad,
+      ...extra,
+    };
+  },
+};
+
+export default song;
+`;
+  const r = findTracks(SONG);
+  const by = Object.fromEntries(r.tracks.map((t) => [t.name, SONG.slice(t.start, t.end)]));
+
+  test("finds each returned key's definition", () => {
+    assert.deepEqual(
+      r.tracks.map((t) => [t.name, t.kind]),
+      [
+        ["kick", "declaration"],
+        ["hats", "declaration"],
+        ["lead", "property"],
+        ["bass", "property"],
+        ["drums", "declaration"],
+        ["pad", "declaration"],
+      ],
+    );
+    assert.equal(by.kick, 'const kick = s("bd*4") // a comment with a } brace\n      .bank(BANK)\n      .gain(0.9);');
+    assert.match(by.hats, /^let hats = s\(`hh\*\$\{8\}`\)\.gain\(.*0\.2\);$/);
+    assert.equal(by.lead, '"lead": n("0 2 4").scale("C:minor")');
+    assert.equal(by.bass, 'bass: note("c2*8")\n        .s("sawtooth")\n        .lpf(400)');
+    assert.equal(by.drums, by.kick, "an identifier value resolves to its declaration");
+    assert.equal(by.pad, 'const pad = note("<c3 e3>").s("sawtooth");', "falls back to top-level declarations");
+    assert.equal(SONG.slice(r.returnAt!, r.returnAt! + 8), "return {");
+  });
+
+  test("statements without semicolons end at the next statement", () => {
+    const text = `export default { createPattern() {
+  const a = s("bd")
+    .gain(1)
+  const b = s("hh")
+  return { a, b }
+} }`;
+    const t = findTracks(text).tracks;
+    assert.deepEqual(t.map((x) => text.slice(x.start, x.end)), ['const a = s("bd")\n    .gain(1)', 'const b = s("hh")']);
+  });
+
+  test("returning a named object, arrow functions, and non-track songs", () => {
+    const named = `const song = { createPattern: () => {
+  const kick = s("bd*4");
+  const tracks = { kick, snare: s("~ sd") };
+  return tracks;
+} };`;
+    assert.deepEqual(findTracks(named).tracks.map((t) => t.name), ["kick", "snare"]);
+    assert.deepEqual(findTracks(`const song = { createPattern() { return stack(s("bd"), s("hh")); } };`), {
+      tracks: [],
+      returnAt: null,
+    });
+    assert.deepEqual(findTracks("no song here"), { tracks: [], returnAt: null });
+  });
+
+  test("the tokenizer skips strings, templates, comments and regexes", () => {
+    const toks = tokenize('a("}", `${"}"}`, /}/g) /* } */ // }\n{ }');
+    assert.deepEqual(
+      toks.map((t) => t.v),
+      ["a", "(", '"}"', ",", '`${"}"}`', ",", "/}/g", ")", "{", "}"],
+    );
+    assert.deepEqual(toks.map((t) => t.depth), [0, 0, 1, 1, 1, 1, 1, 0, 0, 0]);
+  });
+
+  test("isAudible: solo beats mute", () => {
+    assert.ok(isAudible("kick"));
+    assert.ok(!isAudible("kick", ["kick"]));
+    assert.ok(isAudible("kick", ["kick"], ["kick"]));
+    assert.ok(!isAudible("bass", [], ["kick"]));
+  });
+
+  test("real songs: every returned track is found", () => {
+    const songsDir = join(import.meta.dirname, "..", "..", "src", "songs");
+    for (const f of readdirSync(songsDir)) {
+      if (f === "index.ts" || !f.endsWith(".ts")) continue;
+      const text = readFileSync(join(songsDir, f), "utf8");
+      const found = findTracks(text);
+      // Songs that build their track record dynamically (e.g. tour.ts's `return tracks;`) can't be mapped statically
+      const lastReturn = [...text.matchAll(/^\s+return\s+([^;\n]*)/gm)].at(-1)?.[1] ?? "";
+      if (!/^(\w+\()?\{/.test(lastReturn)) continue;
+      assert.ok(found.tracks.length > 0, `${f}: no tracks`);
+      for (const t of found.tracks) {
+        const def = text.slice(t.start, t.end);
+        assert.ok(def.startsWith(t.kind === "declaration" ? "" : t.name), `${f}: ${t.name} → ${def.slice(0, 40)}`);
+        assert.ok(def.includes(t.name), `${f}: ${t.name} not in its definition`);
+      }
+    }
+  });
+});
+
+describe("pulses", () => {
+  test("expire, track versions and report the next expiry", () => {
+    const p = new Pulses(100);
+    assert.ok(p.add("f", [[1, 2], [3, 4], ["x"], [5, 5]], "v1", 0));
+    assert.deepEqual(p.active("f", 50), [[1, 2], [3, 4]]);
+    assert.equal(p.nextExpiry(), 100);
+    p.add("f", [[1, 2]], "v1", 80); // re-hit extends
+    assert.deepEqual(p.active("f", 120), [[1, 2]]);
+    assert.equal(p.nextExpiry(), 180);
+    // another version of the file drops the old offsets
+    p.add("f", [[7, 9]], "v2", 130);
+    assert.deepEqual(p.active("f", 131), [[7, 9]]);
+    assert.equal(p.version("f"), "v2");
+    assert.deepEqual(p.active("f", 1000), []);
+    assert.equal(p.nextExpiry(), null);
+    assert.equal(p.add("f", "junk", undefined, 0), false);
+    p.add("g", [[1, 2]], undefined, 0);
+    assert.deepEqual(p.clear(), ["g"]);
   });
 });
 

@@ -1,8 +1,8 @@
 {
   "name": "strudel-live",
   "displayName": "Strudel Live",
-  "description": "strudel.cc-style live coding for the Strudel IDE: highlights, play/stop, status and errors from the running browser player.",
-  "version": "0.1.0",
+  "description": "strudel.cc-style live coding for the Strudel IDE: live highlights and hit pulses, play/stop, song position and sections, a mute/solo mixer in the code, errors, and click-to-open from the browser player.",
+  "version": "0.2.0",
   "publisher": "strudel-ide-local",
   "private": true,
   "license": "UNLICENSED",
@@ -28,6 +28,11 @@
       { "command": "strudel.openPlayer", "title": "Open Player in Browser", "category": "Strudel" },
       { "command": "strudel.muteTrack", "title": "Mute/Unmute Track…", "category": "Strudel" },
       { "command": "strudel.soloTrack", "title": "Solo/Unsolo Track…", "category": "Strudel" },
+      { "command": "strudel.unmuteAll", "title": "Unmute All Tracks", "category": "Strudel" },
+      { "command": "strudel.jumpToSection", "title": "Jump to Section…", "category": "Strudel" },
+      { "command": "strudel.nextSection", "title": "Next Section", "category": "Strudel" },
+      { "command": "strudel.prevSection", "title": "Previous Section", "category": "Strudel" },
+      { "command": "strudel.toggleLoop", "title": "Toggle Loop Section", "category": "Strudel" },
       { "command": "strudel.showError", "title": "Show Player Error", "category": "Strudel" },
       { "command": "strudel.startDevServer", "title": "Start Dev Server (npm run dev)", "category": "Strudel" },
       { "command": "strudel.reconnect", "title": "Reconnect to Dev Server", "category": "Strudel" }
@@ -48,6 +53,28 @@
         "command": "strudel.stop",
         "key": "ctrl+.",
         "when": "editorTextFocus && strudel.isSongFile"
+      },
+      {
+        "command": "strudel.jumpToSection",
+        "key": "ctrl+alt+j",
+        "when": "editorTextFocus && strudel.isSongFile"
+      },
+      {
+        "command": "strudel.toggleLoop",
+        "key": "ctrl+alt+l",
+        "when": "editorTextFocus && strudel.isSongFile"
+      },
+      {
+        "command": "strudel.nextSection",
+        "key": "ctrl+alt+pagedown",
+        "mac": "ctrl+alt+]",
+        "when": "editorTextFocus && strudel.isSongFile"
+      },
+      {
+        "command": "strudel.prevSection",
+        "key": "ctrl+alt+pageup",
+        "mac": "ctrl+alt+[",
+        "when": "editorTextFocus && strudel.isSongFile"
       }
     ],
     "menus": {
@@ -56,7 +83,12 @@
         { "command": "strudel.stop", "when": "strudel.isSongFile && strudel.playing", "group": "navigation" }
       ],
       "commandPalette": [
-        { "command": "strudel.showError", "when": "strudel.playerConnected" }
+        { "command": "strudel.showError", "when": "strudel.playerConnected" },
+        { "command": "strudel.unmuteAll", "when": "strudel.playerConnected" },
+        { "command": "strudel.jumpToSection", "when": "strudel.playerConnected" },
+        { "command": "strudel.nextSection", "when": "strudel.playerConnected" },
+        { "command": "strudel.prevSection", "when": "strudel.playerConnected" },
+        { "command": "strudel.toggleLoop", "when": "strudel.playerConnected" }
       ]
     },
     "colors": [
@@ -69,6 +101,16 @@
         "id": "strudel.highlightBorder",
         "description": "Outline of mini-notation tokens that are currently sounding.",
         "defaults": { "dark": "#ffffffcc", "light": "#000000b3", "highContrast": "contrastActiveBorder", "highContrastLight": "contrastActiveBorder" }
+      },
+      {
+        "id": "strudel.pulseBackground",
+        "description": "Flash on a mini-notation token each time it is hit (note onset).",
+        "defaults": { "dark": "#ffffff66", "light": "#00000040", "highContrast": "#ffffff73", "highContrastLight": "#0000004d" }
+      },
+      {
+        "id": "strudel.pulseBorder",
+        "description": "Outline of the flash on a mini-notation token each time it is hit.",
+        "defaults": { "dark": "#ffffff", "light": "#000000", "highContrast": "contrastActiveBorder", "highContrastLight": "contrastActiveBorder" }
       }
     ],
     "configuration": {
@@ -84,10 +126,36 @@
           "default": true,
           "description": "Outline the mini-notation tokens that are currently playing."
         },
+        "strudel.highlights.pulses": {
+          "type": "boolean",
+          "default": true,
+          "description": "Flash a token briefly on every hit, so retriggered tokens like \"bd*4\" pulse with the beat."
+        },
         "strudel.codeLens": {
           "type": "boolean",
           "default": true,
           "description": "Show ▶ Play / ■ Stop above createPattern in song files."
+        },
+        "strudel.mixer.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show mute/solo actions above each track's definition in the song that is loaded in the player."
+        },
+        "strudel.mixer.dimMuted": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dim the definitions of tracks that are muted (or silenced by a solo)."
+        },
+        "strudel.reveal.focusWindow": {
+          "type": "string",
+          "enum": ["auto", "uri", "off"],
+          "enumDescriptions": [
+            "macOS: bring this editor app to the front (`open -a`). Elsewhere: only open the file.",
+            "Open the editor's own `<scheme>://file/…` link, which focuses the window that has the file (the editor may ask to confirm).",
+            "Only open the file; don't try to bring the window to the front."
+          ],
+          "default": "auto",
+          "markdownDescription": "Clicking code in the browser player opens it here. This controls how the editor window comes to the front."
         }
       }
     }

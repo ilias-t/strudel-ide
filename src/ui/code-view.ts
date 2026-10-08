@@ -17,6 +17,8 @@
 // Each `knob("name", …)` call gets an inline chip after its closing paren
 // showing the knob's live value (knobChips(); the text is CSS-generated, so it
 // is never copied with the code). Clicking a chip calls onKnobChip.
+// Clicking a token or line reports its position (onPick), which the stage
+// uses to open that spot in the editor.
 
 import { tokenize, type Token, type TokenKind } from "./tokenize";
 import type { Range } from "../live/highlights";
@@ -51,6 +53,8 @@ export interface CodeViewOptions {
   followChip: HTMLElement;
   /** A knob chip in the code was clicked */
   onKnobChip?: (name: string) => void;
+  /** A click on the code (not a text selection): offset into the text, 1-based line/column */
+  onPick?: (pos: { offset: number; line: number; column: number }) => void;
 }
 
 /** A `knob("name", …)` call in the text: `end` is just past its closing paren */
@@ -133,6 +137,7 @@ export class CodeView {
       const chip = (e.target as HTMLElement).closest<HTMLElement>(".knob-chip");
       if (chip?.dataset.knob) o.onKnobChip?.(chip.dataset.knob);
     });
+    o.lines.addEventListener("click", (e) => this.pick(e));
 
     new ResizeObserver(() => {
       this.viewportH = o.scroller.clientHeight;
@@ -302,7 +307,42 @@ export class CodeView {
     }
   }
 
+  /** Offset → 1-based line/column (UTF-16 columns, like VS Code) */
+  lineColumnAt(offset: number): { line: number; column: number } {
+    const o = Math.max(0, Math.min(this.text.length, offset));
+    let line = 1;
+    for (let i = this.text.indexOf("\n"); i >= 0 && i < o; i = this.text.indexOf("\n", i + 1)) line++;
+    return { line, column: o - (this.text.lastIndexOf("\n", o - 1) + 1) + 1 };
+  }
+
   // ───────────────────────────────────────────────────────────────────────────
+
+  private pick(e: MouseEvent) {
+    if (!this.o.onPick || e.button !== 0) return;
+    if ((e.target as Element | null)?.closest?.(".knob-chip")) return; // knob chips focus the knob instead
+    const selection = getSelection();
+    if (selection && !selection.isCollapsed && selection.toString()) return; // selecting text
+    const lineEl = (e.target as Element | null)?.closest?.<HTMLElement>(".ln");
+    if (!lineEl) return;
+    const lineNo = Number(lineEl.dataset.line);
+    // the character under the pointer, else the start of the clicked line
+    let offset = -1;
+    const doc = document as Document & {
+      caretPositionFromPoint?(x: number, y: number): { offsetNode: Node; offset: number } | null;
+    };
+    const caret = doc.caretPositionFromPoint?.(e.clientX, e.clientY);
+    const range = caret ? null : document.caretRangeFromPoint?.(e.clientX, e.clientY);
+    const node = caret?.offsetNode ?? range?.startContainer;
+    const at = caret?.offset ?? range?.startOffset ?? 0;
+    const i = node instanceof Text && lineEl.contains(node) ? this.nodes.indexOf(node) : -1;
+    if (i >= 0) offset = this.nodeStarts[i] + at;
+    else {
+      offset = 0;
+      for (let n = 1; n < lineNo && offset >= 0; n++) offset = this.text.indexOf("\n", offset) + 1;
+      if (offset < 0) return;
+    }
+    this.o.onPick({ offset, ...this.lineColumnAt(offset) });
+  }
 
   private render() {
     const text = this.text;

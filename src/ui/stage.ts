@@ -10,6 +10,7 @@ import { engine } from "../engine/strudel";
 import type { Live } from "../engine/live";
 import type { PlayerError, PlayerState } from "../engine/types";
 import { contentVersion } from "../live/protocol";
+import { songFile, songIdForFile, type EditorLinkStatus, type RevealResult } from "../live/editor-link";
 import { CodeView } from "./code-view";
 import { Mixer } from "./mixer";
 import { KnobPanel } from "./knobs";
@@ -20,7 +21,10 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 export interface Stage {
   attachLive(live: Live): void;
-  setEditorConnected(connected: boolean): void;
+  /** The "VS Code" LED: no bridge / bridge without an editor / editor attached */
+  setEditorLink(status: EditorLinkStatus): void;
+  /** How clicks on the code (and the error location) open the editor */
+  setRevealer(reveal: (file: string, line: number, column?: number) => RevealResult): void;
   toggleCodeView(): void;
   /** Ranges lit in the code view now */
   highlights(): [number, number][];
@@ -39,11 +43,13 @@ export function mountStage(): Stage {
   const barEl = $("bar");
   const beatEl = $("beat");
   const linkEl = $("editor-link");
+  const linkLabel = linkEl.querySelector(".link-label")!;
   const codeFile = $("code-file");
   const codeStale = $("code-stale");
   const help = $("help-overlay");
   const cueEl = $("cue");
 
+  let reveal: (file: string, line: number, column?: number) => RevealResult = () => "none";
   const codeView = new CodeView({
     scroller: $("code-scroll"),
     content: $("code-content"),
@@ -51,6 +57,11 @@ export function mountStage(): Stage {
     overlay: $("code-highlights"),
     followChip: $("follow-chip"),
     onKnobChip: (name) => knobPanel.focus(name),
+    // click a token or line → open it in the editor
+    onPick: ({ line, column }) => {
+      const file = player.currentSource()?.file;
+      if (file) reveal(file, line, column);
+    },
   });
 
   const knobPanel = new KnobPanel(
@@ -227,6 +238,9 @@ export function mountStage(): Stage {
       codeView.revealLine(lastError.line);
       codeView.setFollowing(false);
     }
+    // …and in the editor
+    const id = songIdForFile(lastError?.file);
+    if (id && lastError?.line) reveal(songFile(id), lastError.line, lastError.column);
   });
   $("error-dismiss").addEventListener("click", () => player.setError(null));
 
@@ -379,13 +393,37 @@ export function mountStage(): Stage {
       live = l;
       l.onRanges((ranges) => codeView.setRanges(sameSource() ? ranges : []));
     },
-    setEditorConnected(connected) {
-      linkEl.dataset.connected = String(connected);
-      linkEl.title = connected
-        ? "Linked to the dev-server bridge: the VS Code extension can drive the player and show highlights"
-        : "Not linked to the dev-server bridge (VS Code commands and highlights are offline)";
+    setEditorLink(status) {
+      const app = editorName(status.scheme);
+      linkEl.dataset.state = status.state;
+      linkEl.dataset.connected = String(status.state === "editor");
+      linkEl.dataset.editors = String(status.editors);
+      linkLabel.textContent = app;
+      linkEl.title =
+        status.state === "editor"
+          ? `${app} is attached: it drives the player and shows highlights. Click the code to jump there.`
+          : status.state === "bridge"
+            ? `Dev server bridge is up, but no editor is attached (install the Strudel Live extension).${
+                status.scheme ? ` Clicking the code opens it with ${status.scheme}://.` : ""
+              }`
+            : "Not linked to the dev-server bridge (editor commands and highlights are offline)";
+    },
+    setRevealer(fn) {
+      reveal = fn;
     },
     toggleCodeView,
     highlights: () => codeView.litRanges(),
   };
+}
+
+/** "cursor" → "Cursor", for the editor LED */
+function editorName(scheme: string | null): string {
+  const names: Record<string, string> = {
+    cursor: "Cursor",
+    vscode: "VS Code",
+    "vscode-insiders": "VS Code Insiders",
+    vscodium: "VSCodium",
+    windsurf: "Windsurf",
+  };
+  return (scheme && names[scheme]) || "VS Code";
 }

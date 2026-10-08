@@ -18,7 +18,7 @@
 //
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { linkEditor } from "./live/editor-link";
+import { linkEditor, type EditorLink, type EditorLinkStatus } from "./live/editor-link";
 import * as player from "./engine/player";
 import { startLive } from "./engine/live";
 import { engine, loadSamples, type Repl, type Scheduler } from "./engine/strudel";
@@ -82,7 +82,7 @@ window.__strudel = {
 };
 
 // VS Code extension link (dev only; no-op without the bridge)
-const bridge = linkEditor(
+const link = linkEditor(
   {
     getState: player.getState,
     onStateChange: player.onStateChange,
@@ -96,14 +96,20 @@ const bridge = linkEditor(
     unmuteAll: player.unmuteAll,
     muted: player.muted,
     soloed: player.soloed,
+    jumpToSection: player.jumpToSection,
+    stepSection: player.stepSection,
+    setLoop: player.setLoop,
   },
-  { onConnectionChange: stage.setEditorConnected }
+  { onStatus: stage.setEditorLink }
 );
+stage.setRevealer(link.reveal);
+window.__strudel!.editorLink = () => link.status;
+window.__strudel!.reveal = link.reveal;
 
 // Live highlights → editor + code view. Created after initStrudel() (it swaps
 // in location-free string parsing so only song literals carry offsets) and
 // before the first build, so no pattern is built with implicit locations.
-stage.attachLive(startLive(repl, bridge));
+stage.attachLive(startLive(repl, link.bridge));
 
 // Build the current song once so the mixer and timeline know it before play
 void player.validateCurrent();
@@ -159,6 +165,10 @@ declare global {
       onKnobsChange: typeof player.onKnobsChange;
       toggleCodeView: () => void;
       highlights: () => [number, number][];
+      /** Editor bridge status (set once the link is up) */
+      editorLink?: () => EditorLinkStatus;
+      /** Open a file position in the editor (bridge, else a vscode://file link) */
+      reveal?: EditorLink["reveal"];
     };
   }
 }

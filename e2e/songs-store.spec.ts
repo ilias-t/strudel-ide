@@ -94,11 +94,13 @@ test("a share link round-trips: the song travels in the URL hash", async ({ play
   expect(parsed.hash).toMatch(/^#song=[A-Za-z0-9_-]+$/);
   expect(parsed.pathname).toBe("/");
 
-  // a fresh browser context (no storage) opens the link
+  // a fresh browser context (no storage) opens the link, once the person agrees
   const context = await browser.newContext();
   const other = await context.newPage();
   const errors: string[] = [];
+  const asked: string[] = [];
   other.on("pageerror", (e) => errors.push(e.message));
+  other.on("dialog", (dialog) => (asked.push(dialog.message()), void dialog.accept()));
   await other.goto(url);
   await other.waitForFunction(() => window.__strudel?.getState().ready === true, null, { timeout: 30_000 });
   await expect.poll(() => other.evaluate(() => window.__strudel!.getState().songId)).toBe("shared-tune");
@@ -109,7 +111,29 @@ test("a share link round-trips: the song travels in the URL hash", async ({ play
   });
   expect(await other.evaluate(() => window.__strudel!.getState().playing), "a link never auto-plays").toBe(false);
   expect(await other.evaluate(() => window.__strudel!.store.listMySongs()), "nor persists by itself").toEqual([]);
+  expect(asked).toHaveLength(1);
+  expect(asked[0]).toMatch(/shared song "shared-tune".*runs that code/s);
   expect(errors).toEqual([]);
+  await context.close();
+});
+
+test("a declined share link runs nothing", async ({ player, page, browser }) => {
+  await player.boot();
+  // top-level code that would show if it ran
+  const text = fixtureSource({ name: "Nope" }) + "\n(globalThis as any).__sharedRan = true;\n";
+  const url = await page.evaluate((text) => window.__strudel!.store.shareUrl("nope-tune", text), text);
+
+  const context = await browser.newContext();
+  const other = await context.newPage();
+  other.on("dialog", (dialog) => void dialog.dismiss());
+  const requests: string[] = [];
+  other.on("request", (req) => requests.push(new URL(req.url()).pathname));
+  await other.goto(url);
+  await other.waitForFunction(() => window.__strudel?.getState().ready === true, null, { timeout: 30_000 });
+  await other.waitForTimeout(500);
+  expect(await other.evaluate(() => Object.keys(window.__strudel!.songs()))).not.toContain("nope-tune");
+  expect(await other.evaluate(() => (globalThis as { __sharedRan?: boolean }).__sharedRan)).toBeUndefined();
+  expect(requests.filter((p) => /\/src\/compile\/(client|worker)\.ts$/.test(p)), "the compiler isn't even loaded").toEqual([]);
   await context.close();
 });
 

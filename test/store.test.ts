@@ -287,6 +287,14 @@ describe("revert", () => {
     assert.equal(player.hasSong("wobble"), false);
   });
 
+  test("a user song not listed yet (still compiling at boot): the player is told to cancel it", () => {
+    const { store, player } = setup();
+    store.saveOverride("wobble", SONG);
+    assert.equal(player.hasSong("wobble"), false);
+    assert.equal(store.revert("wobble"), true);
+    assert.deepEqual(player.calls, [["removeSong", "wobble"]]);
+  });
+
   test("nothing to revert: false", () => {
     const { store } = setup();
     assert.equal(store.revert("ghost"), false);
@@ -323,6 +331,26 @@ describe("share and open", () => {
     assert.deepEqual(await store.loadFromHash(hash), { ok: true, id: "wobble" });
     assert.deepEqual(player.calls, [["addSong", "wobble", SONG], ["selectSong", "wobble"]]);
     assert.equal(storage.map.size, 0);
+  });
+
+  test("asks first: a declined link runs nothing; an accepted one opens", async () => {
+    const { store, player } = setup();
+    const hash = `#song=${await encodeShare("wobble", SONG)}`;
+    const asked: unknown[] = [];
+    const declined = await store.loadFromHash(hash, { confirm: (song) => (asked.push(song), false) });
+    assert.deepEqual(declined, { ok: false, error: "The shared song was not opened.", declined: true });
+    assert.deepEqual(asked, [{ id: "wobble", text: SONG }], "the question sees the id and the text");
+    assert.deepEqual(player.calls, [], "nothing compiled, nothing selected");
+    assert.deepEqual(await store.loadFromHash(hash, { confirm: async () => true }), { ok: true, id: "wobble" });
+    assert.deepEqual(player.calls, [["addSong", "wobble", SONG], ["selectSong", "wobble"]]);
+  });
+
+  test("boot passes its confirmShare to the link", async () => {
+    const hash = `#song=${await encodeShare("wobble", SONG)}`;
+    const { store, player } = setup({ location: { href: `https://example.org/${hash}`, hash } });
+    const report = await store.init(player, { confirmShare: () => false });
+    assert.equal(report.shared?.ok, false);
+    assert.deepEqual(player.calls, []);
   });
 
   test("a built-in's id: opened under a free -shared id", async () => {
@@ -451,6 +479,25 @@ describe("save to file", () => {
     assert.equal(new Headers(init?.headers).get("content-type"), "application/json");
     assert.deepEqual(JSON.parse(String(init?.body)), { id: "wobble", text: SONG, create: true });
     assert.equal(store.getMySong("wobble"), null);
+  });
+
+  test("an edit saved while the request was out stays: only the text that reached the file is dropped", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const log: FetchLog = [];
+    const inner = devFetch(log);
+    const slow = (async (url: string | URL | Request, init?: RequestInit) => {
+      if (init?.method === "POST") await gate;
+      return inner(url, init);
+    }) as typeof fetch;
+    const { store } = setup({ dev: true, fetch: slow });
+    store.saveOverride("wobble", SONG);
+    const saving = store.saveToFile("wobble", SONG, { create: true });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    store.saveOverride("wobble", user("Newer"));
+    release();
+    assert.equal((await saving).ok, true);
+    assert.equal(store.getMySong("wobble")?.text, user("Newer"), "the newer edit is kept");
   });
 
   test("a refused write keeps the browser copy and returns the server's error", async () => {

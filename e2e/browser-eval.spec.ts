@@ -65,7 +65,7 @@ test("evalSource hot-swaps browser-compiled text while playing; highlights land 
   // highlights index into the evaluated text: the browser-only token lights up
   const tokenAt = text.indexOf(`${BROWSER_TOKEN}")`);
   await expect
-    .poll(() => page.evaluate(() => window.__strudel!.highlights()), { message: `"${BROWSER_TOKEN}" lit`, timeout: 8_000 })
+    .poll(() => page.evaluate(() => window.__strudel!.highlights()), { message: `"${BROWSER_TOKEN}" lit`, timeout: 8_000, intervals: [50] })
     .toContainEqual([tokenAt, tokenAt + BROWSER_TOKEN.length]);
   const ranges = await page.evaluate(() => window.__strudel!.highlights());
   for (const [a, b] of ranges) expect(text.slice(a, b)).toMatch(/^[^\s"'`]+$/);
@@ -173,6 +173,18 @@ test("addSong registers a user song that plays like a built-in; removeSong drops
   const edited = fixtureSource({ name: "My Tune", gain: 0.15 });
   expect(await evalSource(player, "my-tune", edited, { intent: "commit", origin: "browser" })).toMatchObject({ ok: true });
   await expect.poll(() => player.probe()).toMatchObject({ gain: 0.15 });
+
+  // re-adding the selected song with a text that doesn't build: refused, the old one stays
+  const broken = fixtureSource({ name: "My Tune", gain: 0.6, buildError: true });
+  const readd = await page.evaluate((text) => window.__strudel!.addSong("my-tune", text), broken);
+  expect(readd.ok).toBe(false);
+  player.clearErrors(); // the player reports the build error, on purpose
+  expect(await page.evaluate(() => window.__strudel!.songs()["my-tune"]?.name)).toBe("My Tune");
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.15 });
+  expect(await page.evaluate(() => window.__strudel!.currentSource()?.text)).toBe(edited);
+  await page.evaluate(() => window.__strudel!.selectSong("untitled"));
+  await page.evaluate(() => window.__strudel!.selectSong("my-tune"));
+  expect((await player.state()).error, "the kept song still builds").toBeNull();
 
   // built-in ids and bad ids are refused
   for (const id of [FIXTURE_ID, "../x", "Upper", "index"]) {

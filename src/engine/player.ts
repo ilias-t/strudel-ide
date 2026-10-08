@@ -769,6 +769,8 @@ export function songsUpdated(newModule: SongsModule | undefined) {
   // the same way: the built-in song of that id replaces it.
   let alreadyPlaying = false;
   for (const id of edited) {
+    // an eval/add of this song still compiling started before the save: it must not land on top of it
+    nextSeq(id);
     const live = liveSongs.get(id) ?? userSongs.get(id);
     if (!live) continue;
     liveSongs.delete(id);
@@ -1093,6 +1095,8 @@ async function addSongNow(id: string, text: string): Promise<EvalSourceResult> {
   if (!compiled.ok) return { ok: false, error: compiled.error };
   if (isBuiltInSong(id)) return { ok: false, error: { message: `"${id}" became a built-in song meanwhile` } };
   const version = contentVersion(text);
+  const previous = userSongs.get(id);
+  const previousLive = liveSongs.get(id);
   userSongs.set(id, { song: compiled.song, source: { file, version, text, live: false, origin: "browser" } });
   liveSongs.delete(id);
   if (bootSongId === id && !repl?.scheduler.started) {
@@ -1100,13 +1104,31 @@ async function addSongNow(id: string, text: string): Promise<EvalSourceResult> {
     switchTo(id);
   }
   changed();
-  if (id === currentSongId) await swap();
+  if (id === currentSongId) {
+    // replacing the song that is selected: it must build, or the old one stays
+    const out: SwapOutcome = { error: null };
+    if (!(await swap({ out }))) {
+      if (userSongs.get(id)?.song === compiled.song) {
+        if (previous) userSongs.set(id, previous);
+        else userSongs.delete(id);
+        if (previousLive) liveSongs.set(id, previousLive);
+      }
+      changed();
+      if (out.error) await whenLocated(out.error);
+      return { ok: false, error: toEvalError(out.error) };
+    }
+  }
   return { ok: true, version };
 }
 
 /** Unregister a user song (built-in songs can't be removed). The current song moves on if it was this one. */
 export function removeSong(id: string): boolean {
-  if (!userSongs.has(id)) return false;
+  if (!userSongs.has(id)) {
+    // not listed yet, but maybe still compiling (boot): cancel that
+    if (!pendingEvals.has(id) || isBuiltInSong(id)) return false;
+    nextSeq(id);
+    return true;
+  }
   nextSeq(id);
   userSongs.delete(id);
   liveSongs.delete(id);

@@ -63,7 +63,20 @@ export interface MySong {
 /** saveOverride's result: `persisted` is false when storage is unavailable (private mode, quota, blocked) */
 export type SavedSong = MySong & { persisted: boolean };
 
-export type LoadResult = { ok: true; id: string } | { ok: false; error: string };
+export type LoadResult = { ok: true; id: string } | { ok: false; error: string; /** the person said no (confirm) */ declined?: true };
+
+export interface InitOptions {
+  /** Asked before a share link in the URL is opened (see LoadOptions.confirm) */
+  confirmShare?: LoadOptions["confirm"];
+}
+
+export interface LoadOptions {
+  /**
+   * Asked before a shared song's code is compiled and run; false = not opened.
+   * initSongsStore() asks with window.confirm unless given its own.
+   */
+  confirm?: (song: SharedSong) => boolean | Promise<boolean>;
+}
 
 export type SaveToFileResult = { ok: true; file: string; created: boolean } | { ok: false; error: string };
 
@@ -98,11 +111,12 @@ export interface SongsStore {
   revert(id: string): boolean;
   shareUrl(id: string, text: string, baseHref?: string): Promise<string>;
   decodeShare(hash: string): Promise<SharedSong | null>;
-  loadFromHash(hash?: string): Promise<LoadResult | null>;
+  loadFromHash(hash?: string, opts?: LoadOptions): Promise<LoadResult | null>;
   download(id: string, text: string): void;
   canSaveToFile(): Promise<boolean>;
   saveToFile(id: string, text: string, opts?: { create?: boolean }): Promise<SaveToFileResult>;
-  init(player: StorePlayer): Promise<InitReport>;
+  /** Boot: stored songs, then a share link (asking `confirmShare` first, if given) */
+  init(player: StorePlayer, opts?: InitOptions): Promise<InitReport>;
 }
 
 /** The dev server's song-file endpoint, relative to Vite's base */
@@ -247,7 +261,8 @@ export function createSongsStore(deps: SongsStoreDeps): SongsStore {
       player.revertSource(id);
       return removed;
     }
-    return (player.hasSong(id) && player.removeSong(id)) || removed;
+    // also when it isn't listed yet: removeSong cancels an addSong still compiling (boot)
+    return player.removeSong(id) || removed;
   }
 
   // ── share links ──────────────────────────────────────────────────────────
@@ -277,11 +292,17 @@ export function createSongsStore(deps: SongsStoreDeps): SongsStore {
     }
   }
 
-  async function loadFromHash(hash = currentLocation().hash): Promise<LoadResult | null> {
+  async function loadFromHash(hash = currentLocation().hash, opts: LoadOptions = {}): Promise<LoadResult | null> {
     if (!sharePayload(hash)) return null;
     if (!player) throw new Error("songs store: no player connected");
     const shared = await decodeSharePayload(hash);
     if (!shared) return { ok: false, error: "This share link is damaged or too large to open." };
+    // A link's text is code, and compiling a song runs it in this page (with
+    // this origin's storage and, under the dev server, its write endpoints):
+    // nothing from a link runs before the person agrees.
+    if (opts.confirm && !(await opts.confirm(shared))) {
+      return { ok: false, error: "The shared song was not opened.", declined: true };
+    }
     const id = pickId(shared.id, shared.text);
     if (!player.hasSong(id)) {
       const result = await player.addSong(id, shared.text);
@@ -349,14 +370,15 @@ export function createSongsStore(deps: SongsStoreDeps): SongsStore {
     if (!res.ok || body?.ok !== true || typeof body.file !== "string") {
       return { ok: false, error: typeof body?.error === "string" ? body.error : `save failed (HTTP ${res.status})` };
     }
-    // the file is the truth now; HMR brings it into the player
-    removeEntry(id);
+    // the file is the truth now; HMR brings it into the player. An edit saved
+    // while the request was out (different text) isn't on disk: keep that one.
+    if (readEntry(id)?.text === text) removeEntry(id);
     return { ok: true, file: body.file, created: body.created === true };
   }
 
   // ── boot ─────────────────────────────────────────────────────────────────
 
-  async function init(p: StorePlayer): Promise<InitReport> {
+  async function init(p: StorePlayer, opts: InitOptions = {}): Promise<InitReport> {
     player = p;
     const report: InitReport = { failed: [], shared: null };
     // Read everything synchronously first: with nothing saved and no share
@@ -380,7 +402,7 @@ export function createSongsStore(deps: SongsStoreDeps): SongsStore {
         report.failed.push({ id, error: err instanceof Error ? err.message : String(err) });
       }
     }
-    if (hasShare) report.shared = await loadFromHash();
+    if (hasShare) report.shared = await loadFromHash(undefined, { confirm: opts.confirmShare });
     return report;
   }
 
@@ -442,7 +464,7 @@ export const shareUrl = (id: string, text: string, baseHref?: string) => store()
 /** The song in a share hash, or null when there's none or it's malformed */
 export const decodeShare = (hash: string) => store().decodeShare(hash);
 /** Open the share link in the hash as a user song and select it (doesn't play or save). null: no link. */
-export const loadFromHash = (hash?: string) => store().loadFromHash(hash);
+export const loadFromHash = (hash?: string, opts?: LoadOptions) => store().loadFromHash(hash, opts);
 /** Download the song's exact text as <id>.ts */
 export const download = (id: string, text: string) => store().download(id, text);
 /** True only under the dev server with the song endpoint (probed once) */
@@ -450,4 +472,19 @@ export const canSaveToFile = () => store().canSaveToFile();
 /** Write src/songs/<id>.ts through the dev server (create: a new file, else overwrite an existing one) */
 export const saveToFile = (id: string, text: string, opts?: { create?: boolean }) => store().saveToFile(id, text, opts);
 /** Boot hook: register saved user songs, apply saved overrides, then open a share link in the hash */
-export const initSongsStore = (player: StorePlayer) => store().init(player);
+/**
+ * The boot hook (main.ts). A share link in the URL is only opened once the
+ * person agrees: `confirmShare` (default: window.confirm) sees its id and text.
+ */
+export const initSongsStore = (player: StorePlayer, opts: InitOptions = {}) =>
+  store().init(player, { confirmShare: opts.confirmShare ?? confirmShareInBrowser });
+
+/** The default question before a share link's code runs */
+export function confirmShareInBrowser(song: SharedSong): boolean {
+  const ask = (globalThis as { confirm?: (message: string) => boolean }).confirm;
+  if (typeof ask !== "function") return false;
+  return ask(
+    `Open the shared song "${song.id}"?\n\nA share link carries code, and opening it runs that code in this page. ` +
+      `Only open links from people you trust.`
+  );
+}

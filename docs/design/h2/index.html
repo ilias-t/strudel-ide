@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="en" data-song="neon">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strudel Stage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* gear */
+  --coat: #232325;          /* graphite powder coat */
+  --coat-hi: #2C2C2F;
+  --coat-lo: #1C1C1E;
+  --seam: #19191B;
+  --silk: #E6E1D6;          /* silkscreen */
+  --silk-soft: #A29D93;
+  --silk-faint: #6E6A63;
+  --glass: #060607;         /* display glass */
+  --px: #EEE9DE;            /* display text */
+  --px-dim: #8A867E;
+  --px-faint: #3A3936;
+  --key: #3A3A3E;           /* rubber key */
+  --key-hi: #47474B;
+  /* track colours: caps, keys, LEDs, tokens */
+  --ember: #FF6A2B;  --ember-px: #FF9A6E;
+  --cobalt: #3F6BFF; --cobalt-px: #8EA6FF;
+  --lilac: #9C82F2;  --lilac-px: #BBA8FF;
+  --teal: #1DB89F;   --teal-px: #5FE0C6;
+  --cream: #F1ECE1;
+  --rose: #F0729A;   --rose-px: #FF9CBA;
+  --acid: #B9F03A;   --acid-px: #D2FF6A;
+  --uv: #8A5CFF;
+  --red: #FF4433;
+  --led-on: #FF6A2B;
+  /* room light colours (neon drive at dusk) */
+  --l-kick: #FF9466;
+  --l-top: #9A86F0;
+  --l-right: #4F86FF;
+  --l-left: #F2789C;
+  --room-base: #191B3A;
+  --ui: "Instrument Sans", "Arial Narrow", sans-serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+  --code-size: 13px;
+  --code-lh: 17px;
+}
+html[data-song="acid"] {
+  --l-kick: #EDE9FF;
+  --l-top: #B9F03A;
+  --l-right: #3358FF;
+  --l-left: #FF3D9A;
+  --room-base: #0A0A12;
+  --led-on: #B9F03A;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--room-base);
+  color: var(--silk);
+  font-family: var(--ui);
+  font-stretch: 80%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; border-radius: 6px; }
+
+/* ── the room ─────────────────────────────────────────────────────── */
+#room, #spill {
+  position: fixed; inset: 0; width: 100vw; height: 100vh;
+  pointer-events: none;
+}
+#room { z-index: -2; }
+/* the same light, laid over the gear: tints powder coat, never the glass (screens sit above it) */
+#spill { z-index: 5; mix-blend-mode: screen; opacity: .11; }
+
+/* ── rig layout ───────────────────────────────────────────────────── */
+.rig {
+  height: 100vh;
+  padding: 24px 32px 26px;
+  display: grid;
+  grid-template-rows: 56px minmax(0, 1fr) 78px;
+  gap: 20px;
+}
+.row-top { display: flex; gap: 24px; min-width: 0; }
+.row-top .air { flex: 1; }
+.row-mid { display: grid; grid-template-columns: minmax(0, 1fr) 436px; gap: 24px; min-height: 0; }
+.col-right { display: grid; grid-template-rows: 150px 180px minmax(0, 1fr); gap: 20px; min-height: 0; }
+
+/* ── a module ─────────────────────────────────────────────────────── */
+.mod {
+  position: relative;               /* never a stacking context: screens must rise above #spill */
+  border-radius: 9px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, var(--coat-hi), var(--coat) 30%, var(--coat-lo));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    inset 0 -1px 0 rgba(0,0,0,.5),
+    0 1px 0 rgba(0,0,0,.6),
+    0 22px 40px -14px rgba(0,0,0,.75),
+    0 6px 12px -4px rgba(0,0,0,.45);
+  min-width: 0; min-height: 0;
+}
+/* light layers: fixed box-shadows, only opacity moves (compositor-only) */
+.mod > .rim, .mod > .shade {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+}
+.mod > .shade { z-index: -1; box-shadow: 0 -22px 30px -8px rgba(0,0,0,.9); }
+.mod > .rim { z-index: 4; }
+.rim.b { box-shadow: inset 0 -2px 0 var(--l-kick), inset 0 -18px 22px -16px var(--l-kick), 0 16px 34px -14px var(--l-kick); }
+.rim.t { box-shadow: inset 0 1.5px 0 var(--l-top), inset 0 16px 20px -16px var(--l-top); }
+.rim.r { box-shadow: inset -2px 0 0 var(--l-right), inset -18px 0 22px -16px var(--l-right); }
+.rim.l { box-shadow: inset 2px 0 0 var(--l-left), inset 18px 0 22px -16px var(--l-left); }
+
+.screw {
+  position: absolute; width: 7px; height: 7px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #55555A, #2C2C2F 70%);
+  box-shadow: inset 0 0 0 .5px rgba(0,0,0,.6), 0 .5px 0 rgba(255,255,255,.06);
+}
+.screw::after { content: ""; position: absolute; left: 1px; right: 1px; top: 3px; height: 1px; background: rgba(0,0,0,.6); transform: rotate(var(--r, 30deg)); }
+
+.label { font-size: 11px; font-weight: 500; color: var(--silk-soft); letter-spacing: .01em; line-height: 1; }
+.label b { color: var(--silk); font-weight: 600; }
+
+/* screens: black glass set into the coat, emissive, untinted */
+.screen {
+  position: relative; z-index: 6;
+  background: var(--glass);
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.05), inset 0 2px 6px rgba(0,0,0,.8);
+  color: var(--px);
+  font-family: var(--mono);
+}
+
+/* rubber keys */
+.key {
+  position: relative;
+  display: inline-grid; place-items: center;
+  min-width: 30px; height: 28px; padding: 0 9px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--key-hi), var(--key));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 0 #131315, 0 3px 6px rgba(0,0,0,.5);
+  font-size: 11px; font-weight: 600; color: var(--silk);
+  transition: transform .06s, box-shadow .06s;
+}
+.key:active, .key[aria-pressed="true"] { transform: translateY(1.5px); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 .5px 0 #131315, 0 1px 3px rgba(0,0,0,.5); }
+.led {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: #3B2A22; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.6);
+  position: relative; z-index: 6;
+}
+.led.on { background: var(--led-on); box-shadow: 0 0 6px var(--led-on), 0 0 14px color-mix(in srgb, var(--led-on) 50%, transparent); }
+.led.green.on { --led-on: #3BE07A; }
+.led.red.on { --led-on: var(--red); }
+
+/* ── top row ──────────────────────────────────────────────────────── */
+.m-brand { display: flex; align-items: center; gap: 14px; padding: 0 22px 0 24px; }
+.wordmark { font-weight: 700; font-stretch: 75%; font-size: 26px; letter-spacing: -.02em; color: var(--silk); line-height: 1; }
+.wordmark sup { font-size: 10px; font-weight: 600; color: var(--ember); letter-spacing: 0; vertical-align: 13px; margin-left: 2px; }
+.song-lcd { width: 196px; height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 13px; }
+.song-lcd .n { color: var(--px-dim); }
+.song-lcd .name { font-weight: 500; letter-spacing: .01em; }
+.song-lcd .bpmtag { margin-left: auto; color: var(--px-faint); font-size: 10px; }
+.pair { display: flex; gap: 6px; }
+.pair .key { min-width: 28px; padding: 0; }
+
+.m-clock { display: flex; align-items: center; gap: 12px; padding: 0 22px; }
+.play { width: 44px; height: 34px; padding: 0; }
+.play svg { width: 13px; height: 13px; }
+.play .led { position: absolute; top: 5px; left: 6px; width: 4px; height: 4px; }
+.seg { height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 10px; }
+.seg svg { height: 22px; width: auto; display: block; }
+.seg .unit { font-size: 10px; color: var(--px-dim); align-self: flex-end; margin-bottom: 7px; }
+.beats { display: flex; gap: 5px; margin-left: 2px; }
+.beats .led { width: 5px; height: 5px; }
+
+.m-status { display: flex; align-items: center; gap: 18px; padding: 0 20px 0 22px; }
+.switch { display: flex; align-items: center; gap: 9px; }
+.slide { width: 34px; height: 16px; border-radius: 4px; background: #141416; box-shadow: inset 0 1px 3px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.05); position: relative; }
+.slide::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 12px; border-radius: 3px; background: linear-gradient(180deg, #5A5A5F, #404044); box-shadow: 0 1px 2px rgba(0,0,0,.7); transition: left .12s; }
+.switch[aria-checked="true"] .slide::after { left: 18px; background: linear-gradient(180deg, var(--cream), #CFC9BC); }
+.link { display: flex; align-items: center; gap: 8px; }
+.helpkey { min-width: 28px; padding: 0; }
+
+/* ── code display module ──────────────────────────────────────────── */
+.m-code { padding: 10px; display: grid; }
+.m-code .screen { display: grid; grid-template-rows: 30px minmax(0, 1fr); overflow: hidden; }
+.filebar { display: flex; align-items: center; gap: 14px; padding: 0 14px; font-size: 11.5px; color: var(--px-dim); border-bottom: 1px solid #141415; }
+.filebar .path { color: var(--px); }
+.filebar .swap { margin-left: auto; display: flex; align-items: center; gap: 7px; }
+.filebar .swap .led { width: 5px; height: 5px; }
+.code { position: relative; overflow: hidden; padding: 7px 0 0; font-size: var(--code-size); line-height: var(--code-lh); }
+.code .ln { display: grid; grid-template-columns: 50px 14px 1fr; white-space: pre; height: var(--code-lh); }
+.code .no { text-align: right; color: var(--px-faint); font-size: 11px; }
+.code .tick { position: relative; }
+.code .ln.live .no { color: var(--px-dim); }
+.code .ln.live .tick::after { content: ""; position: absolute; left: 4px; top: 4px; width: 3px; height: 9px; border-radius: 1px; background: var(--tc, var(--ember)); opacity: var(--tick, .35); }
+.c-cm { color: #6F6C66; font-style: italic; }
+.c-kw { color: #B7B1A6; }
+.c-str { color: #F4E6CF; }
+.c-num { color: var(--ember-px); }
+.c-fn { color: var(--cobalt-px); }
+.c-pr { color: #CFC9BD; }
+.c-id { color: var(--px); }
+.c-pn { color: #77736C; }
+html[data-song="acid"] .c-num { color: var(--acid-px); }
+.tok {
+  border-radius: 2.5px; padding: 0 1px; margin: 0 -1px;
+  box-shadow: inset 0 -1.5px 0 color-mix(in srgb, var(--tc) 70%, transparent);
+}
+.tok.on {
+  background: var(--tc); color: #0A0A0A; box-shadow: 0 0 10px color-mix(in srgb, var(--tc) 55%, transparent);
+}
+.tok.on * { color: #0A0A0A !important; }
+.tok.muted { box-shadow: inset 0 -1.5px 0 var(--px-faint); }
+.err-mark { text-decoration: underline wavy var(--red); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.ln.err .no { color: var(--red); }
+.ln.err { background: linear-gradient(90deg, rgba(255,68,51,.13), rgba(255,68,51,0) 70%); }
+
+.errpanel {
+  position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2;
+  display: none; grid-template-columns: auto 1fr auto; gap: 14px; align-items: start;
+  padding: 12px 14px; border-radius: 4px;
+  background: #140807; box-shadow: inset 0 0 0 1px rgba(255,68,51,.55);
+  font-size: 12px; line-height: 1.5; color: var(--px);
+}
+.errpanel .where { color: var(--red); font-weight: 600; }
+.errpanel .msg { color: var(--px); }
+.errpanel .msg em { font-style: normal; color: #FFB2A8; }
+.errpanel .keep { color: var(--px-dim); }
+.errpanel .glyph { width: 18px; height: 18px; border-radius: 50%; background: var(--red); color: #140807; display: grid; place-items: center; font-weight: 700; font-size: 12px; margin-top: 1px; }
+body.error .errpanel { display: grid; }
+
+/* ── view module (pianoroll / scope) ──────────────────────────────── */
+.m-view { padding: 10px 12px 12px; display: grid; grid-template-rows: 16px minmax(0,1fr); gap: 6px; }
+.m-view .head { display: flex; align-items: center; gap: 10px; padding: 0 2px; }
+.m-view .head .legend { margin-left: auto; display: flex; gap: 10px; }
+.m-view .legend span { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--silk-soft); }
+.m-view .legend i { width: 7px; height: 7px; border-radius: 1.5px; background: var(--c); }
+.m-view .screen canvas { width: 100%; height: 100%; display: block; border-radius: 5px; }
+
+/* ── knobs module ─────────────────────────────────────────────────── */
+.m-knobs { padding: 12px 14px 10px; display: grid; grid-template-rows: 14px 1fr; gap: 2px; }
+.m-knobs .head { display: flex; justify-content: space-between; padding: 0 2px; }
+.knobs { display: grid; grid-template-columns: repeat(4, 1fr); align-items: start; }
+.knob { display: grid; justify-items: center; gap: 3px; position: relative; }
+.knob svg { width: 80px; height: 80px; cursor: ns-resize; touch-action: none; display: block; }
+.knob .kname { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--silk); }
+.knob .kname .led { width: 5px; height: 5px; }
+.knob .kval { font-family: var(--mono); font-size: 11.5px; color: var(--silk); }
+.knob .kfile { font-family: var(--mono); font-size: 10px; color: var(--silk-faint); height: 12px; }
+.knob .write { margin-top: 3px; height: 22px; font-size: 10.5px; padding: 0 8px; gap: 6px; display: none; grid-auto-flow: column; }
+.knob.dirty .write { display: inline-grid; }
+.knob.dirty .kfile { display: none; }
+.knob:not(.dirty) .kval { margin-bottom: 0; }
+
+/* ── mixer module ─────────────────────────────────────────────────── */
+.m-mixer { padding: 12px 14px 14px; display: grid; grid-template-rows: 14px minmax(0,1fr); gap: 10px; }
+.m-mixer .head { display: flex; justify-content: space-between; padding: 0 2px; }
+.strips { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; min-height: 0; }
+.strip { display: grid; grid-template-rows: 10px 14px minmax(0,1fr) 26px 26px; gap: 6px; justify-items: center; min-height: 0; }
+.strip .actled { width: 6px; height: 6px; background: var(--c); opacity: .15; box-shadow: 0 0 8px var(--c); border-radius: 50%; position: relative; z-index: 6; }
+.strip .name { font-size: var(--name-size, 10.5px); font-weight: 600; font-stretch: 75%; color: var(--silk); white-space: nowrap; overflow: hidden; text-overflow: clip; max-width: 100%; }
+.strip.muted .name { color: var(--silk-faint); text-decoration: line-through; text-decoration-color: var(--silk-faint); }
+.meter { position: relative; z-index: 6; width: 10px; border-radius: 2px; background: #0B0B0C; box-shadow: inset 0 0 0 1px #000, 0 0 0 1px rgba(255,255,255,.04); overflow: hidden; }
+.meter .lit { position: absolute; inset: 2px; background: repeating-linear-gradient(0deg, var(--c) 0 4px, transparent 4px 6px); border-radius: 1px; }
+.meter .lit::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 4px, #0B0B0C 4px 6px); }
+.meter .cover { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, #1A1A1C 0 4px, #0B0B0C 4px 6px); background-position: 0 -2px; transform-origin: top; transform: scaleY(1); }
+.strip .key { min-width: 0; width: 100%; max-width: 30px; height: 24px; padding: 0; font-size: 10.5px; }
+.strip .key.m[aria-pressed="true"] { background: linear-gradient(180deg, #FF8551, var(--ember)); color: #1A0A04; box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 .5px 0 #131315, 0 0 12px rgba(255,106,43,.55); }
+.strip .key.s[aria-pressed="true"] { background: linear-gradient(180deg, #FFE27A, #F5C518); color: #201800; box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 .5px 0 #131315, 0 0 12px rgba(245,197,24,.5); }
+.strip.muted .meter .lit { opacity: .0; }
+
+/* ── sequencer / timeline module ──────────────────────────────────── */
+.m-seq { display: grid; grid-template-columns: 178px minmax(0,1fr) auto; gap: 18px; align-items: center; padding: 0 20px 0 18px; }
+.sec-lcd { height: 52px; display: grid; align-content: center; padding: 0 14px; gap: 3px; }
+.sec-lcd .big { font-size: 17px; font-weight: 600; letter-spacing: .01em; }
+.sec-lcd .small { font-size: 11px; color: var(--px-dim); }
+.map { display: flex; gap: 8px; align-items: stretch; height: 52px; min-width: 0; }
+.sec { display: grid; grid-template-rows: 20px 14px 1fr; cursor: pointer; min-width: 0; position: relative; padding-top: 2px; }
+.sec .sname { display: flex; gap: 5px; align-items: baseline; font-size: 12px; font-weight: 600; color: var(--silk); white-space: nowrap; overflow: hidden; }
+.sec .sname small { font-size: 10px; font-weight: 500; color: var(--silk-faint); }
+.sec .bracket { height: 6px; border: 1.5px solid var(--silk-faint); border-bottom: 0; border-radius: 2px 2px 0 0; margin-top: 4px; }
+.sec .leds { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; height: 10px; }
+.sec .leds i { border-radius: 1.5px; background: #161618; box-shadow: inset 0 0 0 .5px #000; position: relative; z-index: 6; }
+.sec .leds i.played { background: #3B3B3F; }
+.sec .leds i.now { background: var(--led-on); box-shadow: 0 0 8px var(--led-on); }
+.sec.current .sname { color: var(--cream); }
+.sec.current .bracket { border-color: var(--led-on); }
+.sec.looping .sname::after { content: ""; width: 12px; height: 9px; align-self: center; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 9'%3E%3Cpath d='M1 4.5a3 3 0 0 1 3-3h4.5M7 0l1.6 1.5L7 3M11 4.5a3 3 0 0 1-3 3H3.5M5 9 3.4 7.5 5 6' fill='none' stroke='black' stroke-width='1.3'/%3E%3C/svg%3E") no-repeat center; color: var(--led-on); margin-left: 2px; }
+.sec.queued .bracket { border-color: var(--cobalt-px); animation: blink .3s steps(2) infinite; }
+@keyframes blink { 50% { border-color: transparent; } }
+.sec:hover .sname { color: var(--cream); }
+.loopkey { height: 40px; padding: 0 14px; display: inline-flex; gap: 9px; font-size: 12px; }
+.loopkey svg { width: 14px; height: 12px; }
+
+/* ── shortcuts card: a printed card lying on the desk ─────────────── */
+.card {
+  position: fixed; z-index: 9; right: 488px; top: 104px; width: 300px;
+  padding: 18px 20px 16px; border-radius: 3px;
+  background: linear-gradient(180deg, #EFE9DC, #E4DDCD);
+  color: #232220; transform: rotate(-1.6deg);
+  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 24px 40px -10px rgba(0,0,0,.7), 0 4px 10px rgba(0,0,0,.4);
+  display: none; font-stretch: 85%;
+}
+body.help .card { display: block; }
+.card h2 { margin: 0 0 10px; font-size: 17px; font-weight: 700; font-stretch: 75%; letter-spacing: -.01em; }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; font-size: 12.5px; }
+.card dt { font-family: var(--mono); font-size: 11px; font-weight: 600; background: #232220; color: #EFE9DC; border-radius: 3px; padding: 2px 6px; justify-self: start; }
+.card dd { margin: 0; align-self: center; }
+.card p { margin: 12px 0 0; font-size: 11px; color: #6B675F; }
+
+/* ── smaller screens ─────────────────────────────────────────────── */
+@media (max-width: 1340px) {
+  .row-mid { grid-template-columns: minmax(0,1fr) 400px; }
+  .song-lcd { width: 170px; }
+  .m-status { gap: 14px; }
+  .knob svg { width: 72px; height: 72px; }
+  .strips { --name-size: 9.5px; }
+}
+@media (max-height: 820px) {
+  .rig { padding: 18px 24px 20px; gap: 16px; grid-template-rows: 52px minmax(0,1fr) 74px; }
+  .row-mid, .col-right, .row-top { gap: 16px; }
+  .col-right { grid-template-rows: 124px 170px minmax(0,1fr); }
+  :root { --code-size: 12.5px; --code-lh: 16.5px; }
+}
+@media (max-width: 900px) {
+  body { overflow: auto; }
+  .rig { height: auto; padding: 16px; gap: 16px; grid-template-rows: auto; }
+  .row-top { flex-wrap: wrap; gap: 12px; }
+  .row-top .air { display: none; }
+  .row-top .mod { flex: 1 1 100%; height: 56px; overflow-x: auto; }
+  .row-mid { grid-template-columns: 1fr; }
+  .m-code { height: 70vh; }
+  .col-right { grid-template-rows: 124px auto 300px; }
+  .m-seq { grid-template-columns: 1fr; padding: 12px; overflow-x: auto; }
+  .card { right: 16px; left: 16px; width: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sec.queued .bracket { animation: none; }
+}
+</style>
+</head>
+<body>
+<canvas id="room" aria-hidden="true"></canvas>
+
+<main class="rig">
+  <!-- top row: three separate units with the room showing between them -->
+  <div class="row-top">
+    <section class="mod m-brand" aria-label="Song">
+      <i class="screw" style="left:7px;top:calc(50% - 3.5px);--r:60deg"></i><i class="screw" style="right:7px;top:calc(50% - 3.5px);--r:-20deg"></i>
+      <div class="wordmark">strudel<sup>stage</sup></div>
+      <div class="screen song-lcd"><span class="n" id="songNo">03</span><span class="name" id="songName">neon drive</span><span class="bpmtag" id="songFile">.ts</span></div>
+      <div class="pair">
+        <button class="key" id="prevSong" aria-label="Previous song"><svg width="8" height="9" viewBox="0 0 8 9"><path d="M7 0v9L0 4.5z" fill="currentColor"/></svg></button>
+        <button class="key" id="nextSong" aria-label="Next song"><svg width="8" height="9" viewBox="0 0 8 9"><path d="M1 0v9l7-4.5z" fill="currentColor"/></svg></button>
+      </div>
+    </section>
+
+    <section class="mod m-clock" aria-label="Transport">
+      <i class="screw" style="left:6px;top:calc(50% - 3.5px);--r:10deg"></i><i class="screw" style="right:6px;top:calc(50% - 3.5px);--r:75deg"></i>
+      <button class="key play" id="play" aria-pressed="true" aria-label="Play"><span class="led on green" id="playLed"></span><svg viewBox="0 0 12 12"><path d="M2 0.5v11l9.5-5.5z" fill="currentColor"/></svg></button>
+      <button class="key play" id="stop" aria-label="Stop"><svg viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" rx="1" fill="currentColor"/></svg></button>
+      <div class="screen seg" aria-label="Tempo"><span id="tempo"></span><span class="unit">bpm</span></div>
+      <div class="screen seg" aria-label="Bar and beat"><span id="barbeat"></span><span class="unit">bar</span></div>
+      <div class="beats" id="beats"><i class="led"></i><i class="led"></i><i class="led"></i><i class="led"></i></div>
+    </section>
+
+    <div class="air"></div>
+
+    <section class="mod m-status" aria-label="Editor">
+      <i class="screw" style="left:6px;top:calc(50% - 3.5px);--r:-40deg"></i><i class="screw" style="right:6px;top:calc(50% - 3.5px);--r:35deg"></i>
+      <button class="switch" id="follow" role="switch" aria-checked="true"><span class="slide"></span><span class="label"><b>follow edits</b></span></button>
+      <div class="link"><span class="led green on" id="linkLed"></span><span class="label"><b id="linkText">cursor connected</b></span></div>
+      <button class="key helpkey" id="helpBtn" aria-label="Shortcuts">?</button>
+    </section>
+  </div>
+
+  <div class="row-mid">
+    <section class="mod m-code" aria-label="Song source">
+      <div class="screen">
+        <div class="filebar"><span class="path" id="path">src/songs/neon-drive.ts</span><span id="sounding">chorus is sounding</span><span class="swap"><span class="led green on" id="swapLed"></span><span id="swapText">hot-swapped 4 s ago</span></span></div>
+        <div class="code" id="code" role="region" aria-label="Code, read-only"></div>
+      </div>
+    </section>
+
+    <div class="col-right">
+      <section class="mod m-view" aria-label="Visualizer">
+        <div class="head"><span class="label" id="viewName"><b>pianoroll</b> 8 cycles</span><span class="legend" id="legend"></span></div>
+        <div class="screen"><canvas id="view"></canvas></div>
+      </section>
+
+      <section class="mod m-knobs" aria-label="Performance knobs">
+        <div class="head"><span class="label"><b>knobs</b></span><span class="label">drag or use arrow keys</span></div>
+        <div class="knobs" id="knobs"></div>
+      </section>
+
+      <section class="mod m-mixer" aria-label="Mixer">
+        <div class="head"><span class="label"><b>mixer</b></span><span class="label" id="trackCount">11 tracks</span></div>
+        <div class="strips" id="strips"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="mod m-seq" aria-label="Sections">
+    <i class="screw" style="left:5px;top:6px;--r:20deg"></i><i class="screw" style="left:5px;bottom:6px;--r:-50deg"></i><i class="screw" style="right:5px;top:6px;--r:80deg"></i><i class="screw" style="right:5px;bottom:6px;--r:5deg"></i>
+    <div class="screen sec-lcd"><span class="big" id="secName">chorus</span><span class="small" id="secBar">bar 03 of 16</span></div>
+    <div class="map" id="map"></div>
+    <button class="key loopkey" id="loop" aria-pressed="true"><span class="led on" id="loopLed"></span><svg viewBox="0 0 14 12"><path d="M1.5 6a3.5 3.5 0 0 1 3.5-3.5h6M9 .5l2 2-2 2M12.5 6A3.5 3.5 0 0 1 9 9.5H3M5 11.5l-2-2 2-2" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>loop section</button>
+  </section>
+</main>
+
+<canvas id="spill" aria-hidden="true"></canvas>
+
+<aside class="card" id="card" aria-label="Keyboard shortcuts">
+  <h2>Quick reference</h2>
+  <dl>
+    <dt>space</dt><dd>Play or stop</dd>
+    <dt>a</dt><dd>Switch song (Neon Drive, Acid Rain)</dd>
+    <dt>1 – 9</dt><dd>Jump to a section at the next bar</dd>
+    <dt>l</dt><dd>Loop the current section</dd>
+    <dt>m / s</dt><dd>Mute or solo (click a strip key)</dd>
+    <dt>f</dt><dd>Follow edits from the editor</dd>
+    <dt>e</dt><dd>Show the error state</dd>
+    <dt>?</dt><dd>Show or hide this card</dd>
+  </dl>
+  <p>Knobs: drag up or down, or focus and use the arrow keys. A lit knob differs from the file; press write to file to keep it.</p>
+</aside>
+
+<!-- real source, lines 184–235 of src/songs/neon-drive.ts. ⟦text|track|steps⟧ marks a live token -->
+<script type="text/plain" id="src-neon" data-first="184">
+    // Kick: half-time in the verse, four-on-the-floor in the choruses.
+    // Every kick also *ducks* orbit 3 (the pads) — sidechain pumping without
+    // a compressor: `duckorbit` dips that bus's volume, `duckattack` is how
+    // fast it swells back.
+    const kick = bySection({
+      verse: s("[bd ~ ~ ~] [~ ~ ~ ~] [bd ~ bd ~] [~ ~ ~ ~]"),
+      pre: s("<[bd*4]!6 [bd*8]!2>"), // doubles up for the last 2 bars
+      chorus: s("⟦bd*4|kick|0,4,8,12⟧"),
+      chorus2: s("<[bd*4]!7 [bd ~ ~ ~]>"), // drops out for the pivot fill
+      lift: s("bd*4"),
+      outro: s("<[bd*4]!4 ~!4>"),
+    })
+      .bank(DRUMS)
+      .gain(0.95)
+      .⟦duckorbit|kick|0,4,8,12⟧(3)
+      .duckattack(0.22)
+      .duckdepth(0.55);
+
+    // Snare on 2 & 4 — with GATED REVERB, the Phil Collins move: a big,
+    // dense room that's cut off abruptly. Here: a very short reverb
+    // (rsize 0.45 s) on its own orbit, plus a burst of white noise that
+    // decays fast — that "chhh" is the gate slamming shut.
+    const snareHits = bySection({
+      verse: s("~ sd ~ sd"),
+      pre: s("<[~ sd ~ sd]!6 [sd*8] [sd*16]>"), // snare roll into the chorus
+      chorus: s("~ ⟦sd|snare|4⟧ ~ ⟦sd|snare|12⟧"),
+      chorus2: s("<[~ sd ~ sd]!7 ~>"),
+      lift: s("~ sd ~ sd"),
+      outro: s("<[~ sd ~ sd]!4 ~!4>"),
+    });
+    const rollUp = bySection({ pre: saw.range(0.55, 1).slow(8) }, 1); // crescendo
+    const snare = stack(
+      snareHits.bank(DRUMS).gain(0.75),
+      snareHits.s("⟦white|snare|4,12⟧").decay(0.2).sustain(0).hpf(1800).lpf(7000).gain(0.16) // the gate
+    )
+      .velocity(rollUp)
+      .room(0.55)
+      .rsize(0.45)
+      .orbit(2);
+
+    // Hats: 8ths → 16ths → 16ths with an open hat on every off-beat.
+    // One accent shape on the 16th grid works for all of them: strong on
+    // the beat, medium on the "and" (where the open hat sits), soft between.
+    const CHORUS_HATS = "[⟦hh|hats|0,4,8,12⟧ ⟦hh|hats|1,5,9,13⟧ ⟦oh|hats|2,6,10,14⟧ ⟦hh|hats|3,7,11,15⟧]*4";
+    const accent = reify("[⟦1|hats|0,4,8,12⟧ ⟦0.45|hats|1,5,9,13⟧ ⟦0.75|hats|2,6,10,14⟧ ⟦0.45|hats|3,7,11,15⟧]*4");
+    const hats = bySection({
+      intro: s("<~!4 [hh*8]!4>").gain(0.25), // creeps in for the last 4 bars
+      verse: s("hh*8").gain(0.4),
+      pre: s("hh*16").gain(0.4),
+      chorus: s(⟦CHORUS_HATS|hats|all⟧).gain(0.4),
+      chorus2: s(`<[${CHORUS_HATS}]!7 ~>`).gain(0.4),
+      lift: s(CHORUS_HATS).gain(0.42),
+</script>
+
+<!-- real source, lines 182–236 of src/songs/acid-rain.ts -->
+<script type="text/plain" id="src-acid" data-first="182">
+    const rolling = (steps: string) =>
+      note(inKey(steps, 1))
+        .s("sawtooth")
+        .velocity(mini("[0 ⟦0.75|rumble|1,5,9,13⟧ ⟦1|rumble|2,6,10,14⟧ ⟦0.8|rumble|3,7,11,15⟧]*4"))
+        .lpf(170)
+        .decay(0.1)
+        .sustain(0)
+        .release(0.02)
+        .shape(0.15)
+        .gain(0.55);
+
+    const roll = rolling("[~ ⟦0|rumble|1,5,9,13⟧ ⟦0|rumble|2,6,10,14⟧ ⟦0|rumble|3,7,11,15⟧]*4");
+    const rollOctave = rolling("[~ 0 7 0]*4"); // octave pop for the peak
+
+    const rumble = track({
+      groove: roll,
+      build: roll.mask("<1!6 0!2>"), // pull the bass out before the drop
+      drop: ⟦roll|rumble|1,2,3,5,6,7,9,10,11,13,14,15⟧,
+      rebuild: roll.mask("<0!4 1!3 0>"),
+      peak: rollOctave,
+      outro: roll.mask("<1!4 0!4>"),
+    });
+
+    // ─── 🥁 DRUMS — TR-909 ────────────────────────────────────────────────────
+
+    const fourFloor = s("⟦bd*4|kick|0,4,8,12⟧").bank(DRUMS).gain(0.95).shape(0.2);
+
+    const kick = track({
+      intro: fourFloor,
+      groove: fourFloor,
+      build: s("<bd*4!7 ~>").bank(DRUMS).gain(0.95).shape(0.2), // one empty bar = the drop hits harder
+      drop: ⟦fourFloor|kick|0,4,8,12⟧,
+      rebuild: s("<~!4 bd*4 bd*4 bd*8 ~>").bank(DRUMS).gain(0.95).shape(0.2),
+      peak: fourFloor,
+      outro: fourFloor,
+    });
+
+    // closed hats: 16ths with a velocity groove (loud on the "a" of each beat)
+    const hat16 = s("⟦hh*16|hats|all⟧")
+      .bank(DRUMS)
+      .velocity(mini("[⟦0.5|hats|0,4,8,12⟧ ⟦0.8|hats|1,5,9,13⟧ ⟦0.65|hats|2,6,10,14⟧ ⟦1|hats|3,7,11,15⟧]*4"))
+      .gain(0.3)
+      .hpf(6000)
+      .pan(perlin.range(0.4, 0.6));
+
+    const hats = track({
+      intro: s("[~ hh]*4").bank(DRUMS).gain(0.25).hpf(6000),
+      groove: hat16.degradeBy(0.1), // drop a few at random so it breathes
+      build: hat16,
+      drop: ⟦hat16|hats|all⟧,
+      breakdown: hat16.degradeBy(0.4).mask("<0!8 1!8>").gain(0.18),
+      rebuild: hat16,
+      peak: hat16.sometimesBy(0.08, (x) => x.ply(2)),
+      outro: hat16.degradeBy(0.3),
+    });
+
+    // the offbeat open hat: the "tss" that makes techno roll
+    const offbeatOpen = s("[~ oh]*4").bank(DRUMS).gain(0.3).hpf(4000);
+</script>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const params = new URLSearchParams(location.search);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── songs ──────────────────────────────────────────────────────────── */
+const C = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const SONGS = {
+  neon: {
+    no: '03', name: 'neon drive', file: 'neon-drive.ts', bpm: 104,
+    sections: [['intro',8],['verse',16],['pre',8],['chorus',16],['breakdown',8],['pre',8],['chorus2',8],['lift',8],['outro',8]],
+    view: 'pianoroll', firstVisible: 188,
+    // light: attack in s, decay in s (soft, lush)
+    env: { kick: [0.004, 0.30], snare: [0.006, 0.34], hats: [0.002, 0.09], bass: [0.01, 0.22], pads: [0.35, 1.6], arp: [0.003, 0.12], lead: [0.02, 0.5], crash: [0.002, 1.2], toms: [0.002, 0.2], riser: [0.1, 1], leadHigh: [0.02, 0.5] },
+    tracks: [
+      ['kick','--ember',[0,4,8,12]], ['snare','--ember',[4,12]], ['hats','--ember','all'], ['toms','--ember',[13,14,15]],
+      ['crash','--ember',[0],'bar0'], ['bass','--cobalt',[0,2,4,6,8,10,12,14]], ['pads','--lilac',[0],'pad'],
+      ['arp','--teal','all'], ['lead','--cream',[0,3,6,10]], ['leadHigh','--cream',[6,10]], ['riser','--rose',[]]
+    ],
+    muted: ['toms'],
+    gain: { kick:.95, snare:.85, hats:.5, toms:.6, crash:.55, bass:.78, pads:.72, arp:.55, lead:.74, leadHigh:.5, riser:.3 },
+    knobs: [
+      { id:'cutoff', label:'cutoff', cap:'--cobalt', min:200, max:8000, exp:true, v:2200, file:1800, unit:'hz', fmt:v=>Math.round(v/10)*10+' hz' },
+      { id:'drive', label:'drive', cap:'--ember', min:0, max:1, v:.30, file:.30, fmt:v=>v.toFixed(2) },
+      { id:'reverb', label:'reverb', cap:'--lilac', min:0, max:1, v:.40, file:.40, fmt:v=>v.toFixed(2) },
+      { id:'swing', label:'swing', cap:'--cream', min:0, max:.5, v:.15, file:.15, fmt:v=>v.toFixed(2) },
+    ],
+    error: { line: 209, find: '"~ sd ~ sd")', replace: '"~ sd ~ sd"}', markFrom: 'sd"}', mark: '}', where: 'neon-drive.ts:209:30',
+      msg: 'Expected <em>")"</em> but found <em>"}"</em>. The <em>s(</em> call on this line is never closed.' },
+    legend: [['drums','--ember'],['bass','--cobalt'],['pads','--lilac'],['arp','--teal'],['lead','--cream']],
+  },
+  acid: {
+    no: '07', name: 'acid rain', file: 'acid-rain.ts', bpm: 134,
+    sections: [['intro',8],['groove',16],['build',8],['drop',16],['breakdown',16],['rebuild',8],['peak',16],['outro',8]],
+    view: 'scope', firstVisible: 185,
+    // light: hard attack, short decay (909 transients)
+    env: { kick: [0.0005, 0.11], rumble: [0.001, 0.07], hats: [0.0005, 0.035], openhat: [0.001, 0.09], clap: [0.0008, 0.12], ride: [0.001, 0.12], perc: [0.0005, 0.05], crash: [0.001, 0.9], acid: [0.001, 0.09], stab: [0.001, 0.14], pad: [0.4, 1.5], rain: [0.001, 0.2], riser: [0.1, 1] },
+    tracks: [
+      ['kick','--ember',[0,4,8,12]], ['rumble','--cobalt',[1,2,3,5,6,7,9,10,11,13,14,15]], ['hats','--ember','all'], ['openhat','--ember',[2,6,10,14]],
+      ['clap','--rose',[4,12]], ['ride','--ember',[0,2,4,6,8,10,12,14]], ['perc','--ember',[2,5,8,11,14]], ['crash','--ember',[0],'bar0'],
+      ['acid','--acid',[0,1,2,3,5,6,7,8,9,11,12,13,14,15]], ['stab','--teal',[3,6]], ['pad','--lilac',[]], ['rain','--cobalt',[]], ['riser','--rose',[]]
+    ],
+    muted: [],
+    gain: { kick:1, rumble:.7, hats:.42, openhat:.5, clap:.72, ride:.36, perc:.42, crash:.5, acid:.92, stab:.46, pad:0, rain:0, riser:0 },
+    knobs: [
+      { id:'res', label:'resonance', cap:'--acid', min:4, max:30, v:22, file:17, fmt:v=>v.toFixed(1) },
+      { id:'shape', label:'drive', cap:'--ember', min:0, max:1, v:.30, file:.30, fmt:v=>v.toFixed(2) },
+      { id:'delay', label:'delay', cap:'--cobalt', min:0, max:1, v:.22, file:.22, fmt:v=>v.toFixed(2) },
+      { id:'room', label:'room', cap:'--cream', min:0, max:1, v:.15, file:.15, fmt:v=>v.toFixed(2) },
+    ],
+    error: { line: 207, find: '.shape(0.2);', replace: '.shap(0.2);', markFrom: 'shap(', mark: 'shap', where: 'acid-rain.ts:207',
+      msg: '<em>shap</em> is not a function on a Pattern. Did you mean <em>shape</em>?' },
+    legend: [['acid','--acid'],['kick','--ember'],['rumble','--cobalt']],
+  }
+};
+// 303 accents for the acid light (RIFF_A accent row)
+const ACID_ACCENT = [0,0,1,0, 0,0,1,0, 1,0,0,0, 0,1,0,1];
+
+let songKey = params.has('acid') ? 'acid' : 'neon';
+let S = SONGS[songKey];
+
+/* ── clock ──────────────────────────────────────────────────────────── */
+let playing = true, frozen = false;
+let beatPos = 34 * 4 + 1.0;            // 35.2: chorus, bar 3
+let lastT = performance.now();
+let loopOn = true, queued = null;
+const secStart = () => { let a = 0; return S.sections.map(([n, b]) => { const s = a; a += b; return s; }); };
+let STARTS = secStart();
+const totalBars = () => S.sections.reduce((a, [, b]) => a + b, 0);
+function sectionAt(bar) { let i = S.sections.length - 1; while (i > 0 && STARTS[i] > bar) i--; return i; }
+let loopSec = sectionAt(Math.floor(beatPos / 4));
+
+/* ── seven segment digits ───────────────────────────────────────────── */
+const SEGS = { 0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abfgcd',' ':'' };
+const SEG_PATH = {
+  a: 'M3 1h8l-1.5 2h-5z', b: 'M11.6 1.6l.4 9.4-1.6 1-1-1.5.4-7z', c: 'M12 13l-.4 9.4-2-1.8-.4-7 1-1.5z',
+  d: 'M3 23h8l-1.5-2h-5z', e: 'M2.4 22.4l-.4-9.4 1.6-1 1 1.5-.4 7z', f: 'M2 1.6l.4 9.4 1.6-1 1-1.5-.4-6.2z', g: 'M3.5 12l1.5-1h4l1.5 1-1.5 1h-4z'
+};
+function segSVG(str, digits) {
+  const s = String(str);
+  let x = 0, out = '';
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === '.') { out += `<circle cx="${x - 1.4}" cy="22.4" r="1.25" fill="var(--px)"/>`; continue; }
+    const on = SEGS[ch] || '';
+    out += `<g transform="translate(${x} 0) skewX(-6)">`;
+    for (const k in SEG_PATH) out += `<path d="${SEG_PATH[k]}" fill="${on.includes(k) ? 'var(--px)' : '#17171A'}"/>`;
+    out += '</g>';
+    x += 15;
+  }
+  return `<svg viewBox="-1 0 ${x + 1} 24">${out}</svg>`;
+}
+
+/* ── code view ─────────────────────────────────────────────────────── */
+const KW = new Set(['const','let','return','if','typeof','as','true','false']);
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function highlight(src) {
+  // pull out live markers, leave private-use placeholders the tokenizer passes through
+  const marks = [];
+  src = src.replace(/⟦([^|⟧]+)\|([^|⟧]+)\|([^⟧]+)⟧/g, (_, text, track, steps) => { marks.push({ text, track, steps }); return String.fromCharCode(0xE000 + marks.length - 1); });
+  let html = '', i = 0;
+  const re = /(\/\/.*$)|("(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][\w$]*)(?=\s*\()|([A-Za-z_$][\w$]*)|([{}()[\];,.:=<>+*\-!?|&])/gm;
+  let m, last = 0;
+  while ((m = re.exec(src))) {
+    if (m.index > last) html += esc(src.slice(last, m.index));
+    const t = esc(m[0]);
+    if (m[1]) html += `<span class="c-cm">${t}</span>`;
+    else if (m[2]) html += `<span class="c-str">${t}</span>`;
+    else if (m[3]) html += `<span class="c-num">${t}</span>`;
+    else if (m[4]) html += KW.has(m[4]) ? `<span class="c-kw">${t}</span>` : `<span class="c-fn">${t}</span>`;
+    else if (m[5]) html += KW.has(m[5]) ? `<span class="c-kw">${t}</span>` : `<span class="c-id">${t}</span>`;
+    else html += `<span class="c-pn">${t}</span>`;
+    last = re.lastIndex;
+  }
+  html += esc(src.slice(last));
+  html = html.replace(/[-]/g, ch => {
+    const mk = marks[ch.charCodeAt(0) - 0xE000];
+    const steps = mk.steps === 'all' ? 'all' : mk.steps;
+    // a marked number/identifier gets its own colour class too
+    const cls = /^\d/.test(mk.text) ? 'c-num' : /^[A-Za-z_]/.test(mk.text) && !/[*~ ]/.test(mk.text) ? (/^[a-z]+$/.test(mk.text) && mk.text.length <= 5 ? '' : 'c-id') : '';
+    return `<span class="tok ${cls}" data-track="${mk.track}" data-steps="${steps}">${esc(mk.text)}</span>`;
+  });
+  return { html, live: marks.length > 0, track: marks[0] && marks[0].track };
+}
+let TOKS = [], LIVE_LINES = [];
+function renderCode() {
+  const el = $('#src-' + songKey);
+  const first = +el.dataset.first;
+  let lines = el.textContent.replace(/^\n/, '').replace(/\n\s*$/, '').split('\n');
+  const err = document.body.classList.contains('error') ? S.error : null;
+  const code = $('#code');
+  let out = '';
+  lines.forEach((raw, idx) => {
+    const n = first + idx;
+    if (n < S.firstVisible) return;
+    let line = raw;
+    if (err && n === err.line) line = line.replace(err.find, err.replace);
+    const h = highlight(line);
+    let html = h.html;
+    if (err && n === err.line) {
+      // underline the offending token
+      const t = esc(err.mark);
+      const at = html.lastIndexOf(t);
+      if (at >= 0) html = html.slice(0, at) + `<span class="err-mark">${t}</span>` + html.slice(at + t.length);
+    }
+    const tc = h.track ? trackColor(h.track) : '';
+    out += `<div class="ln${h.live ? ' live' : ''}${err && n === err.line ? ' err' : ''}" ${tc ? `style="--tc:${tc}"` : ''}><span class="no">${n}</span><span class="tick"></span><span>${html}</span></div>`;
+  });
+  code.innerHTML = out + `<div class="errpanel" role="alert"><span class="glyph">!</span><div><div class="where">Save not applied  ${err ? err.where : ''}</div><div class="msg">${err ? err.msg : ''}</div><div class="keep">The last good version keeps playing. Fix the line and save again.</div></div></div>`;
+  TOKS = [...code.querySelectorAll('.tok')].map(el => {
+    const t = el.dataset.track;
+    const steps = el.dataset.steps === 'all' ? [...Array(16).keys()] : el.dataset.steps.split(',').map(Number);
+    el.style.setProperty('--tc', trackColorPx(t));
+    if (isMuted(t)) el.classList.add('muted');
+    return { el, track: t, steps, on: false };
+  });
+  LIVE_LINES = [...code.querySelectorAll('.ln.live')].map(el => ({ el, toks: [...el.querySelectorAll('.tok')].map(e => TOKS.find(x => x.el === e)) }));
+  $('#path').textContent = 'src/songs/' + S.file;
+}
+function trackDef(name) { return S.tracks.find(t => t[0] === name); }
+function trackColor(name) { const d = trackDef(name); return d ? `var(${d[1]})` : 'var(--ember)'; }
+function trackColorPx(name) { const d = trackDef(name); if (!d) return 'var(--ember-px)'; const v = d[1]; return v === '--cream' || v === '--acid' ? `var(${v})` : `var(${v}-px)`; }
+
+/* ── mixer ─────────────────────────────────────────────────────────── */
+let mutes = new Set(), solos = new Set(), STRIPS = [];
+const isMuted = n => mutes.has(n) || (solos.size && !solos.has(n));
+function renderMixer() {
+  const wrap = $('#strips');
+  wrap.innerHTML = S.tracks.map(([n, c], i) => `
+    <div class="strip" data-n="${n}" style="--c:var(${c})">
+      <span class="actled"></span>
+      <span class="name" title="${n}">${n}</span>
+      <div class="meter"><div class="lit"></div><div class="cover"></div></div>
+      <button class="key m" aria-pressed="${mutes.has(n)}" aria-label="Mute ${n}">m</button>
+      <button class="key s" aria-pressed="${solos.has(n)}" aria-label="Solo ${n}">s</button>
+    </div>`).join('');
+  $('#trackCount').textContent = S.tracks.length + ' tracks';
+  wrap.style.setProperty('--name-size', ((S.tracks.length > 11 ? 9.5 : 10.5) - (innerWidth < 1340 ? 1 : 0)) + 'px');
+  STRIPS = [...wrap.children].map(el => ({ el, n: el.dataset.n, led: $('.actled', el), cover: $('.cover', el), level: 0 }));
+  syncMutes();
+}
+function syncMutes() {
+  STRIPS.forEach(s => {
+    s.el.classList.toggle('muted', isMuted(s.n));
+    $('.m', s.el).setAttribute('aria-pressed', mutes.has(s.n));
+    $('.s', s.el).setAttribute('aria-pressed', solos.has(s.n));
+  });
+  TOKS.forEach(t => t.el.classList.toggle('muted', isMuted(t.track)));
+}
+$('#strips').addEventListener('click', e => {
+  const b = e.target.closest('.key'); if (!b) return;
+  const n = b.closest('.strip').dataset.n;
+  const set = b.classList.contains('m') ? mutes : solos;
+  set.has(n) ? set.delete(n) : set.add(n);
+  syncMutes();
+});
+
+/* ── knobs ─────────────────────────────────────────────────────────── */
+const ARC = 270, A0 = -135;
+let KNOBS = [];
+function k2p(k, v) { return k.exp ? Math.log(v / k.min) / Math.log(k.max / k.min) : (v - k.min) / (k.max - k.min); }
+function p2k(k, p) { p = Math.min(1, Math.max(0, p)); return k.exp ? k.min * Math.pow(k.max / k.min, p) : k.min + p * (k.max - k.min); }
+function polar(r, deg) { const a = (deg - 90) * Math.PI / 180; return [40 + r * Math.cos(a), 40 + r * Math.sin(a)]; }
+function knobSVG(k) {
+  let ticks = '';
+  for (let i = 0; i <= 10; i++) {
+    const d = A0 + ARC * i / 10, [x1, y1] = polar(i % 5 ? 33.5 : 32.5, d), [x2, y2] = polar(37.5, d);
+    ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--silk-soft)" stroke-width="${i % 5 ? 1 : 1.6}" stroke-linecap="round"/>`;
+  }
+  const fp = k2p(k, k.file), [fx, fy] = polar(30, A0 + ARC * fp);
+  return `<svg viewBox="0 0 80 80" role="slider" tabindex="0" aria-label="${k.label}" aria-valuemin="${k.min}" aria-valuemax="${k.max}">
+    <defs><radialGradient id="cap-${k.id}" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="white" stop-opacity=".45"/><stop offset=".45" stop-color="white" stop-opacity="0"/><stop offset="1" stop-color="black" stop-opacity=".3"/></radialGradient></defs>
+    ${ticks}
+    <path class="valarc" fill="none" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="${fx}" cy="${fy}" r="1.6" fill="var(--silk)" opacity=".9"><title>file value</title></circle>
+    <circle cx="40" cy="42.5" r="25" fill="black" opacity=".55"/>
+    <circle cx="40" cy="40" r="24.5" fill="#1B1B1D"/>
+    <circle cx="40" cy="40" r="21.5" fill="var(${k.cap})"/>
+    <circle cx="40" cy="40" r="21.5" fill="url(#cap-${k.id})"/>
+    <circle cx="40" cy="40" r="21.5" fill="none" stroke="rgba(0,0,0,.25)"/>
+    <g class="ptr"><rect x="38.6" y="20.5" width="2.8" height="11" rx="1.4" fill="${k.cap === '--cream' || k.cap === '--acid' ? '#1A1A1A' : '#F7F3EA'}"/></g>
+  </svg>`;
+}
+function renderKnobs() {
+  $('#knobs').innerHTML = S.knobs.map(k => `
+    <div class="knob" data-id="${k.id}">
+      ${knobSVG(k)}
+      <span class="kname"><span class="led"></span>${k.label}</span>
+      <span class="kval"></span>
+      <span class="kfile"></span>
+      <button class="key write"><span class="led on"></span>write to file</button>
+    </div>`).join('');
+  KNOBS = S.knobs.map(k => ({ k, el: $(`.knob[data-id="${k.id}"]`) }));
+  KNOBS.forEach(updateKnob);
+  KNOBS.forEach(o => {
+    const svg = $('svg', o.el);
+    let y0 = 0, p0 = 0;
+    svg.addEventListener('pointerdown', e => { svg.setPointerCapture(e.pointerId); y0 = e.clientY; p0 = k2p(o.k, o.k.v); });
+    svg.addEventListener('pointermove', e => { if (!svg.hasPointerCapture(e.pointerId)) return; o.k.v = p2k(o.k, p0 + (y0 - e.clientY) / 180); updateKnob(o); });
+    svg.addEventListener('keydown', e => {
+      const d = { ArrowUp: .02, ArrowRight: .02, ArrowDown: -.02, ArrowLeft: -.02 }[e.key];
+      if (d) { e.preventDefault(); o.k.v = p2k(o.k, k2p(o.k, o.k.v) + d); updateKnob(o); }
+    });
+    $('.write', o.el).addEventListener('click', () => { o.k.file = o.k.v; renderKnobs(); });
+  });
+}
+function updateKnob(o) {
+  const { k, el } = o, p = k2p(k, k.v), d = A0 + ARC * p;
+  $('.ptr', el).setAttribute('transform', `rotate(${d} 40 40)`);
+  const fp = k2p(k, k.file), dirty = Math.abs(p - fp) > .004;
+  const a = A0 + ARC * Math.min(p, fp), b = A0 + ARC * Math.max(p, fp);
+  const [x1, y1] = polar(28.5, a), [x2, y2] = polar(28.5, b);
+  const arc = $('.valarc', el);
+  arc.setAttribute('d', dirty ? `M${x1} ${y1}A28.5 28.5 0 ${b - a > 180 ? 1 : 0} 1 ${x2} ${y2}` : '');
+  arc.setAttribute('stroke', 'var(--led-on)');
+  el.classList.toggle('dirty', dirty);
+  $('.kname .led', el).classList.toggle('on', dirty);
+  $('.kval', el).textContent = k.fmt(k.v);
+  $('.kfile', el).textContent = 'file ' + k.fmt(k.file);
+  $('svg', el).setAttribute('aria-valuenow', k.v);
+  if (dirty) $('.write', el).title = 'file ' + k.fmt(k.file);
+}
+
+/* ── section map ───────────────────────────────────────────────────── */
+let SECS = [];
+function renderMap() {
+  STARTS = secStart();
+  const map = $('#map');
+  map.innerHTML = S.sections.map(([n, b], i) => `
+    <div class="sec" data-i="${i}" style="flex:${b} 1 0" title="Jump to ${n}">
+      <span class="sname">${n}<small>${b}</small></span>
+      <span class="bracket"></span>
+      <span class="leds">${'<i></i>'.repeat(b)}</span>
+    </div>`).join('');
+  SECS = [...map.children].map(el => ({ el, leds: [...el.querySelectorAll('.leds i')] }));
+}
+$('#map').addEventListener('click', e => {
+  const s = e.target.closest('.sec'); if (!s) return;
+  queued = +s.dataset.i;
+  SECS.forEach((x, i) => x.el.classList.toggle('queued', i === queued));
+});
+let lastMapBar = -1;
+function updateMap(bar) {
+  if (bar === lastMapBar) return; lastMapBar = bar;
+  const cur = sectionAt(bar);
+  SECS.forEach((s, i) => {
+    s.el.classList.toggle('current', i === cur);
+    s.el.classList.toggle('looping', loopOn && i === loopSec);
+    s.leds.forEach((l, j) => {
+      const b = STARTS[i] + j;
+      l.className = b === bar ? 'now' : b < bar ? 'played' : '';
+    });
+  });
+  const [name, len] = S.sections[cur];
+  $('#secName').textContent = name;
+  $('#secBar').textContent = `bar ${String(bar - STARTS[cur] + 1).padStart(2, '0')} of ${len}`;
+  $('#sounding').textContent = `${name} is sounding`;
+}
+
+/* ── envelopes ─────────────────────────────────────────────────────── */
+// time since the most recent hit of a step pattern, in seconds
+function sinceHit(steps, posBeats, secPerBeat, mode) {
+  const step = posBeats * 4; // 16ths
+  if (mode === 'bar0') { const b = Math.floor(posBeats / 4); const sectStart = STARTS[sectionAt(b)]; return (posBeats - sectStart * 4) * secPerBeat; }
+  if (mode === 'pad') return (posBeats % 4) * secPerBeat;
+  if (steps === 'all') return (step % 1) / 4 * secPerBeat;
+  if (!steps.length) return 99;
+  const cur = Math.floor(step);
+  for (let k = 0; k < 16; k++) {
+    const s = cur - k;
+    if (steps.includes(((s % 16) + 16) % 16)) return (step - s) / 4 * secPerBeat;
+  }
+  return 99;
+}
+function envAt(name, since) {
+  const [att, dec] = S.env[name] || [0.002, 0.15];
+  if (since > 8) return 0;
+  if (since < att) return since / att;
+  return Math.exp(-(since - att) / dec);
+}
+
+/* ── the room ──────────────────────────────────────────────────────── */
+const room = $('#room'), spill = $('#spill');
+const rctx = room.getContext('2d'), sctx = spill.getContext('2d');
+const SCALE = 10;
+let RW = 0, RH = 0, VW = 0, VH = 0, MODS = [];
+function resize() {
+  VW = innerWidth; VH = innerHeight;
+  RW = Math.ceil(VW / SCALE); RH = Math.ceil(VH / SCALE);
+  room.width = spill.width = RW; room.height = spill.height = RH;
+  MODS = [...document.querySelectorAll('.mod')].map(el => {
+    if (!el.querySelector(':scope > .rim')) el.insertAdjacentHTML('afterbegin', '<i class="shade"></i><i class="rim b"></i><i class="rim t"></i><i class="rim r"></i><i class="rim l"></i>');
+    const r = el.getBoundingClientRect();
+    return { el, r, shade: $(':scope > .shade', el), b: $(':scope > .rim.b', el), t: $(':scope > .rim.t', el), rr: $(':scope > .rim.r', el), l: $(':scope > .rim.l', el) };
+  });
+  const v = $('#view'); v.width = v.clientWidth * devicePixelRatio; v.height = v.clientHeight * devicePixelRatio;
+}
+function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+function glow(ctx, x, y, r, col, a) {
+  if (a <= 0.002) return;
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, hexA(col, a)); g.addColorStop(.45, hexA(col, a * .45)); g.addColorStop(1, hexA(col, 0));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, RW, RH);
+}
+let LIGHTS = {};
+function drawRoom(E, t) {
+  const W = RW, H = RH, ctx = rctx;
+  ctx.globalCompositeOperation = 'source-over';
+  const acid = songKey === 'acid';
+  const base = ctx.createLinearGradient(0, 0, 0, H);
+  if (acid) { base.addColorStop(0, '#0C0B18'); base.addColorStop(1, '#07080C'); }
+  else { base.addColorStop(0, '#1F2150'); base.addColorStop(.55, '#1A1B3E'); base.addColorStop(1, '#2A1C38'); }
+  ctx.fillStyle = base; ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'lighter';
+  const slow = t * 0.05;
+  if (!acid) {
+    // pads: the dusk window, a lavender wash from the top that swells with each chord
+    glow(ctx, W * (.32 + .05 * Math.sin(slow)), -H * .1, W * .62, '#8C78E8', .34 + .22 * E.pads);
+    glow(ctx, W * .78, -H * .2, W * .45, '#5E6FD8', .22 + .08 * E.pads);
+    // bass: a blue pool to the right, breathing on the 8ths
+    glow(ctx, W * 1.04, H * .55, W * .40, '#3F78FF', .20 + .30 * E.bass);
+    // arp: a small teal light drifting along the top right
+    glow(ctx, W * (.62 + .18 * Math.sin(slow * 1.7)), H * .08, W * .18, '#3FD0B4', .06 + .16 * E.arp);
+    // snare: rose from the left wall on 2 and 4
+    glow(ctx, -W * .04, H * .62, W * .34, '#F0729A', .10 + .42 * E.snare);
+    // kick: a peach floor lamp that throws light up over the desk
+    glow(ctx, W * .45, H * 1.18, W * .62, '#FF8A5A', .24 + .55 * E.kick);
+    glow(ctx, W * .45, H * 1.05, W * .30, '#FFC9A8', .30 * E.kick);
+  } else {
+    // the 303: an acid-green field whose size follows the filter knob, flaring on accents
+    const cut = .55 + .45 * Math.sin(t * .23);
+    glow(ctx, W * .70, H * .02, W * (.30 + .28 * cut), '#A6E62E', .10 + .30 * E.acid * (0.6 + 0.4 * cut) + .22 * E.accent);
+    // ultraviolet: hats flicker along the top edge
+    glow(ctx, W * .28, -H * .12, W * .45, '#7A4DFF', .16 + .22 * E.hats + .2 * E.openhat);
+    // rumble: a cold blue pool, right
+    glow(ctx, W * 1.06, H * .62, W * .38, '#2E55FF', .12 + .22 * E.rumble);
+    // clap: magenta from the left on 2 and 4
+    glow(ctx, -W * .05, H * .55, W * .36, '#FF3D9A', .06 + .55 * E.clap);
+    // the 909 kick: a white floor strobe with almost no tail
+    glow(ctx, W * .5, H * 1.15, W * .95, '#E4E0FF', .04 + .95 * E.kick);
+    glow(ctx, W * .5, H * 1.02, W * .40, '#FFFFFF', .55 * E.kick);
+    // the strobe lifts the whole room for a few milliseconds
+    ctx.fillStyle = `rgba(220,215,255,${(.08 * E.kick).toFixed(3)})`; ctx.fillRect(0, 0, W, H);
+  }
+  // vignette: the room falls off into the corners
+  ctx.globalCompositeOperation = 'source-over';
+  const v = ctx.createRadialGradient(W / 2, H * .45, H * .3, W / 2, H * .5, W * .75);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  sctx.clearRect(0, 0, W, H); sctx.drawImage(room, 0, 0);
+}
+function lightGear(E) {
+  const acid = songKey === 'acid';
+  const kick = E.kick, top = acid ? Math.max(E.acid * .8, E.accent) : E.pads, right = acid ? E.rumble : E.bass, left = acid ? E.clap : E.snare;
+  const restTop = acid ? .25 : .45, restB = acid ? .05 : .22;
+  for (const m of MODS) {
+    const r = m.r, cy = (r.top + r.bottom) / 2 / VH, cx = (r.left + r.right) / 2 / VW;
+    const fB = Math.max(0, 1 - (1.1 - r.bottom / VH) * .9);    // nearer the floor lamp = brighter bottom edge
+    const fT = Math.max(0, 1 - (r.top / VH) * .9);
+    const fR = Math.max(0, 1 - (1.05 - r.right / VW) * 1.4);
+    const fL = Math.max(0, 1 - (r.left / VW) * 1.6);
+    m.b.style.opacity = Math.min(1, (restB + kick * (acid ? 1.1 : .85)) * fB).toFixed(3);
+    m.t.style.opacity = Math.min(1, (restTop + top * .55) * fT).toFixed(3);
+    m.rr.style.opacity = Math.min(1, (.12 + right * .8) * fR).toFixed(3);
+    m.l.style.opacity = Math.min(1, (.06 + left * .9) * fL).toFixed(3);
+    // the lamp is low and in front, so each kick throws the shadow up and back
+    m.shade.style.opacity = Math.min(1, kick * (acid ? .95 : .7) * (.4 + fB * .6)).toFixed(3);
+  }
+}
+
+/* ── visualizer ────────────────────────────────────────────────────── */
+function rnd(seed) { let x = Math.sin(seed * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+const PADS = [[27, 29, 31], [26, 28, 31], [28, 30, 32], [25, 28, 30]];   // rows, per bar of the progression
+function drawPianoroll(pos) {
+  const v = $('#view'), ctx = v.getContext('2d'), W = v.width, H = v.height, dpr = devicePixelRatio;
+  ctx.fillStyle = '#060607'; ctx.fillRect(0, 0, W, H);
+  const cycles = 8, pxBar = W / cycles, head = W * .38, nowBar = pos / 4;
+  const rows = 26, row = H / rows, y = r => H - (r + 1) * row;
+  for (let b = Math.floor(nowBar - 4); b <= nowBar + 6; b++) {
+    const x = head + (b - nowBar) * pxBar;
+    ctx.fillStyle = b % 4 === 0 ? '#1C1C1F' : '#121214'; ctx.fillRect(Math.round(x), 0, dpr, H);
+  }
+  const box = (x, yy, w, h, c, hollow) => {
+    if (x + w < 0 || x > W) return;
+    ctx.globalAlpha = x + w < head ? .4 : 1;
+    if (hollow) { ctx.strokeStyle = c; ctx.lineWidth = dpr; ctx.strokeRect(x + dpr / 2, yy + dpr / 2, w - dpr, h - dpr); }
+    else { ctx.fillStyle = c; ctx.beginPath(); ctx.roundRect(x, yy, w, h, dpr * 1.5); ctx.fill(); }
+    ctx.globalAlpha = 1;
+  };
+  const col = n => C(n), M = n => isMuted(n);
+  for (let b = Math.floor(nowBar - 4); b <= Math.ceil(nowBar + 5); b++) {
+    const bx = head + (b - nowBar) * pxBar, sx = pxBar / 16, pad = PADS[((b % 4) + 4) % 4];
+    pad.forEach(r => box(bx + dpr, y(r - 8), pxBar - 2 * dpr, row * .9, hexA(col('--lilac'), .55), M('pads')));
+    [0, 3, 6, 10].forEach((s, i) => { if (rnd(b * 7 + i) > .3) box(bx + s * sx, y(23 + (i % 3)), sx * (i === 3 ? 5 : 2.6), row * .9, col('--cream'), M('lead')); });
+    for (let s = 0; s < 16; s++) box(bx + s * sx + dpr, y(12 + ((s * 5) % 6)), sx - 2 * dpr, row * .9, col('--teal'), M('arp'));
+    for (let s = 0; s < 16; s += 2) box(bx + s * sx + dpr, y(7 + (s % 8 === 6 ? 2 : 0) + (pad[0] - 27)), sx * 1.7, row * .9, col('--cobalt'), M('bass'));
+    for (let s = 0; s < 16; s++) box(bx + s * sx + sx * .3, y(4), sx * .4, row * .6, hexA(col('--ember-px'), s % 4 === 2 ? .95 : .45), M('hats'));
+    [13, 14, 15].forEach((s, i) => { if (b % 8 === 7) box(bx + s * sx + dpr, y(3 - i % 2), sx - 2 * dpr, row * .9, col('--ember'), M('toms')); });
+    [4, 12].forEach(s => box(bx + s * sx + dpr, y(2), sx - 2 * dpr, row * .9, col('--ember-px'), M('snare')));
+    [0, 4, 8, 12].forEach(s => box(bx + s * sx + dpr, y(0), sx - 2 * dpr, row * .9, col('--ember'), M('kick')));
+  }
+  ctx.fillStyle = C('--px'); ctx.fillRect(Math.round(head), 0, 1.5 * dpr, H);
+}
+let scopeTrail = [];
+function drawScope(pos, E) {
+  const v = $('#view'), ctx = v.getContext('2d'), W = v.width, H = v.height, dpr = devicePixelRatio;
+  ctx.fillStyle = '#060607'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#141416'; ctx.lineWidth = dpr;
+  for (let i = 1; i < 8; i++) { ctx.beginPath(); ctx.moveTo(W * i / 8, 0); ctx.lineTo(W * i / 8, H); ctx.stroke(); }
+  for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(0, H * i / 4); ctx.lineTo(W, H * i / 4); ctx.stroke(); }
+  const knob = KNOBS.find(o => o.k.id === 'res'); const res = knob ? knob.k.v / 30 : .7;
+  const amp = (.22 + .55 * E.acid) * H * .5, cyc = 3.2;
+  const path = () => {
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += dpr) {
+      const ph = (x / W) * cyc + pos * .5;
+      const f = ph % 1;
+      let yv = (1 - 2 * f);                               // saw
+      yv += res * .9 * Math.exp(-f * 9) * Math.sin(f * 60); // resonance ringing after each reset
+      yv = Math.tanh(yv * (1.2 + E.accent)) ;              // the drive folds it over
+      const yy = H / 2 - yv * amp;
+      x ? ctx.lineTo(x, yy) : ctx.moveTo(x, yy);
+    }
+  };
+  ctx.strokeStyle = hexA(C('--acid'), .22); ctx.lineWidth = 6 * dpr; path(); ctx.stroke();
+  ctx.strokeStyle = C('--acid'); ctx.lineWidth = 1.6 * dpr; path(); ctx.stroke();
+}
+
+/* ── frame ─────────────────────────────────────────────────────────── */
+const beatsEls = [...document.querySelectorAll('#beats .led')];
+let lastBarbeat = '';
+function frame(now) {
+  const dt = Math.min(.1, (now - lastT) / 1000); lastT = now;
+  const spb = 60 / S.bpm;
+  if (playing && !frozen) {
+    const prevBar = Math.floor(beatPos / 4);
+    beatPos += dt / spb;
+    let bar = Math.floor(beatPos / 4);
+    if (bar !== prevBar) {
+      if (queued !== null) { beatPos = STARTS[queued] * 4 + (beatPos % 4); loopSec = queued; queued = null; SECS.forEach(x => x.el.classList.remove('queued')); }
+      else if (loopOn) { const end = STARTS[loopSec] + S.sections[loopSec][1]; if (bar >= end) beatPos -= S.sections[loopSec][1] * 4; }
+      if (Math.floor(beatPos / 4) >= totalBars()) beatPos = 0;
+      if (!loopOn) loopSec = sectionAt(Math.floor(beatPos / 4));
+    }
+  }
+  const t = beatPos * spb;
+  const bar = Math.floor(beatPos / 4), beat = Math.floor(beatPos % 4);
+
+  // envelopes per track
+  const E = {};
+  for (const [n, , steps, mode] of S.tracks) {
+    E[n] = !playing || isMuted(n) ? 0 : envAt(n, sinceHit(steps, beatPos, spb, mode));
+  }
+  if (songKey === 'acid') {
+    const step = Math.floor(beatPos * 4) % 16;
+    E.accent = ACID_ACCENT[step] && playing && !isMuted('acid') ? envAt('acid', ((beatPos * 4) % 1) / 4 * spb) : 0;
+  } else {
+    // sidechain: the pads dip under each kick
+    E.pads = (E.pads * .5 + .5) * (1 - .55 * E.kick) * (playing && !isMuted('pads') ? 1 : 0);
+  }
+  if (reduce) for (const k in E) E[k] = playing ? .35 : 0;
+
+  drawRoom(E, t);
+  lightGear(E);
+
+  // code tokens: hard invert on the hit, then a coloured underline while armed
+  const winOn = songKey === 'acid' ? .07 : .12;
+  for (const tk of TOKS) {
+    const since = isMuted(tk.track) || !playing ? 99 : sinceHit(tk.steps, beatPos, spb);
+    const on = since < winOn;
+    if (on !== tk.on) { tk.on = on; tk.el.classList.toggle('on', on); }
+  }
+  for (const ln of LIVE_LINES) {
+    let e = 0; for (const tk of ln.toks) if (tk) e = Math.max(e, isMuted(tk.track) || !playing ? 0 : envAt(tk.track, sinceHit(tk.steps, beatPos, spb)));
+    ln.el.style.setProperty('--tick', (.3 + .7 * e).toFixed(2));
+  }
+  // meters
+  for (const s of STRIPS) {
+    const e = E[s.n] || 0, g = S.gain[s.n] ?? .6;
+    s.level = Math.max(e * g, s.level - dt * 2.4);
+    s.led.style.opacity = (.15 + .85 * e).toFixed(2);
+    s.cover.style.transform = `scaleY(${(1 - s.level * .92).toFixed(3)})`;
+  }
+  // clock readouts
+  const bb = `${bar + 1}.${beat + 1}`;
+  if (bb !== lastBarbeat) {
+    lastBarbeat = bb;
+    $('#barbeat').innerHTML = segSVG(String(bar + 1).padStart(3, ' ') + '.' + (beat + 1));
+    beatsEls.forEach((l, i) => l.classList.toggle('on', playing && i === beat));
+    updateMap(bar);
+  }
+  S.view === 'scope' ? drawScope(beatPos, E) : drawPianoroll(beatPos);
+  if (!frozen) requestAnimationFrame(frame);
+}
+
+/* ── song switching ────────────────────────────────────────────────── */
+function loadSong(key) {
+  songKey = key; S = SONGS[key];
+  document.documentElement.dataset.song = key;
+  mutes = new Set(S.muted); solos = new Set();
+  $('#songNo').textContent = S.no; $('#songName').textContent = S.name;
+  $('#tempo').innerHTML = segSVG(String(S.bpm));
+  $('#viewName').innerHTML = S.view === 'scope' ? '<b>scope</b>&ensp;acid, after the ladder filter' : '<b>pianoroll</b>&ensp;8 cycles';
+  $('#legend').innerHTML = S.legend.map(([n, c]) => `<span style="--c:var(${c})"><i></i>${n}</span>`).join('');
+  renderMap(); renderMixer(); renderKnobs(); renderCode();
+  beatPos = 34 * 4 + (key === 'acid' ? .02 : 1.0);
+  loopSec = sectionAt(34); lastMapBar = -1; lastBarbeat = '';
+  requestAnimationFrame(() => { resize(); });
+}
+$('#nextSong').onclick = $('#prevSong').onclick = () => { loadSong(songKey === 'neon' ? 'acid' : 'neon'); if (frozen) frame(performance.now()); };
+
+/* ── controls ──────────────────────────────────────────────────────── */
+function setPlaying(p) {
+  playing = p;
+  $('#play').setAttribute('aria-pressed', p); $('#stop').setAttribute('aria-pressed', !p);
+  $('#playLed').classList.toggle('on', p);
+}
+$('#play').onclick = () => setPlaying(true);
+$('#stop').onclick = () => setPlaying(false);
+function setLoop(on) { loopOn = on; $('#loop').setAttribute('aria-pressed', on); $('#loopLed').classList.toggle('on', on); loopSec = sectionAt(Math.floor(beatPos / 4)); lastMapBar = -1; }
+$('#loop').onclick = () => setLoop(!loopOn);
+$('#follow').onclick = e => { const b = e.currentTarget; const on = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', on); };
+function toggleHelp() { document.body.classList.toggle('help'); }
+$('#helpBtn').onclick = toggleHelp;
+function setError(on) {
+  document.body.classList.toggle('error', on);
+  $('#swapLed').className = on ? 'led red on' : 'led green on';
+  $('#swapText').textContent = on ? 'save failed, still playing the last good version' : 'hot-swapped 4 s ago';
+  renderCode();
+}
+addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('[role="slider"]') && e.key.startsWith('Arrow')) return;
+  if (e.key === ' ') { e.preventDefault(); setPlaying(!playing); }
+  else if (e.key === 'e') setError(!document.body.classList.contains('error'));
+  else if (e.key === '?') toggleHelp();
+  else if (e.key === 'a') $('#nextSong').click();
+  else if (e.key === 'l') setLoop(!loopOn);
+  else if (e.key === 'f') $('#follow').click();
+  else if (/^[1-9]$/.test(e.key) && +e.key <= S.sections.length) { queued = +e.key - 1; SECS.forEach((x, i) => x.el.classList.toggle('queued', i === queued)); }
+  else if (e.key === 'Escape') document.body.classList.remove('help');
+});
+addEventListener('resize', resize);
+
+// screenshot hooks
+window.seek = b => { beatPos = b; frozen = true; lastBarbeat = ''; lastMapBar = -1; frame(performance.now()); };
+window.loadSong = loadSong;
+
+loadSong(songKey);
+if (params.has('error')) setError(true);
+if (params.has('help')) toggleHelp();
+resize();
+requestAnimationFrame(t => { lastT = t; frame(t); });
+})();
+</script>
+</body>
+</html>

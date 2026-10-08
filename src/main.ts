@@ -656,7 +656,16 @@ document.addEventListener("keydown", (e) => {
 
 if (import.meta.hot) {
   import.meta.hot.accept("./songs/index.ts", (mod) => {
-    if (!mod) return;
+    if (!mod) {
+      // Vite passes undefined when re-importing failed at runtime, e.g. a song
+      // file that throws at module top level (syntax errors get Vite's overlay).
+      setError({
+        kind: "build",
+        message: "A song file failed to load (it threw while being imported). See the browser console for details.",
+        keptPrevious: repl?.scheduler.started ?? false,
+      });
+      return;
+    }
     const newModule = mod as unknown as SongsModule;
     const previous = songsModule;
     songsModule = newModule;
@@ -686,6 +695,20 @@ if (import.meta.hot) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 repl = await engine.initStrudel({ onToggle: () => changed() });
+
+// Debug hook (tests, devtools, editor bridges); usable while samples load
+// (play() requests are queued until ready). Typed at the end of this file.
+window.__strudel = {
+  repl,
+  scheduler: repl.scheduler,
+  getState,
+  onStateChange,
+  play,
+  stop,
+  selectSong,
+  songs: () => songsModule.songs,
+};
+
 loading = "Loading samples…";
 changed();
 
@@ -741,16 +764,5 @@ declare global {
     };
   }
 }
-
-window.__strudel = {
-  repl,
-  scheduler: repl.scheduler,
-  getState,
-  onStateChange,
-  play,
-  stop,
-  selectSong,
-  songs: () => songsModule.songs,
-};
 
 console.log("🎵 Strudel IDE ready!");

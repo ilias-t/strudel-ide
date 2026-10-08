@@ -30,6 +30,7 @@ export function confirmSharedSong(song: SharedSong): Promise<boolean> {
     confirm: "open it",
     cancel: "don't",
     tone: "warn",
-    focus: "confirm",
+    // a stray Enter must never run code from a link: "don't" has focus
+    focus: "cancel",
   });
 }

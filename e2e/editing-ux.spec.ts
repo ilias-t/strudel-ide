@@ -287,8 +287,9 @@ test("share copies a link that opens through the stage's dialog", async ({ playe
   await expect(dialog).toContainText(`${FIXTURE_ID}.ts`);
   await expect(dialog).toContainText(/\d+(\.\d)? (KB|bytes) · \d+ lines/);
   await expect(dialog).toContainText(/runs that code/);
-  await expect(other.getByTestId("share-dialog-confirm")).toBeFocused();
-  await other.keyboard.press("Enter"); // = open it
+  // "don't" has focus, so a stray Enter can't run the link's code; opening takes a deliberate choice
+  await expect(other.getByTestId("share-dialog-cancel")).toBeFocused();
+  await other.getByTestId("share-dialog-confirm").click();
   await expect(dialog).toBeHidden();
   await other.waitForFunction(() => window.__strudel?.getState().ready === true, null, { timeout: 30_000 });
   // a built-in of that id exists there: the shared song comes in beside it

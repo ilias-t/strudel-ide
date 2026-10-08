@@ -352,6 +352,10 @@ export class CodeEditor implements CodeSurface {
       } finally {
         this.applyingExternal = false;
       }
+      // the replace moved the error line's decoration: put it back where it belongs
+      const line = this.errorLine;
+      this.errorLine = null;
+      this.setErrorLine(line);
     }
     this.ranges = [];
     this.rangesDirty = true;
@@ -699,8 +703,9 @@ export class CodeEditor implements CodeSurface {
     el.className = "knob-chip cm-knob-chip";
     el.dataset.knob = name;
     el.dataset.testid = "knob-chip";
-    el.setAttribute("role", "button");
-    el.setAttribute("aria-label", `Knob ${name}: focus it on the knob panel`);
+    // like the code view's chips: a pointer shortcut to the knob panel, which is
+    // where the knob is reachable by keyboard and screen readers
+    el.setAttribute("aria-hidden", "true");
     el.title = `${name}: click to focus the knob`;
     // Monaco would take the mousedown for the caret
     el.addEventListener("mousedown", (e) => {

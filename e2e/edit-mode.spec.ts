@@ -211,6 +211,10 @@ test("lit ranges, flashes and knob chips work in the editor", async ({ player, p
   await page.keyboard.type("!");
   await expect.poll(() => page.evaluate(() => window.__strudelEditor!.litRanges().length)).toBe(0);
   await expect(editorEl.locator(".cm-lit")).toHaveCount(0);
+  // …and come back when the buffer says what plays again
+  await page.keyboard.press("ControlOrMeta+z");
+  expect(await page.evaluate(() => window.__strudelEditor!.value())).toBe(text);
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor!.litRanges().length)).toBeGreaterThan(0);
 });
 
 test("the editor follows saves, and shows the player's error line", async ({ player, page }) => {
@@ -224,6 +228,22 @@ test("the editor follows saves, and shows the player's error line", async ({ pla
   writeFixture();
   await expect.poll(async () => (await player.state()).error).toBeNull();
   await expect(page.getByTestId("code-editor").locator(".cm-error-text")).toHaveCount(0);
+});
+
+test("saving the IDE's buffer as is hands the editor back (no longer read-only)", async ({ player, page }) => {
+  await playFixture(player);
+  await enterEdit(page);
+  ide = await EditorClient.connect(test.info().project.use.baseURL!);
+  await ide.waitFor((m) => m.type === "player" && m.connected === true, "player connected");
+  const theirs = fixtureSource({ gain: 0.3 });
+  expect(await ide.eval(FIXTURE_FILE, theirs)).toMatchObject({ ok: true });
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor!.session()?.readOnly)).toBe(true);
+  // the same text lands on disk: only the status changes, not the text
+  writeFixture({ gain: 0.3 });
+  await expect.poll(async () => (await player.state()).live, { message: "the save replaced the IDE's buffer" }).toBeNull();
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor!.session()?.readOnly)).toBe(false);
+  await expect(page.getByTestId("code-takeover")).toBeHidden();
+  expect(await page.evaluate(() => window.__strudelEditor!.value())).toBe(theirs);
 });
 
 test("an IDE's live buffer is read-only until taken over; a save never overwrites browser edits", async ({ player, page }) => {

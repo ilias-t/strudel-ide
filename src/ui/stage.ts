@@ -109,6 +109,8 @@ export function mountStage(): Stage {
   let surface: CodeSurface = codeView;
   let editor: CodeEditor | null = null;
   let mode: "view" | "edit" = "view";
+  /** Whether the shown text was the playing text last frame (null: hand over the ranges) */
+  let shownSame: boolean | null = null;
 
   const knobPanel = new KnobPanel(
     { root: $("knobs"), grid: $("knob-grid"), writeAll: $<HTMLButtonElement>("knobs-write-all"), status: $("knobs-status") },
@@ -225,6 +227,9 @@ export function mountStage(): Stage {
       codeFile.textContent = source.file;
       rangeTrack.clear();
       renderKnobs(player.knobs()); // new chips
+    } else if (source?.text !== undefined && editor && surface === editor) {
+      // same text, maybe a different status (an IDE buffer saved as is): the session decides
+      syncSession(state.songId, source);
     }
     codeUnsaved.hidden = !source?.live;
     renderStale(state);
@@ -353,46 +358,61 @@ export function mountStage(): Stage {
   let ideName = "your editor";
 
   type Source = NonNullable<ReturnType<typeof player.currentSource>>;
-  /** An evaluated buffer the browser sent itself is not the IDE's */
-  const incomingOf = (source: Source) => ({
+  /**
+   * What the session hears. An evaluated buffer stays `live` even when the
+   * browser sent it (the session knows its own echoes, and a live buffer is
+   * not the file: a later save must not count as "already shown"). Only a
+   * session that starts on a browser-sent buffer takes it as editable.
+   */
+  const incomingOf = (source: Source, initial = false) => ({
     text: source.text ?? "",
     version: source.version,
-    live: !!source.live && (source as { origin?: string }).origin !== "browser",
+    live: !!source.live && !(initial && (source as { origin?: string }).origin === "browser"),
   });
 
-  function sessionFor(songId: string, source: Source): EditSession {
-    let session = sessions.get(songId);
-    if (!session) {
-      session = new EditSession({
-        initial: incomingOf(source),
-        evaluate: (text, intent) => evalEdit(songId, text, intent),
-        ideName: () => ideName,
-        onChange: (view) => {
-          if (songId === shownSongId && editor && surface === editor) applyView(editor, view);
-        },
-      });
-      sessions.set(songId, session);
+  /** The song's session, told about `source` (a new session starts from it) */
+  function syncSession(songId: string, source: Source): EditSession {
+    const existing = sessions.get(songId);
+    if (existing) {
+      existing.incoming(incomingOf(source));
+      return existing;
     }
+    const session = new EditSession({
+      initial: incomingOf(source, true),
+      evaluate: (text, intent) => evalEdit(songId, text, intent),
+      ideName: () => ideName,
+      onChange: (view) => {
+        if (songId === shownSongId && editor && surface === editor) applyView(editor, view);
+      },
+    });
+    sessions.set(songId, session);
     return session;
   }
 
   /** The current song's source → its session → the editor */
   function showInEditor(ed: CodeEditor, songId: string, source: Source, otherFile: boolean) {
     if (otherFile) ed.setFile(source.file, source.text ?? "");
-    const session = sessionFor(songId, source);
-    session.incoming(incomingOf(source));
-    applyView(ed, session.view(), otherFile);
+    applyView(ed, syncSession(songId, source).view(), otherFile);
   }
 
+  let shownMarker: SessionView["marker"] = null;
   function applyView(ed: CodeEditor, view: SessionView, otherFile = false) {
     if (ed.value() !== view.text) ed.setSource(view.text, undefined, otherFile);
     else if (otherFile) ed.setSource(view.text, undefined, true);
     ed.setReadOnly(view.readOnly);
-    ed.setMarker(view.marker);
-    codeStatus.hidden = !view.status.text;
-    codeStatus.textContent = view.status.text;
-    codeStatus.dataset.kind = view.status.kind;
-    codeStatus.title = view.marker?.message ?? view.status.text;
+    // a new result's marker, placed only while its line/column still index the
+    // buffer (Monaco then carries it along as the user types)
+    if (view.marker !== shownMarker || otherFile) {
+      shownMarker = view.marker;
+      ed.setMarker(view.marker && view.markerText === view.text ? view.marker : null);
+    }
+    const { kind, text } = view.status;
+    codeStatus.hidden = !text;
+    if (codeStatus.textContent !== text) codeStatus.textContent = text;
+    codeStatus.dataset.kind = kind;
+    // announce what needs attention, not every "editing…" / "evaluating…"
+    codeStatus.setAttribute("aria-live", kind === "error" || kind === "conflict" || kind === "readonly" ? "polite" : "off");
+    codeStatus.title = view.marker?.message ?? text;
     takeOverKey.hidden = view.status.action !== "takeOver";
     loadKey.hidden = view.status.action !== "load";
     renderStale(lastState);
@@ -441,6 +461,7 @@ export function mountStage(): Stage {
     editorHost.hidden = false;
     codeView.setSource("", undefined, true); // one set of knob chips on the page
     surface = editor;
+    shownSame = null;
     surface.setEnabled(player.getState().codeView);
     surface.setFollowing(true);
     shownSongId = ""; // show the current song in the editor
@@ -456,6 +477,7 @@ export function mountStage(): Stage {
     if (surface === codeView) return;
     if (editorHost.contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
     surface = codeView;
+    shownSame = null;
     editorHost.hidden = true;
     codeScroll.hidden = false;
     codeStatus.hidden = takeOverKey.hidden = loadKey.hidden = true;
@@ -670,8 +692,17 @@ export function mountStage(): Stage {
     renderCue(state);
     renderSwap(state, now);
 
+    // the shown text just became (or stopped being) the playing text, e.g. a
+    // surface switch or an undo back to it: the highlighter only reports
+    // changes, so hand over what's lit now
+    const same = sameSource();
+    if (same !== shownSame) {
+      shownSame = same;
+      surface.setRanges(same && live ? live.ranges() : []);
+    }
+
     if (live && state?.playing) {
-      const sourceOk = sameSource();
+      const sourceOk = same;
       live.pollOnsets((hap) => {
         if (!sourceOk) {
           const track = hap.context.track;

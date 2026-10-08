@@ -258,18 +258,26 @@ describe("buildFunctions", () => {
 // examples: strudel.cc form → IDE form
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Method calls on a string literal (`"a b".fast(2)`), except JS's own string methods */
-function stringReceivers(code) {
+/** Names on the Pattern interface of the generated d.ts (what ideExample() treats as pattern methods) */
+function dtsPatternMembers() {
+  const src = readFileSync(join(root, "src/strudel.generated.d.ts"), "utf8");
+  const sf = ts.createSourceFile("d.ts", src, ts.ScriptTarget.Latest, true);
+  const iface = sf.statements.find((s) => ts.isInterfaceDeclaration(s) && s.name.text === "Pattern");
+  return new Set(iface.members.filter((m) => m.name && ts.isIdentifier(m.name)).map((m) => m.name.text));
+}
+const MEMBERS = dtsPatternMembers();
+
+/** What the IDE can't run: a Pattern member on a string literal ("a".fast, "110".mul.out), or `._name` visuals */
+function strudelCcOnly(code) {
   const sf = ts.createSourceFile("x.js", code, ts.ScriptTarget.Latest, true);
   const found = [];
   const visit = (node) => {
-    if (
-      ts.isCallExpression(node) &&
-      ts.isPropertyAccessExpression(node.expression) &&
-      (ts.isStringLiteral(node.expression.expression) || ts.isNoSubstitutionTemplateLiteral(node.expression.expression)) &&
-      !(node.expression.name.text in String.prototype)
-    )
-      found.push(node.expression.getText(sf));
+    if (ts.isPropertyAccessExpression(node)) {
+      const r = node.expression;
+      const name = node.name.text;
+      if ((ts.isStringLiteral(r) || ts.isNoSubstitutionTemplateLiteral(r)) && MEMBERS.has(name)) found.push(node.getText(sf));
+      if (name.startsWith("_") && MEMBERS.has(name.slice(1))) found.push(node.getText(sf));
+    }
     ts.forEachChild(node, visit);
   };
   visit(sf);
@@ -277,26 +285,42 @@ function stringReceivers(code) {
 }
 
 describe("ideExample", () => {
+  const members = new Set(["add", "slow", "fast", "note", "sub", "mul", "scope", "pianoroll"]);
+  const ide = (code) => ideExample(code, members);
+
   test("wraps a string literal that receives a pattern method in mini()", () => {
-    assert.equal(ideExample('n("0 2 4".add("<0 3 4 0>")).scale("C:major")'), 'n(mini("0 2 4").add("<0 3 4 0>")).scale("C:major")');
-    assert.equal(ideExample('"<0 2>".slow(2).note()'), 'mini("<0 2>").slow(2).note()');
-    assert.equal(ideExample("`c e g`.fast(2).note()"), "mini(`c e g`).fast(2).note()");
+    assert.equal(ide('n("0 2 4".add("<0 3 4 0>")).scale("C:major")'), 'n(mini("0 2 4").add("<0 3 4 0>")).scale("C:major")');
+    assert.equal(ide('"<0 2>".slow(2).note()'), 'mini("<0 2>").slow(2).note()');
+    assert.equal(ide("`c e g`.fast(2).note()"), "mini(`c e g`).fast(2).note()");
+  });
+
+  test("Pattern members win over String.prototype's legacy names (sub, …)", () => {
+    assert.equal(ide('n("0 2 4".sub(1))'), 'n(mini("0 2 4").sub(1))');
+  });
+
+  test('wraps operator chains too: "110".mul.out(…)', () => {
+    assert.equal(ide('freq("110".mul.out(".5 1.5"))'), 'freq(mini("110").mul.out(".5 1.5"))');
+  });
+
+  test("strudel.cc's inline visuals become the IDE's methods", () => {
+    assert.equal(ide('note("c e")._scope()._pianoroll({ labels: true })'), 'note("c e").scope().pianoroll({ labels: true })');
+    assert.equal(ide("x._unknown()"), "x._unknown()");
   });
 
   test("leaves everything else alone: arguments, JS string methods, comments, layout", () => {
     const code = '// "a b".fast(2) in a comment\nnote("c e")\n  .s("piano") // "x".y()\n"a b".split(" ")';
-    assert.equal(ideExample(code), code);
+    assert.equal(ide(code), code);
   });
 
   test("handles nested and repeated receivers", () => {
     assert.equal(
-      ideExample('note("c3 e3".add("<0 5>".fast(2))).stack("g3".note())'),
+      ide('note("c3 e3".add("<0 5>".fast(2))).stack("g3".note())'),
       'note(mini("c3 e3").add(mini("<0 5>").fast(2))).stack(mini("g3").note())'
     );
   });
 
   test("leaves code it can't parse unchanged", () => {
-    assert.equal(ideExample('"a".fast(2'), '"a".fast(2');
+    assert.equal(ide('"a".fast(2'), '"a".fast(2');
   });
 });
 
@@ -374,8 +398,8 @@ describe("functions.json", () => {
     assert.deepEqual([...expected].filter((n) => !names.includes(n)), [], "d.ts names missing");
   });
 
-  test("examples are in the IDE's form: no pattern methods called on string literals", () => {
-    const left = functions.flatMap((f) => f.examples.flatMap((ex) => stringReceivers(ex).map((r) => `${f.name}: ${r}`)));
+  test("examples are in the IDE's form: no pattern methods on string literals, no ._visuals", () => {
+    const left = functions.flatMap((f) => f.examples.flatMap((ex) => strudelCcOnly(ex).map((r) => `${f.name}: ${r}`)));
     assert.deepEqual(left, []);
     // the rewrite really ran (the d.ts has many strudel.cc-style examples)
     const add = functions.find((f) => f.name === "add");

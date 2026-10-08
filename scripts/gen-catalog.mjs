@@ -36,7 +36,9 @@
 //     summary,                 // first sentence of description ("" when undocumented)
 //     description,             // full JSDoc text, generated notes removed (markdown-ish)
 //     params: [{ name, description }],
-//     examples: string[],      // strudel.cc's examples in the IDE's form: "a b".fast(2) → mini("a b").fast(2)
+//     examples: string[],      // strudel.cc's examples in the IDE's form: "a b".fast(2) → mini("a b").fast(2),
+//                              // ._scope() → .scope(). About 1 in 10 still won't type-check in a song
+//                              // (.osc()/.midi() outputs, upstream signatures looser than the d.ts)
 //     synonyms: string[],      // other names for the same thing
 //     aliasOf?,                // this name is an alias of that one
 //     superdirtOnly?: true,    // no effect with the built-in WebAudio output

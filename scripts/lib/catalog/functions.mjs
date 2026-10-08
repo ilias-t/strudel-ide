@@ -138,12 +138,15 @@ export function buildFunctions(dtsText) {
     }
   }
 
+  // strudel.cc examples → the IDE's form (see examples.mjs), judged against the Pattern members
+  const patternMembers = new Set([...byName].filter(([, e]) => e.method).map(([name]) => name));
+
   return [...byName.keys()].sort(byCodePoint).map((name) => {
     const e = byName.get(name);
     const kind = e.value ? "value" : e.method && e.global ? "both" : e.method ? "method" : "function";
     const primary = e.docs.find((d) => d.description || d.params.length || d.examples.length) ?? e.docs[0];
     const description = primary?.description ?? "";
-    const examples = [...new Set(e.docs.flatMap((d) => d.examples).map(ideExample))];
+    const examples = [...new Set(e.docs.flatMap((d) => d.examples).map((ex) => ideExample(ex, patternMembers)))];
     const synonyms = [...new Set(e.docs.flatMap((d) => d.synonyms))];
     const aliasOf = e.docs.find((d) => d.aliasOf)?.aliasOf;
     const deprecated = e.docs.find((d) => d.deprecated)?.deprecated;

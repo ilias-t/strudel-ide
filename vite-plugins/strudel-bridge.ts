@@ -7,7 +7,10 @@
 // alone). Protocol: src/live/protocol.ts.
 //
 //   browser ──state/songs/highlight/onsets/reveal──▶ server ──▶ every editor
+//           knobs/knobWrite/evalResult
 //   editor  ──command──────────────────────────────▶ server ──▶ every browser
+//   editor  ──eval {file, text}──▶ server: compiled as a Vite module
+//           (strudel-live-eval.ts) ──live {url | error}──▶ every browser
 //   server  ──player {connected}──▶ editors  (on join + whenever the set of
 //                                             browsers goes empty/non-empty)
 //   server  ──server {root, editorScheme}──▶ browsers (on join + when the
@@ -22,8 +25,8 @@
 //   3. Cursor, when detectable (launched from Cursor's terminal, or installed)
 //   4. "vscode"
 //
-// The latest `state`/`songs` per browser are cached and replayed to editors
-// that connect later. The dev server URL is written to DISCOVERY_FILE so the
+// The latest `state`/`songs`/`knobs` per browser are cached and replayed to
+// editors that connect later. The dev server URL is written to DISCOVERY_FILE so the
 // VS Code extension can find it when the port isn't 3000.
 
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -38,14 +41,21 @@ import {
   BRIDGE_PATH,
   DISCOVERY_FILE,
   SERVER_ONLY_TYPES,
+  contentVersion,
+  isEval,
   isHello,
   parseMessage,
   type DiscoveryInfo,
   type EditorsMsg,
+  type EvalMsg,
+  type EvalResultMsg,
+  type LiveMsg,
+  type PlayerError,
   type PlayerMsg,
   type Role,
   type ServerInfoMsg,
 } from "../src/live/protocol.ts";
+import { EvalError, createLiveEval, type LiveEval } from "./strudel-live-eval.ts";
 
 export interface StrudelBridgeOptions {
   /** Write the discovery file (default true). */
@@ -59,7 +69,15 @@ export interface StrudelBridgeOptions {
   editorScheme?: string;
 }
 
+/**
+ * Handles an editor's `eval` (the relay never forwards it raw). `reply` sends
+ * to that editor; `relay.toBrowsers` reaches the players.
+ */
+export type EvalHandler = (msg: EvalMsg, reply: (msg: object) => void) => void;
+
 export interface RelayInfo {
+  /** Live eval (strudel-live-eval.ts); without it `eval` is answered with an error */
+  onEval?: EvalHandler;
   /** Absolute project root sent to browsers (default: process.cwd()) */
   root?: string;
   /** Configured scheme: beats the attached editors' schemes */
@@ -97,6 +115,7 @@ export function detectEditorScheme(
 interface BrowserCache {
   state?: string;
   songs?: string;
+  knobs?: string;
   /** monotonically increasing; the most recently active browser wins replay */
   touched: number;
 }
@@ -104,6 +123,8 @@ interface BrowserCache {
 export interface BridgeRelay {
   /** Attach to an HTTP server's `upgrade` event. Returns a detach function. */
   attach(httpServer: Server): () => void;
+  /** Send a message to every browser */
+  toBrowsers(msg: object): void;
   close(): void;
   /** For tests/diagnostics. */
   counts(): { browsers: number; editors: number; pending: number };
@@ -181,6 +202,7 @@ export function createBridgeRelay(log: (msg: string) => void = () => {}, info: R
       const cache = latestCache();
       if (cache?.songs) send(ws, cache.songs);
       if (cache?.state) send(ws, cache.state);
+      if (cache?.knobs) send(ws, cache.knobs);
       const before = editorScheme();
       if (typeof scheme === "string" && SCHEME_RE.test(scheme)) lastEditorScheme = scheme;
       if (editorScheme() !== before) toBrowsers(serverMsg());
@@ -199,12 +221,18 @@ export function createBridgeRelay(log: (msg: string) => void = () => {}, info: R
     if (msg.type === "hello" || SERVER_ONLY_TYPES.includes(msg.type)) return;
 
     if (role === "browser") {
+      if (msg.type === "eval") return;
       const cache = caches.get(ws);
-      if (cache && (msg.type === "state" || msg.type === "songs")) {
+      if (cache && (msg.type === "state" || msg.type === "songs" || msg.type === "knobs")) {
         cache[msg.type] = raw;
         cache.touched = ++touch;
       }
       for (const e of editors()) send(e, raw);
+    } else if (msg.type === "eval") {
+      const reply = (m: object) => send(ws, JSON.stringify(m));
+      if (!isEval(msg)) return;
+      if (info.onEval) info.onEval(msg, reply);
+      else reply(evalFailed(msg, "Live eval needs the Vite dev server"));
     } else {
       toBrowsers(raw);
     }
@@ -257,6 +285,9 @@ export function createBridgeRelay(log: (msg: string) => void = () => {}, info: R
       httpServer.on("upgrade", onUpgrade);
       return () => httpServer.off("upgrade", onUpgrade);
     },
+    toBrowsers(msg) {
+      toBrowsers(JSON.stringify(msg));
+    },
     close() {
       for (const ws of wss.clients) ws.terminate();
       roles.clear();
@@ -268,6 +299,50 @@ export function createBridgeRelay(log: (msg: string) => void = () => {}, info: R
       const e = editors().length;
       return { browsers: b, editors: e, pending: wss.clients.size - b - e };
     },
+  };
+}
+
+function evalFailed(msg: Pick<EvalMsg, "file" | "text">, error: string | PlayerError): EvalResultMsg {
+  return {
+    type: "evalResult",
+    file: String(msg.file),
+    version: typeof msg.text === "string" ? contentVersion(msg.text) : "",
+    ok: false,
+    error: typeof error === "string" ? { message: error } : error,
+  };
+}
+
+/**
+ * The relay's `eval` handler: compile the buffer (strudel-live-eval.ts), then
+ * send the browsers its URL, or its compile error. Evals are compiled one at a
+ * time, in order; an eval superseded by a newer one for the same file while it
+ * compiled is dropped.
+ */
+export function liveEvalHandler(live: LiveEval, relay: () => BridgeRelay | null): EvalHandler {
+  let queue: Promise<unknown> = Promise.resolve();
+  const latest = new Map<string, number>();
+  let seq = 0;
+  return (msg, reply) => {
+    const id = ++seq;
+    latest.set(msg.file, id);
+    queue = queue.then(async () => {
+      const r = relay();
+      if (!r || r.counts().browsers === 0) return reply(evalFailed(msg, "No player connected: open the Strudel player in the browser"));
+      const version = contentVersion(msg.text);
+      let out: LiveMsg;
+      try {
+        const compiled = await live.compile(msg.file, msg.text);
+        out = { type: "live", file: compiled.file, version, text: msg.text, url: compiled.url };
+      } catch (err) {
+        const error: PlayerError = err instanceof EvalError ? err.error : { message: String(err) };
+        // not a song / too large / not on disk: only the editor hears about it
+        if (!(err instanceof EvalError) || !error.file || error.line === undefined) return reply(evalFailed(msg, error));
+        out = { type: "live", file: error.file, version, text: msg.text, error };
+      }
+      if (latest.get(msg.file) !== id) return; // a newer buffer is on its way
+      if (msg.play) out.play = true;
+      r.toBrowsers(out);
+    });
   };
 }
 
@@ -291,25 +366,45 @@ function discoveryInfo(server: ViteDevServer, address: AddressInfo): DiscoveryIn
   };
 }
 
+/** What the plugin exposes to other plugins (`plugin.api`), e.g. strudel-knobs */
+export interface StrudelBridgeApi {
+  /** Live eval of this dev server (null before configureServer / without an HTTP server) */
+  live: LiveEval | null;
+}
+
 export default function strudelBridge(options: StrudelBridgeOptions = {}): Plugin {
   const { discovery = true, log: shouldLog = true } = options;
   const configuredScheme = [options.editorScheme, process.env.STRUDEL_EDITOR]
     .map((s) => s?.trim().toLowerCase())
     .find((s) => !!s && SCHEME_RE.test(s));
+  const api: StrudelBridgeApi = { live: null };
   return {
     name: "strudel-bridge",
     apply: "serve",
+    // live eval: the buffer is the source of `…/src/songs/x.ts?live=<version>`
+    enforce: "pre",
+    api,
+    load(id) {
+      return api.live?.load(id) ?? null;
+    },
+    handleHotUpdate(ctx) {
+      return api.live?.hotUpdate(ctx.file, ctx.modules);
+    },
     configureServer(server) {
       const httpServer = server.httpServer as Server | null;
       if (!httpServer) return; // middleware mode: no server to attach to
       const log = (msg: string) => {
         if (shouldLog) server.config.logger.info(`[strudel-bridge] ${msg}`, { timestamp: true });
       };
+      const live = (api.live = createLiveEval(server));
+      let relayRef: BridgeRelay | null = null;
       const relay = createBridgeRelay(log, {
         root: server.config.root,
         editorScheme: configuredScheme,
         detectedScheme: configuredScheme ? undefined : detectEditorScheme(),
+        onEval: liveEvalHandler(live, () => relayRef),
       });
+      relayRef = relay;
       const detach = relay.attach(httpServer);
       const discoveryPath = resolve(server.config.root, DISCOVERY_FILE);
       let wrotePort: number | null = null;

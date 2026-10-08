@@ -20,7 +20,11 @@
 //   every `knob("cutoff", <value>, …)` call in that file, using the TypeScript
 //   AST for exact positions, in one write (so "Write all" is one hot-swap).
 //   Refuses (4xx, nothing written) when a call isn't found, or its value isn't
-//   a numeric literal (`2200`, `-3`, `0.15`). Vite's watcher then sends the
+//   a numeric literal (`2200`, `-3`, `0.15`), and (409) while the player plays
+//   an evaluated, unsaved editor buffer of that file (live eval, see
+//   strudel-live-eval.ts): writing the file would replace those unsaved edits
+//   in the player and clash with the editor's buffer. The editor extension
+//   writes into its buffer instead; from the stage, save first. Vite's watcher then sends the
 //   usual HMR update. Response: { ok: true, changes: [{ name, literal, line }] }
 //   or { ok: false, error }.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -31,6 +35,8 @@ import ts from "typescript";
 import MagicString from "magic-string";
 import type { Plugin } from "vite";
 import { isSongFile } from "./strudel-locations.ts";
+import type { StrudelBridgeApi } from "./strudel-bridge.ts";
+import { contentVersion } from "../src/live/protocol.ts";
 
 export const KNOB_ENDPOINT = "/__strudel/knob";
 
@@ -109,6 +115,26 @@ export function numberLiteral(value: number): string {
   if (typeof value !== "number" || !Number.isFinite(value)) throw new KnobWriteError(`value must be a finite number`, 400);
   const v = Object.is(value, -0) ? 0 : value;
   return String(v);
+}
+
+/**
+ * Refuse a write while `buffer` (the evaluated, unsaved editor buffer of
+ * `file`) differs from the file on disk.
+ */
+export function checkLiveBuffer(code: string, file: string, writes: KnobWrite[], buffer: { text: string } | null) {
+  if (!buffer || contentVersion(buffer.text) === contentVersion(code)) return;
+  const sf = ts.createSourceFile(file, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const onlyInBuffer = writes.find(({ name }) => typeof name === "string" && !knobValueArgs(sf, name).length);
+  if (onlyInBuffer) {
+    throw new KnobWriteError(
+      `knob("${onlyInBuffer.name}", …) is only in the unsaved editor buffer of ${file}, not in the file: save the file first, then write the knob`,
+      409
+    );
+  }
+  throw new KnobWriteError(
+    `${file} has unsaved changes that are playing (evaluated from the editor): save the file first, or write the knob from the editor`,
+    409
+  );
 }
 
 /** Value argument of each `knob("<name>", <value>, …)` call */
@@ -225,6 +251,8 @@ export default function strudelKnobs(): Plugin {
             } catch {
               throw new KnobWriteError(`${file} not found`, 404);
             }
+            const bridge = server.config.plugins.find((p) => p.name === "strudel-bridge")?.api as StrudelBridgeApi | undefined;
+            checkLiveBuffer(code, rel, writes, bridge?.live?.activeBuffer(rel) ?? null);
             const result = rewriteKnobValues(code, rel, writes);
             if (result.code !== code) await fs.writeFile(abs, result.code);
             reply(200, { ok: true, file: rel, changes: result.changes });

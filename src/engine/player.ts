@@ -21,6 +21,12 @@
 //
 // This module never imports ../songs at runtime (only main.ts does, so it can
 // accept the HMR update); it works on the module main.ts hands it.
+//
+// Live eval (evalLive): an unsaved editor buffer, compiled by the dev server
+// into its own module (vite-plugins/strudel-live-eval.ts), stands in for its
+// song file until the file is saved. It hot-swaps exactly like a saved edit,
+// and a broken buffer never replaces the last good pattern. Saving the same
+// text afterwards keeps the build that is playing (no second swap).
 
 import { Mix } from "./mix";
 import { errorFrom } from "./errors";
@@ -83,6 +89,13 @@ let build: Build | null = null;
 /** The build that is in the scheduler now */
 let playing: Build | null = null;
 
+/** An evaluated editor buffer standing in for its song file (until the file is saved) */
+interface LiveSong {
+  song: Song;
+  source: SongSource;
+}
+const liveSongs = new Map<string, LiveSong>();
+
 /** The last bare (un-visualized, un-guarded) pattern known to work. Fallback for the next swap. */
 let lastGood: Pattern | null = null;
 
@@ -124,7 +137,7 @@ export function setReady() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function currentSong(): Song {
-  return songsModule.getSong(currentSongId);
+  return liveSongs.get(currentSongId)?.song ?? songsModule.getSong(currentSongId);
 }
 
 export function currentSongId_(): string {
@@ -139,9 +152,9 @@ export function songsRecord(): Record<string, Song> {
   return songsModule.songs;
 }
 
-/** File, version and on-disk text of the current song (what the code view shows) */
+/** File, version and text of the current song: the file on disk, or an evaluated buffer (`live`) */
 export function currentSource(): SongSource | null {
-  return songsModule.songSources[currentSongId] ?? null;
+  return liveSongs.get(currentSongId)?.source ?? songsModule.songSources[currentSongId] ?? null;
 }
 
 /** File/version the scheduler's pattern was built from (highlight offsets refer to it) */
@@ -217,6 +230,7 @@ export function getState(): PlayerState {
     beat,
     visualization: activeViz,
     tracks: build?.songId === currentSongId ? build.tracks : null,
+    live: liveOf(currentSongId),
     muted: mix.mutedList(),
     soloed: mix.soloedList(),
     sections,
@@ -369,7 +383,7 @@ function buildCurrent(): Build {
     single: parts ? null : pattern,
     tracks,
     viz: resolveViz(song.visualization),
-    source: songsModule.songSources[songId] ?? null,
+    source: currentSource(),
   };
 }
 
@@ -664,19 +678,140 @@ export function songsUpdated(newModule: SongsModule | undefined) {
     return;
   }
   const previous = songsModule;
+  const before = currentSong();
   songsModule = newModule;
 
   // Only edited song modules are re-instantiated by Vite; unchanged ones come
   // back as the very same objects. That identifies which file(s) you edited.
   const edited = Object.keys(newModule.songs).filter((id) => newModule.songs[id] !== previous.songs[id]);
 
+  // A saved file is the truth again: its evaluated buffer steps down. When the
+  // file now says exactly what the buffer said, the build that is playing
+  // already is this file: point it at the file instead of swapping again.
+  let alreadyPlaying = false;
+  for (const id of edited) {
+    const live = liveSongs.get(id);
+    if (!live) continue;
+    liveSongs.delete(id);
+    const disk = newModule.songSources[id];
+    if (id === currentSongId && build?.songId === id && build.song === live.song && disk?.version === live.source.version) {
+      for (const b of new Set([build, playing])) {
+        if (b?.song !== live.song) continue;
+        b.song = newModule.songs[id];
+        b.source = disk;
+      }
+      alreadyPlaying = true;
+    }
+  }
+
   if (!(currentSongId in newModule.songs)) switchTo(initialSongId());
   else if (followEdits && edited.length && !edited.includes(currentSongId)) switchTo(edited[0]);
   changed();
 
-  if (edited.includes(currentSongId) || previous.getSong(currentSongId) !== currentSong()) {
+  if (alreadyPlaying) return;
+  if (edited.includes(currentSongId) || before !== currentSong() || previous.getSong(currentSongId) !== currentSong()) {
     void swap(); // hot-swap while playing; validate-only while stopped
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Live eval: an unsaved editor buffer, compiled by the dev server
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** A compiled buffer to apply (the bridge's `live` message) */
+export interface LiveBuffer {
+  file: string;
+  version: string;
+  text: string;
+  /** Module URL to import (the dev server's `…/src/songs/x.ts?live=<version>`) */
+  url: string;
+}
+
+export interface EvalOutcome {
+  ok: boolean;
+  /** Hot-swapped into the current song (false: kept for when its song is selected) */
+  applied: boolean;
+  error?: { message: string; file?: string; line?: number; column?: number };
+}
+
+/** The current song's evaluated buffer, if it is playing one */
+function liveOf(songId: string): { file: string; version: string } | null {
+  const live = liveSongs.get(songId);
+  return live?.source.version ? { file: live.source.file, version: live.source.version } : null;
+}
+
+/** "src/songs/jynx.ts" → "jynx" */
+const songIdOf = (file: string) => file.replace(/^.*\//, "").replace(/\.ts$/, "");
+
+const evalSeq = new Map<string, number>();
+
+/**
+ * Hot-swap an evaluated buffer in place of its song file: import the module,
+ * select its song if follow-edits is on (or `play`), and swap. A buffer that
+ * fails to load or build never replaces the last good pattern: the error is
+ * reported and the song keeps playing what it played. `play` also starts
+ * playback (Ctrl+Enter on a song that isn't playing).
+ */
+export async function evalLive(buffer: LiveBuffer, { play: start = false } = {}): Promise<EvalOutcome> {
+  const songId = songIdOf(buffer.file);
+  const started = !!repl?.scheduler.started;
+  const fail = (err: unknown): EvalOutcome => {
+    const e = makeError("build", err, songId, started);
+    setError(e);
+    return { ok: false, applied: false, error: { message: e.message } };
+  };
+  if (!(songId in songsModule.songs)) {
+    return fail(new Error(`${buffer.file} is not in the player's song list yet (a new file? reload the player)`));
+  }
+  const seq = (evalSeq.get(songId) ?? 0) + 1;
+  evalSeq.set(songId, seq);
+  let mod: { default?: Song; __strudel_file?: string; __strudel_version?: string };
+  try {
+    mod = await import(/* @vite-ignore */ buffer.url);
+  } catch (err) {
+    return fail(err);
+  }
+  // imports can finish out of order: only the newest buffer of a song counts
+  if (evalSeq.get(songId) !== seq) return { ok: false, applied: false, error: { message: "superseded by a newer buffer" } };
+  const song = mod.default;
+  if (!song || typeof song.createPattern !== "function") {
+    return fail(new Error(`${buffer.file} must \`export default\` a song with createPattern()`));
+  }
+
+  const previous = liveSongs.get(songId);
+  liveSongs.set(songId, {
+    song,
+    source: { file: mod.__strudel_file ?? buffer.file, version: mod.__strudel_version ?? buffer.version, text: buffer.text, live: true },
+  });
+  if (songId !== currentSongId) {
+    if (!followEdits && !start) {
+      changed();
+      return { ok: true, applied: false };
+    }
+    switchTo(songId);
+  }
+  if (!(await swap())) {
+    // never keep a broken buffer: the song stays what it was
+    if (previous) liveSongs.set(songId, previous);
+    else liveSongs.delete(songId);
+    changed();
+    return { ok: false, applied: false, error: error ? { message: error.message } : { message: "build failed" } };
+  }
+  if (start) await play();
+  return { ok: true, applied: true };
+}
+
+/** A buffer that didn't compile (the dev server's error): report it, keep playing */
+export function evalFailed(err: { message: string; file?: string; line?: number; column?: number }) {
+  setError({
+    kind: "build",
+    message: err.message,
+    songId: err.file ? songIdOf(err.file) : currentSongId,
+    file: err.file,
+    line: err.line,
+    column: err.column,
+    keptPrevious: !!repl?.scheduler.started,
+  });
 }
 
 export function initialSongId(): string {

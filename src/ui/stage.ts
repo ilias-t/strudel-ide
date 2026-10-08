@@ -46,6 +46,7 @@ export function mountStage(): Stage {
   const linkLabel = linkEl.querySelector(".link-label")!;
   const codeFile = $("code-file");
   const codeStale = $("code-stale");
+  const codeUnsaved = $("code-unsaved");
   const help = $("help-overlay");
   const cueEl = $("cue");
 
@@ -151,7 +152,7 @@ export function mountStage(): Stage {
     stage.dataset.code = state.codeView ? "on" : "off";
     codeView.setEnabled(state.codeView);
 
-    // the code: the current song's on-disk text
+    // the code: the current song's text (on disk, or an evaluated editor buffer)
     const source = player.currentSource();
     if (source?.text !== undefined && (state.songId !== shownSongId || source.text !== shownSource?.text)) {
       if (source.version && contentVersion(source.text) !== source.version) {
@@ -165,6 +166,7 @@ export function mountStage(): Stage {
       rangeTrack.clear();
       renderKnobs(player.knobs()); // new chips
     }
+    codeUnsaved.hidden = !source?.live;
     const playing = player.playingSource();
     codeStale.hidden = !(state.playing && playing && source && playing.version !== source.version);
 

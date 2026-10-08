@@ -8,10 +8,30 @@
 // opens a file position in the editor: through the bridge when an editor is
 // attached, else as a `<scheme>://file/<abs path>:line:col` link (the dev
 // server sends the project root and the scheme, e.g. "cursor").
+//
+// Knobs: the current song's knobs go to the editor (≤ ~30 Hz while one is
+// turned) and the editor turns, resets, holds and writes them with commands.
+// Live eval: a compiled editor buffer from the dev server (`live`) is handed
+// to the player, and the outcome goes back to the editor (`evalResult`).
 
 import { connectBridge, type BridgeClient } from "./bridge-client";
-import { editorFileUrl, type CommandMsg, type StateMsg } from "./protocol";
+import { editorFileUrl, type CommandMsg, type KnobState, type LiveMsg, type PlayerError, type StateMsg } from "./protocol";
 import type { PlayerState } from "../engine/types";
+
+/** What the link needs of a knob (src/engine/knobs.ts KnobInfo) */
+export type KnobLike = KnobState & { songId?: string };
+
+export interface KnobWriteOutcome {
+  ok: boolean;
+  error?: string;
+  changes?: { name: string; literal: string; line: number }[];
+}
+
+export interface EvalOutcomeLike {
+  ok: boolean;
+  applied: boolean;
+  error?: PlayerError;
+}
 
 export interface PlayerApi {
   getState(): PlayerState;
@@ -29,7 +49,21 @@ export interface PlayerApi {
   jumpToSection?(which: number | string): unknown;
   stepSection?(direction: 1 | -1): unknown;
   setLoop?(on: boolean): unknown;
+  /** The current song's knobs */
+  knobs?(): KnobLike[];
+  onKnobsChange?(listener: (knobs: KnobLike[], songId: string) => void): unknown;
+  setKnob?(name: string, value: number): unknown;
+  resetKnob?(name: string): unknown;
+  grabKnob?(name: string, on: boolean): unknown;
+  writeKnobs?(names?: string[]): Promise<KnobWriteOutcome>;
+  /** Hot-swap a compiled editor buffer (live eval) */
+  evalLive?(buffer: { file: string; version: string; text: string; url: string }, opts: { play?: boolean }): Promise<EvalOutcomeLike>;
+  /** An editor buffer that didn't compile: report it, keep playing */
+  evalFailed?(error: PlayerError): unknown;
 }
+
+/** Minimum interval between knob updates to the editor (~30 Hz) */
+const KNOBS_INTERVAL_MS = 33;
 
 export const songFile = (id: string) => `src/songs/${id}.ts`;
 
@@ -91,7 +125,8 @@ export function linkEditor(player: PlayerApi, options: LinkOptions = {}): Editor
 
   const bridge: BridgeClient = connectBridge({
     client: "strudel-ide-player",
-    onCommand: (cmd) => handleCommand(player, cmd),
+    onCommand: (cmd) => handleCommand(player, cmd, bridge),
+    onLive: (msg) => void applyLive(player, msg, bridge),
     onConnectionChange: (connected) => {
       options.onConnectionChange?.(connected);
       report({});
@@ -113,6 +148,28 @@ export function linkEditor(player: PlayerApi, options: LinkOptions = {}): Editor
 
   publish(player.getState());
   player.onStateChange(publish);
+
+  // knobs → editor: at most every KNOBS_INTERVAL_MS, always with the latest values
+  if (player.knobs && player.onKnobsChange) {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let lastSent = 0;
+    let lastKnobs = "";
+    const sendKnobs = () => {
+      timer = null;
+      lastSent = performance.now();
+      const songId = player.getState().songId;
+      const knobs = player.knobs!().map(toKnobState);
+      const key = JSON.stringify([songId, knobs]);
+      if (key === lastKnobs) return;
+      lastKnobs = key;
+      bridge.sendKnobs(songId, songFile(songId), knobs);
+    };
+    player.onKnobsChange(() => {
+      if (timer) return;
+      timer = setTimeout(sendKnobs, Math.max(0, KNOBS_INTERVAL_MS - (performance.now() - lastSent)));
+    });
+    sendKnobs();
+  }
 
   return {
     bridge,
@@ -150,8 +207,45 @@ function openUrl(url: string) {
   a.click();
 }
 
-function handleCommand(player: PlayerApi, cmd: CommandMsg) {
+function toKnobState(k: KnobLike): KnobState {
+  return { name: k.name, value: k.value, def: k.def, min: k.min, max: k.max, step: k.step, log: k.log, dirty: k.dirty };
+}
+
+async function applyLive(player: PlayerApi, msg: LiveMsg, bridge: BridgeClient) {
+  if (!player.evalLive) return;
+  let outcome: EvalOutcomeLike;
+  if (msg.url && !msg.error) {
+    outcome = await player.evalLive({ file: msg.file, version: msg.version, text: msg.text, url: msg.url }, { play: !!msg.play });
+  } else {
+    const error = msg.error ?? { message: `${msg.file} did not compile` };
+    player.evalFailed?.(error);
+    outcome = { ok: false, applied: false, error };
+  }
+  bridge.send({ type: "evalResult", file: msg.file, version: msg.version, ...outcome });
+}
+
+async function writeKnobs(player: PlayerApi, names: string[] | undefined, bridge: BridgeClient) {
+  const result = await player.writeKnobs!(names);
+  bridge.send({ type: "knobWrite", file: songFile(player.getState().songId), ...result });
+}
+
+const KNOB_COMMANDS = new Set(["setKnob", "resetKnob", "grabKnob", "writeKnobs"]);
+
+function handleCommand(player: PlayerApi, cmd: CommandMsg, bridge: BridgeClient) {
+  if (KNOB_COMMANDS.has(cmd.command)) {
+    // knobs belong to the current song: ignore commands meant for another one
+    const target = cmd.songId ?? songIdForFile(cmd.file);
+    if (target && target !== player.getState().songId) return;
+  }
   switch (cmd.command) {
+    case "setKnob":
+      return cmd.knob && typeof cmd.value === "number" && player.setKnob?.(cmd.knob, cmd.value);
+    case "resetKnob":
+      return cmd.knob && player.resetKnob?.(cmd.knob);
+    case "grabKnob":
+      return cmd.knob && player.grabKnob?.(cmd.knob, cmd.on !== false);
+    case "writeKnobs":
+      return player.writeKnobs && writeKnobs(player, Array.isArray(cmd.knobs) ? cmd.knobs : undefined, bridge);
     case "play":
       return player.play();
     case "stop":
@@ -200,6 +294,7 @@ function toStateMsg(player: PlayerApi, state: PlayerState): Omit<StateMsg, "type
     section: state.section?.index ?? null,
     loop: state.loop,
     pendingJump: state.pendingJump ? { index: state.pendingJump.index } : null,
+    live: state.live,
     error: err
       ? {
           message: err.message,

@@ -15,12 +15,24 @@
 // project lives on disk (`server`).
 //
 //   browser ── state · songs · highlight · onsets · reveal ──▶ editors
+//              knobs · knobWrite · evalResult
 //   editor  ── command ─────────────────────────────────────▶ browsers
+//   editor  ── eval ──▶ server ── live ─────────────────────▶ browsers
 //   server  ── player ──▶ editors     server ── server · editors ──▶ browsers
 //
+// Live eval (strudel.cc's Ctrl+Enter without saving): the editor sends the
+// unsaved buffer of a song file (`eval`). The dev server keeps it in memory,
+// compiles it through Vite's normal transform pipeline as the module
+// `/src/songs/<id>.ts?live=<version>` (TS stripped, mini-notation located,
+// knob() routed) and tells the browsers to import it (`live`), or hands them
+// the compile error. The player hot-swaps it like a saved edit and answers the
+// editors with `evalResult`. Nothing is written to disk.
+//
 // Offsets/positions:
-//   - HighlightMsg.ranges are [start, end) UTF-16 offsets into the file as Vite
-//     read it from disk (same unit as JS string indices and VS Code offsets).
+//   - HighlightMsg.ranges are [start, end) UTF-16 offsets into the source text
+//     identified by `version` (same unit as JS string indices and VS Code
+//     offsets): the file as Vite read it from disk, or, after a live eval, the
+//     evaluated editor buffer.
 //   - StateMsg.error.line / column and RevealMsg.line / column are 1-based
 //     (like JS stack traces and `vscode://file/…:line:col` URLs).
 //   - `file` fields are paths relative to the Vite root, with "/" separators,
@@ -112,7 +124,29 @@ export interface StateMsg {
   loop?: boolean;
   /** A jump to section `index` waiting for the next bar line */
   pendingJump?: { index: number } | null;
+  /**
+   * The current song is an evaluated, unsaved editor buffer (live eval):
+   * its file and contentVersion. null/absent: the file on disk.
+   */
+  live?: { file: string; version: string } | null;
   error: PlayerError | null;
+}
+
+/**
+ * A knob() control of the current song (see src/engine/knobs.ts KnobInfo).
+ * `def` is the value written in the source (the file, or an evaluated buffer).
+ */
+export interface KnobState {
+  name: string;
+  /** Live value (what is playing) */
+  value: number;
+  def: number;
+  min: number;
+  max: number;
+  step: number;
+  log: boolean;
+  /** value differs from def */
+  dirty: boolean;
 }
 
 export interface SongInfo {
@@ -163,6 +197,82 @@ export interface RevealMsg {
   column?: number;
 }
 
+/**
+ * The current song's knobs: on song change, on every value/default change
+ * (throttled to ~30 Hz) and to editors that connect later.
+ */
+export interface KnobsMsg {
+  type: "knobs";
+  songId: string;
+  file: string;
+  knobs: KnobState[];
+}
+
+/** Outcome of a `writeKnobs` command */
+export interface KnobWriteMsg {
+  type: "knobWrite";
+  file: string;
+  ok: boolean;
+  error?: string;
+  /** What was written: the literal now in the file, per knob (1-based line) */
+  changes?: { name: string; literal: string; line: number }[];
+}
+
+/**
+ * Outcome of an `eval` (from the player; from the server when no player is
+ * connected). `applied`: hot-swapped into the current song (false: the buffer
+ * belongs to another song and follow-edits is off, so it is kept for when that
+ * song is selected). On failure the player keeps the last good pattern and
+ * also reports the error in `state.error`.
+ */
+export interface EvalResultMsg {
+  type: "evalResult";
+  file: string;
+  version: string;
+  ok: boolean;
+  applied?: boolean;
+  error?: PlayerError;
+}
+
+// editor → server
+/**
+ * Evaluate an unsaved buffer of a song file (dev server only). `file` must be
+ * a song module (src/songs/<name>.ts, not index.ts or _*.ts) that exists on
+ * disk; `text` is capped at MAX_EVAL_CHARS. `version` is informational: the
+ * server recomputes contentVersion(text).
+ */
+export interface EvalMsg {
+  type: "eval";
+  file: string;
+  text: string;
+  version?: string;
+  /** Also select the song and start playback once it is applied (Ctrl+Enter on a song that isn't playing) */
+  play?: boolean;
+}
+
+// server → browsers
+/**
+ * A compiled buffer to hot-swap: import `url` (a Vite module, through the
+ * normal transform pipeline). With `error` instead of `url`, the buffer did
+ * not compile; keep playing and report it.
+ */
+export interface LiveMsg {
+  type: "live";
+  file: string;
+  version: string;
+  /** The buffer text (what the stage shows; highlight offsets index into it) */
+  text: string;
+  url?: string;
+  error?: PlayerError;
+  play?: boolean;
+}
+
+/** Largest buffer `eval` accepts, in UTF-16 code units (songs are ~25k) */
+export const MAX_EVAL_CHARS = 512 * 1024;
+
+/** Query parameter of live-eval module URLs: `/src/songs/x.ts?live=<version>` */
+export const LIVE_QUERY = "live";
+
 // server → editors
 export interface PlayerMsg {
   type: "player";
@@ -204,7 +314,11 @@ export type CommandName =
   | "jump"
   | "loop"
   | "nextSection"
-  | "prevSection";
+  | "prevSection"
+  | "setKnob"
+  | "resetKnob"
+  | "grabKnob"
+  | "writeKnobs";
 
 // editor → browsers
 export interface CommandMsg {
@@ -218,13 +332,27 @@ export interface CommandMsg {
   track?: string;
   /** for jump: section index or name */
   section?: number | string;
-  /** for loop: on/off; toggles when absent */
+  /** for loop: on/off; toggles when absent. for grabKnob: held or released */
   on?: boolean;
+  /** for setKnob/resetKnob/grabKnob: the knob's name (of the current song) */
+  knob?: string;
+  /** for setKnob: the new value (clamped and snapped by the player) */
+  value?: number;
+  /** for writeKnobs: which knobs (default: every dirty one) */
+  knobs?: string[];
 }
 
-export type BrowserMessage = StateMsg | SongsMsg | HighlightMsg | OnsetsMsg | RevealMsg;
-export type EditorMessage = CommandMsg;
-export type ServerMessage = PlayerMsg | EditorsMsg | ServerInfoMsg;
+export type BrowserMessage =
+  | StateMsg
+  | SongsMsg
+  | HighlightMsg
+  | OnsetsMsg
+  | RevealMsg
+  | KnobsMsg
+  | KnobWriteMsg
+  | EvalResultMsg;
+export type EditorMessage = CommandMsg | EvalMsg;
+export type ServerMessage = PlayerMsg | EditorsMsg | ServerInfoMsg | LiveMsg;
 export type BridgeMessage = HelloMsg | BrowserMessage | EditorMessage | ServerMessage;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -245,10 +373,14 @@ const COMMANDS: readonly string[] = [
   "loop",
   "nextSection",
   "prevSection",
+  "setKnob",
+  "resetKnob",
+  "grabKnob",
+  "writeKnobs",
 ];
 
 /** Message types only the server may send; the relay drops them from clients */
-export const SERVER_ONLY_TYPES: readonly string[] = ["player", "editors", "server"];
+export const SERVER_ONLY_TYPES: readonly string[] = ["player", "editors", "server", "live"];
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -290,6 +422,30 @@ export function isServerInfo(m: unknown): m is ServerInfoMsg {
 
 export function isPlayer(m: unknown): m is PlayerMsg {
   return isObject(m) && m.type === "player" && typeof m.connected === "boolean";
+}
+
+export function isKnobs(m: unknown): m is KnobsMsg {
+  return isObject(m) && m.type === "knobs" && typeof m.file === "string" && Array.isArray(m.knobs);
+}
+
+export function isKnobWrite(m: unknown): m is KnobWriteMsg {
+  return isObject(m) && m.type === "knobWrite" && typeof m.file === "string" && typeof m.ok === "boolean";
+}
+
+export function isEvalResult(m: unknown): m is EvalResultMsg {
+  return (
+    isObject(m) && m.type === "evalResult" && typeof m.file === "string" && typeof m.version === "string" && typeof m.ok === "boolean"
+  );
+}
+
+export function isEval(m: unknown): m is EvalMsg {
+  return isObject(m) && m.type === "eval" && typeof m.file === "string" && typeof m.text === "string";
+}
+
+export function isLive(m: unknown): m is LiveMsg {
+  return (
+    isObject(m) && m.type === "live" && typeof m.file === "string" && typeof m.version === "string" && typeof m.text === "string"
+  );
 }
 
 export function isCommand(m: unknown): m is CommandMsg {

@@ -59,6 +59,11 @@ export interface PlayerState {
   /** Play was requested but the browser blocks audio until a user gesture */
   needsGesture: boolean;
   error: PlayerError | null;
+  /**
+   * The current song plays (or shows) an evaluated, unsaved editor buffer
+   * instead of its file (live eval): the file and the buffer's contentVersion
+   */
+  live: { file: string; version: string } | null;
   swapCount: number;
   lastSwapAt: number | null;
 }

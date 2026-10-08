@@ -21,7 +21,7 @@ import * as core from "@strudel/core";
 import * as mini from "@strudel/mini";
 import * as tonal from "@strudel/tonal";
 import { transformSong, loadStrudelNames, contentVersion, isSongFile } from "../vite-plugins/strudel-locations.ts";
-import { createHighlighter, installLocationFreeStringParser } from "../src/live/highlights.ts";
+import { createHighlighter, stripImplicitLocations } from "../src/live/highlights.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(root, "node_modules/.cache/strudel-locations");
@@ -90,6 +90,25 @@ check("injected code keeps line numbers", () => {
   assert.match(code, /export const __strudel_file = "src\/songs\/x.ts";/);
   assert.match(code, new RegExp(`export const __strudel_version = "${contentVersion(src)}";`));
 });
+check("mini() with literal args → __strudel_mini", () => {
+  const src = 'const a = mini("bd sd", "hh");\nconst b = mini(X, "hh");\n';
+  const { code, rewrites } = transformSong(src, "src/songs/x.ts", names);
+  assert.match(code.split("\n")[0], /^const a = __strudel_mini\(__strudel_m\("bd sd", 15\), __strudel_m\("hh", 24\)\);$/);
+  assert.match(code.split("\n")[1], /^const b = mini\(X, "hh"\);$/); // mixed args: left alone
+  assert.equal(rewrites.length, 2);
+});
+check("stripImplicitLocations covers string parser, mini and h", () => {
+  restoreStockParsers();
+  assert.ok(core.reify("bd sd").queryArc(0, 1)[0].context.locations?.length, "stock strudel should add relative locations");
+  assert.ok(stripImplicitLocations());
+  for (const [what, pat] of [["reify", core.reify("bd sd")], ["mini", globalThis.mini("bd sd")], ["h", globalThis.h('"bd sd"')], ["s", globalThis.s("bd sd")]]) {
+    const haps = pat.queryArc(0, 1);
+    assert.equal(haps.length, 2, what);
+    for (const hap of haps) assert.equal(hap.context.locations?.length ?? 0, 0, `${what} still adds locations`);
+  }
+  assert.equal(globalThis.m("bd", 10).queryArc(0, 1)[0].context.locations[0].start, 11, "m(str, offset) must keep locations");
+  restoreStockParsers();
+});
 check("local declarations shadow strudel names", () => {
   const src = 'const s = (x: string) => x;\ns("bd");\nnote("c3");\n';
   const { rewrites } = transformSong(src, "src/songs/x.ts", names);
@@ -114,6 +133,12 @@ function queryAll(pattern) {
   const haps = [];
   for (let c = 0; c < CYCLES; c++) haps.push(...pattern.queryArc(c, c + 1));
   return haps;
+}
+
+function restoreStockParsers() {
+  core.setStringParser(mini.mini);
+  globalThis.mini = mini.mini;
+  globalThis.h = mini.h;
 }
 
 let seq = 0;
@@ -170,20 +195,21 @@ for (const path of files) {
     assert.equal(trans.mod.__strudel_version, contentVersion(source));
   });
 
-  // (b) same haps — original with the stock `mini` string parser, transformed
-  // with the location-free one the highlighter installs (as in the browser)
-  core.setStringParser(mini.mini);
+  // (b) same haps — original with stock strudel (string parser, mini, h),
+  // transformed with the location-free versions the highlighter installs (as
+  // in the browser). Those stay installed afterwards: patterns may parse
+  // strings lazily at query time (e.g. inside callbacks), so the highlighter
+  // checks below must query under the same setup as the browser.
+  restoreStockParsers();
   let origHaps, xfHaps, xfPattern;
   try {
     origHaps = queryAll(toPattern(orig.mod.default.createPattern()));
-    assert.ok(installLocationFreeStringParser(), "installLocationFreeStringParser failed");
+    assert.ok(stripImplicitLocations(), "stripImplicitLocations failed");
     xfPattern = toPattern(trans.mod.default.createPattern());
     xfHaps = queryAll(xfPattern);
   } catch (e) {
     fail(`(b) evaluation threw: ${e.stack}`);
     continue;
-  } finally {
-    core.setStringParser(mini.mini);
   }
   check("(b) same haps", () => {
     const a = origHaps.map(hapKey);
@@ -236,7 +262,7 @@ check("tricky-song rewrites", () => {
   const want = [
     "bd*2 [~ bd]", "RolandTR909", "~ sd:2", "RolandTR808", "<c3 e3\n      g3 b3>", "triangle",
     "0 [2 4]", "A:minor", "48 52", "<0 12>", "bd(3,8)", "0.5 .8", "hh*4", "0.5", "2", "c3 e3", "g3",
-    "hh*8",
+    "hh*8", "bd sd", "~ hh", "cp*2",
   ].sort();
   assert.deepEqual(got, want);
   for (const r of tricky.xf.rewrites) {
@@ -282,6 +308,12 @@ for (const r of results) {
     const n = calls.length;
     hl.tick();
     assert.equal(calls.length, n);
+    // a new pattern (hot-swap) re-emits even when the ranges are identical
+    pattern = r.pattern.withValue((v) => v);
+    hl.tick();
+    assert.equal(calls.length, n + 1, "no re-emit after a pattern swap");
+    assert.deepEqual(calls.at(-1), calls.at(-2));
+    calls.pop();
     // stopping → one empty emit, then silence
     pattern = null;
     hl.tick();

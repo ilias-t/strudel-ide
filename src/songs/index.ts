@@ -83,19 +83,40 @@ export function buildPattern(
   return { pattern: stack(...audible), tracks: entries.map(([name]) => name) };
 }
 
+/**
+ * Which file a song's highlight offsets refer to, and the version of its text
+ * they were computed from. Injected into each song module by
+ * vite-plugins/strudel-locations.ts (`__strudel_file`, `__strudel_version`).
+ */
+export interface SongSource {
+  file: string;
+  version?: string;
+}
+
+interface SongModule {
+  default: Song;
+  __strudel_file?: string;
+  __strudel_version?: string;
+}
+
 // Auto-import all song modules (excluding index.ts and _template.ts)
-const songModules = import.meta.glob<{ default: Song }>(
+const songModules = import.meta.glob<SongModule>(
   ["./*.ts", "!./index.ts", "!./_template.ts"],
   { eager: true }
 );
 
 // Build songs registry from modules
 export const songs: Record<string, Song> = {};
+export const songSources: Record<string, SongSource> = {};
 
 for (const [path, module] of Object.entries(songModules)) {
   // Extract song ID from path: "./untitled.ts" -> "untitled"
   const id = path.replace("./", "").replace(".ts", "");
   songs[id] = module.default;
+  songSources[id] = {
+    file: module.__strudel_file ?? `src/songs/${id}.ts`,
+    version: module.__strudel_version,
+  };
 }
 
 export function getSong(id: string): Song {

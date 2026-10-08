@@ -402,7 +402,7 @@ test("live eval on a typing pause, highlights on the dirty document, eval errors
   fromEditor.splice(0);
 
   // ── a pause in typing evaluates the buffer, once, with the latest text ─────
-  vscode.config["strudel.liveEvalDelay"] = 150;
+  vscode.config["strudel.liveEvalDelay"] = 300;
   const g3 = KNOBBY.indexOf("g3");
   doc.editRange(g3 + 2, 0, " b3");
   await sleep(80);

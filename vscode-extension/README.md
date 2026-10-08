@@ -47,7 +47,8 @@ you get:
   travel, type a number and Enter, reset, write. A turned knob gets a
   `◉ cutoff changed · write | reset` CodeLens. Writing puts the value into the
   file (the dev server rewrites the literal), or, when the document has
-  unsaved changes, into the editor buffer (and evaluates it).
+  unsaved changes, into the editor buffer (and evaluates it, unless
+  `strudel.liveEval` is `"off"`).
 - **CodeLens**: `▶ Play` / `■ Stop` above `createPattern` in every song file.
 - **Commands** (`Strudel: …` in the command palette): Play This File,
   Next/Previous Song, Jump to Section…, Next/Previous Section, Toggle Loop
@@ -104,7 +105,9 @@ What Ctrl/Cmd+Enter does ("evaluate", like strudel.cc):
 | not a song file | toggle play/stop |
 
 With `strudel.liveEval` set to `"off"`, unsaved changes are saved instead and
-Vite HMR hot-swaps them (the behavior before 0.3.0). The status bar shows
+Vite HMR hot-swaps them (the behavior before 0.3.0). With live eval on,
+Ctrl/Cmd+Enter never saves: without a player connected it only tells you so.
+The status bar shows
 `● unsaved` while the player plays a buffer you haven't saved.
 
 ### Live eval

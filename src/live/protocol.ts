@@ -326,7 +326,10 @@ export interface CommandMsg {
   command: CommandName;
   /** for select */
   songId?: string;
-  /** for select: Vite-root-relative path; the browser maps it to a song id */
+  /**
+   * for select: Vite-root-relative path; the browser maps it to a song id.
+   * for knob commands (like `songId`): ignored unless it's the current song
+   */
   file?: string;
   /** for mute/solo (toggle semantics) */
   track?: string;

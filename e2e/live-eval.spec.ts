@@ -13,6 +13,8 @@ import type { HighlightMsg, KnobsMsg, KnobWriteMsg, OnsetsMsg } from "../src/liv
 import { contentVersion } from "../src/live/protocol.ts";
 import { EditorClient, type Msg } from "./editor.ts";
 import {
+  BUILD_ERROR_MESSAGE,
+  FIXTURE_BASENAME,
   FIXTURE_FILE,
   FIXTURE_ID,
   FIXTURE_PATH,
@@ -126,7 +128,9 @@ test("a syntax or build error in the buffer keeps the old pattern playing", asyn
   // a build error (createPattern throws): same, and the line is the buffer's
   const throwing = fixtureSource({ gain: 0.2, buildError: true });
   expect((await ed.eval(FIXTURE_FILE, throwing)).ok).toBe(false);
-  await player.waitForError((e) => e.message.includes("createPattern failed on purpose"), "build error");
+  await player.waitForError((e) => e.message.includes(BUILD_ERROR_MESSAGE) && e.line !== undefined, "located build error");
+  // located in the buffer, through the live module's source map
+  expect((await player.state()).error).toMatchObject({ file: FIXTURE_BASENAME, line: lineOf(throwing, BUILD_ERROR_MESSAGE) });
   expect((await player.state()).swapCount).toBe(swapCount);
   expect(await player.probe()).toMatchObject({ gain: 0.3 });
 

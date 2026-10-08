@@ -145,6 +145,24 @@ const bySection = (
 /** 1 while any of the given sections plays, nothing otherwise — use with .mask() */
 const during = (...names: Section[]) => bySection(Object.fromEntries(names.map((name) => [name, 1])));
 
+// ─── 🎚️ MIX — faders in dB on top of each part's own gain ──────────────────
+// Set from measurements (`npm run analyze -- neon-drive`, see docs/audio-tools.md).
+// There's no limiter on the output, so MASTER_DB keeps the peaks under 0 dBFS.
+const MASTER_DB = -4.3;
+const FADERS_DB: Record<string, number> = {
+  kick: -4, // kick, snare and toms stacked to +6.5 dBFS
+  snare: -4, // kick, snare and toms stacked to +6.5 dBFS
+  hats: -3, // were 6-10 dB under the mix and 60% of the highs
+  toms: -3, // fills peaked near 0 dBFS on their own
+  pads: -3, // were all of the mix's low-mid energy and peaked near 0 dBFS alone
+  riser: 7, // was 27-28 dB under the mix: inaudible
+};
+/** Every track through its fader (postgain: after drive/shape, before the delay/reverb sends) */
+const mixdown = (tracks: Record<string, Pattern>): Record<string, Pattern> =>
+  Object.fromEntries(
+    Object.entries(tracks).map(([name, p]) => [name, p.postgain(10 ** ((MASTER_DB + (FADERS_DB[name] ?? 0)) / 20))])
+  );
+
 const song: Song = {
   name: "Neon Drive",
   bpm: BPM,
@@ -423,7 +441,7 @@ const song: Song = {
     // 🎚️ MIXER — comment a track out to mute it
     // ─────────────────────────────────────────────────────────────────────────
 
-    return {
+    return mixdown({
       kick,
       snare,
       hats,
@@ -435,7 +453,7 @@ const song: Song = {
       lead,
       leadHigh,
       riser,
-    };
+    });
   },
 };
 

@@ -135,6 +135,25 @@ const GHOSTS = bars(
 // Snare roll for the builds: speeds up bar by bar (8 bars)
 const ROLL = "sd*<4 4 8 8 8 16 16 32>";
 
+// ─── 🎚️ MIX — faders in dB on top of each part's own gain ──────────────────
+// Set from measurements (`npm run analyze -- jungle-pressure`, see docs/audio-tools.md).
+// There's no limiter on the output, so MASTER_DB keeps the peaks under 0 dBFS.
+const MASTER_DB = -5.8;
+const FADERS_DB: Record<string, number> = {
+  kick: -6, // peaked at +5 dBFS on its own and sat 1-2 dB under the whole mix
+  reese: 3, // the growl was 17-19 dB under the mix in the drops
+  lead: 3, // the hook was 14-17 dB under the mix in the drops
+  stabs: 3, // were 23 dB under the mix
+  atmos: 18, // was 39-49 dB under the mix: inaudible
+  ride: -4, // a third of the mix's 2-20 kHz energy: harsh drops
+  fx: 8, // risers were 28-31 dB under the mix: inaudible
+};
+/** Every track through its fader (postgain: after drive/shape, before the delay/reverb sends) */
+const mixdown = (tracks: Record<string, Pattern>): Record<string, Pattern> =>
+  Object.fromEntries(
+    Object.entries(tracks).map(([name, p]) => [name, p.postgain(10 ** ((MASTER_DB + (FADERS_DB[name] ?? 0)) / 20))])
+  );
+
 const song: Song = {
   name: "Jungle Pressure",
   bpm: BPM,
@@ -495,7 +514,7 @@ const song: Song = {
       drop2: crash,
     });
 
-    return { kick, snare, ghosts, hats, ride, sub, reese, pads, stabs, lead, atmos, fx };
+    return mixdown({ kick, snare, ghosts, hats, ride, sub, reese, pads, stabs, lead, atmos, fx });
   },
 };
 

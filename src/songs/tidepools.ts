@@ -57,6 +57,22 @@ const breathe = (pat: Pattern, bars: number, fullness = 0.85) =>
 // gives it its own, independent dice.
 const dice = (seed: number) => rand.late(seed);
 
+// ─── 🎚️ MIX — faders in dB on top of each part's own gain ──────────────────
+// Set from measurements (`npm run analyze -- tidepools`, see docs/audio-tools.md).
+// There's no limiter on the output, so MASTER_DB keeps the peaks under 0 dBFS.
+const MASTER_DB = 1.5;
+const FADERS_DB: Record<string, number> = {
+  drone: -2, // sat within 1-1.5 dB of the whole mix once the tides were up
+  shore: 16, // was 33-39 dB under the mix: inaudible
+  pebbles: 22, // was 38-46 dB under the mix: inaudible
+  harp: 6, // dropped to 29-31 dB under the mix at low tide
+};
+/** Every track through its fader (postgain: after drive/shape, before the delay/reverb sends) */
+const mixdown = (tracks: Record<string, Pattern>): Record<string, Pattern> =>
+  Object.fromEntries(
+    Object.entries(tracks).map(([name, p]) => [name, p.postgain(10 ** ((MASTER_DB + (FADERS_DB[name] ?? 0)) / 20))])
+  );
+
 const song: Song = {
   name: "Tidepools",
   bpm: BPM,
@@ -238,7 +254,7 @@ const song: Song = {
     // 🎚️ TRACKS
     // ─────────────────────────────────────────────────────────────────────────
 
-    return { drone, pad, loops, bells, harp, pebbles, shore };
+    return mixdown({ drone, pad, loops, bells, harp, pebbles, shore });
   },
 };
 

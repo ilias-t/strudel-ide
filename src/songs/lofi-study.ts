@@ -43,6 +43,22 @@ const FORM: [Section, number][] = [
   ["outro", 8],
 ];
 
+// ─── 🎚️ MIX — faders in dB on top of each part's own gain ──────────────────
+// Set from measurements (`npm run analyze -- lofi-study`, see docs/audio-tools.md).
+// There's no limiter on the output, so MASTER_DB keeps the peaks under 0 dBFS.
+const MASTER_DB = -1.5;
+const FADERS_DB: Record<string, number> = {
+  kick: -4, // set the peaks (kick + bass stacked over 0 dBFS)
+  snare: -4, // peaked over 0 dBFS on its own and was 61% of the highs
+  vinyl: 12, // was 35-38 dB under the mix: inaudible
+  keys: 2, // the chords were 12-13 dB under the mix
+};
+/** Every track through its fader (postgain: after drive/shape, before the delay/reverb sends) */
+const mixdown = (tracks: Record<string, Pattern>): Record<string, Pattern> =>
+  Object.fromEntries(
+    Object.entries(tracks).map(([name, p]) => [name, p.postgain(10 ** ((MASTER_DB + (FADERS_DB[name] ?? 0)) / 20))])
+  );
+
 const song: Song = {
   name: "Late Night Study",
   bpm: BPM,
@@ -317,7 +333,7 @@ const song: Song = {
     // ─── 🎚️ MIX ───────────────────────────────────────────────────────────────
     // Named tracks — the player stacks them; comment one out to mute it.
 
-    return { vinyl, kick, snare, hats, perc, keys, bass, lead };
+    return mixdown({ vinyl, kick, snare, hats, perc, keys, bass, lead });
   },
 };
 

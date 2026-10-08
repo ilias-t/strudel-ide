@@ -35,14 +35,14 @@ const song: Song = {
     // ─── 🥁 DRUMS ─────────────────────────────────────────────────────────────
     const drums = (pattern: string) => s(pattern).bank("AlesisSR16");
 
-    const kick = drums("bd*4").gain(0.9);
+    const kick = drums("bd*4").gain(0.42);
 
     // Backbeat on 2 & 4; the last bar of every 4 rolls into the next phrase
-    const snare = drums("~ sd ~ sd").gain(0.7).lastOf(4, (x) => x.ply("1 1 1 4"));
+    const snare = drums("~ sd ~ sd").gain(0.33).lastOf(4, (x) => x.ply("1 1 1 4"));
 
     // Closed-closed-OPEN-closed per beat; cut(1) lets a closed hat choke the open one
     const hats = drums("[hh hh oh hh]*4")
-      .gain("[0.4 0.22 0.45 0.28]*4") // accents make it groove
+      .gain("[0.12 0.07 0.13 0.08]*4") // accents make it groove
       .cut(1)
       .swingBy(swing, 8); // delay every 2nd 16th note
 
@@ -56,14 +56,14 @@ const song: Song = {
       .lpf(500)
       .decay(0.2)
       .sustain(0.4)
-      .gain(0.5);
+      .gain(0.42);
 
     // ─── 🎹 CHORDS — piano, voiced automatically, 3-3-2 rhythm ───────────────
     const chords = chord(progression).struct("x ~ ~ x ~ ~ x ~").voicing()
       .transpose(key)
       .s("piano")
       .lpf(cutoff)
-      .gain(0.5)
+      .gain(0.3)
       .room(0.4);
 
     // ─── ✨ ARP — up-and-down through the chord tones ────────────────────────
@@ -73,7 +73,7 @@ const song: Song = {
       .lpf(cutoff)
       .decay(0.15)
       .sustain(0)
-      .gain(0.18)
+      .gain(0.17)
       .pan(sine.range(0.3, 0.7).slow(8))
       .delay(0.35)
       .delaytime((60 / bpm) * 0.75) // dotted 8th, in seconds

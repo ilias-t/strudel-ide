@@ -1,4 +1,5 @@
 import * as strudelWeb from "@strudel/web";
+import { linkEditor } from "./live/editor-link";
 import type {
   Song,
   VisualizationType,
@@ -719,6 +720,18 @@ window.__strudel = {
   selectSong,
   songs: () => songsModule.songs,
 };
+
+// VS Code extension link (dev only; no-op without the bridge)
+linkEditor({
+  getState,
+  onStateChange,
+  play,
+  stop,
+  togglePlay,
+  selectSong,
+  stepSong,
+  songs: () => songsModule.getAllSongs().map(({ id, song }) => ({ id, name: song.name })),
+});
 
 loading = "Loading samples…";
 changed();

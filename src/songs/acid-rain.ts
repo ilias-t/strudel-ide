@@ -100,14 +100,12 @@ const song: Song = {
         .sustain(0.5)
         .release(0.04);
       if (!slides) return line;
-      // @ts-expect-error penv/pattack (pitch envelope) missing from strudel.d.ts
       const slid: Pattern = line.penv(slide.mul(12)).pattack(0.06);
       return slid;
     };
 
     // ribbon/rib loops a slice of time: here, one bar of random scale degrees
     // frozen into a riff. Same seed → same riff, every time.
-    // @ts-expect-error rib missing from strudel.d.ts
     const frozenRandom: Pattern = irand(8).segment(16).rib(RIB_SEED, 1);
 
     const acidLine = track({
@@ -147,7 +145,6 @@ const song: Song = {
     // resonance breathes on its own 16-bar cycle (ladder self-oscillates near 30)
     const resonance = sine.range(12, 22).slow(16);
 
-    // @ts-expect-error ftype missing from strudel.d.ts
     const ladder: Pattern = acidLine.ftype(FILTER);
 
     const acid = ladder

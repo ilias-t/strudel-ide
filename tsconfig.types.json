@@ -1,0 +1,15 @@
+{
+  // Checks the Strudel declaration files themselves (skipLibCheck is off here, unlike
+  // tsconfig.json, so mistakes in the generated .d.ts cannot hide). src/__typetests__.ts is
+  // checked by the main tsconfig (it imports ./songs, which needs the vite client types).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": false,
+    "types": []
+  },
+  "include": [
+    "src/strudel.d.ts",
+    "src/strudel.generated.d.ts",
+    "src/strudel.sounds.generated.d.ts"
+  ]
+}

@@ -38,22 +38,18 @@ const song: Song = {
     const kick = drums("bd*4").gain(0.9);
 
     // Backbeat on 2 & 4; the last bar of every 4 rolls into the next phrase
-    // @ts-expect-error missing from strudel.d.ts (lastOf)
     const snare = drums("~ sd ~ sd").gain(0.7).lastOf(4, (x) => x.ply("1 1 1 4"));
 
     // Closed-closed-OPEN-closed per beat; cut(1) lets a closed hat choke the open one
     const hats = drums("[hh hh oh hh]*4")
-      // @ts-expect-error strudel.d.ts doesn't accept mini-notation strings here yet
       .gain("[0.4 0.22 0.45 0.28]*4") // accents make it groove
       .cut(1)
-      // @ts-expect-error missing from strudel.d.ts (swingBy)
       .swingBy(swing, 8); // delay every 2nd 16th note
 
     // const shaker = drums("sh*16").gain(0.15).pan(0.7);
 
     // ─── 🎸 BASS — root of each chord, offbeat house style ───────────────────
     // n() picks notes from the chord: 0 = root, 1 = next chord tone up
-    // @ts-expect-error missing from strudel.d.ts (chord/mode/voicing)
     const bass = n("~ 0 ~ 0 ~ 0 ~ [0 1]").chord(progression).mode("root:g2").voicing()
       .transpose(key)
       .s("sawtooth")
@@ -63,7 +59,6 @@ const song: Song = {
       .gain(0.5);
 
     // ─── 🎹 CHORDS — piano, voiced automatically, 3-3-2 rhythm ───────────────
-    // @ts-expect-error missing from strudel.d.ts (chord/voicing)
     const chords = chord(progression).struct("x ~ ~ x ~ ~ x ~").voicing()
       .transpose(key)
       .s("piano")
@@ -72,7 +67,6 @@ const song: Song = {
       .room(0.4);
 
     // ─── ✨ ARP — up-and-down through the chord tones ────────────────────────
-    // @ts-expect-error missing from strudel.d.ts (chord/mode/voicing)
     const arp = n("0 1 2 3 4 3 2 1").chord(progression).mode("root:c4").voicing()
       .transpose(key)
       .s("square")

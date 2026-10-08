@@ -165,7 +165,6 @@ const song: Song = {
     // lastOf(n, f) applies f on the LAST bar of every n (every() hits the first).
     const chops = (p: Pattern): Pattern =>
       p
-        // @ts-expect-error lastOf missing from strudel.d.ts (chain is untyped from here)
         .lastOf(8, (x: Pattern) => x.iter(4)) // bar 8: start the bar from a later slice
         .lastOf(16, (x: Pattern) => x.within(0.75, 1, (y: Pattern) => y.ply(2))); // bar 16: stutter the last beat
 
@@ -173,7 +172,6 @@ const song: Song = {
     // (speed > 1 plays the sample faster = higher), every 16th bar plays backwards.
     const wildChops = (p: Pattern): Pattern =>
       chops(p)
-        // @ts-expect-error lastOf missing from strudel.d.ts (chain is untyped from here)
         .lastOf(4, (x: Pattern) => x.within(0.75, 1, (y: Pattern) => y.speed(1.5)))
         .lastOf(16, (x: Pattern) => x.rev());
 
@@ -188,7 +186,6 @@ const song: Song = {
       .n(KICK_N)
       .gain(0.95)
       .shape(0.25)
-      // @ts-expect-error duckorbit/duckattack/duckdepth missing from strudel.d.ts
       .duckorbit(2) // which orbit to duck
       .duckattack(0.12) // seconds to recover
       .duckdepth(0.5); // how far down (0–1)
@@ -301,7 +298,6 @@ const song: Song = {
       p
         .scale(`${KEY}2:minor`)
         .s("supersaw")
-        // @ts-expect-error unison/detune/spread (supersaw params) missing from strudel.d.ts
         .unison(3) // number of saw voices
         .detune(sine.range(0.12, 0.3).slow(8)) // how far apart they're tuned
         .spread(0.3) // stereo spread: keep the bass fairly mono

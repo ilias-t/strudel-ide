@@ -1,6 +1,10 @@
 # Strudel IDE
 
-Write [Strudel](https://strudel.cc/) music in your editor with hot reload.
+Write [Strudel](https://strudel.cc/) music in your editor with hot reload, or
+in the browser.
+
+Try it at <https://iliastsangaris.com/strudel-ide/>. It's a static GitHub Pages
+build: you can play and edit songs there, but there's no dev server behind it.
 
 ## Setup
 
@@ -13,10 +17,84 @@ npm run dev
 
 1. Select a song from the dropdown
 2. Click **Play**
-3. Edit songs in `src/songs/`. Saving hot-swaps the music without a restart.
-   With the VS Code / Cursor extension you don't even have to save:
-   Ctrl/Cmd+Enter (or a pause in typing) plays your unsaved code, like on
-   strudel.cc (see [Live eval](#live-eval)).
+3. Edit it in the browser or in your editor. See [Editing songs](#editing-songs).
+
+## Editing songs
+
+You can edit a song in the browser, on the stage itself, or in Cursor / VS Code
+on a local checkout. Under `npm run dev` you can do both at once.
+
+### In the browser
+
+This works on the hosted site and under `npm run dev`. Press **E**, click the
+**edit** key in the code unit's file bar, or double-click the code. The code
+unit becomes an editor (Monaco, with autocomplete and docs for Strudel
+functions).
+
+Typing plays live. After a short pause the buffer is compiled in the browser
+and hot-swapped into the music without stopping it. A broken edit never
+replaces the music: the last good version keeps playing and the error shows
+inline, as a marker and a status in the file bar.
+
+| Key | What it does |
+| --- | --- |
+| ⌘/Ctrl+Enter | evaluate now (and play if stopped) |
+| ⌘/Ctrl+S | save, see below |
+| Esc | hand the keyboard back to the stage's shortcuts |
+
+⌘/Ctrl+S on the hosted site keeps the edit in this browser (localStorage) and
+says "saved in this browser". Under `npm run dev` it writes
+`src/songs/<id>.ts` through the dev server. The usual hot reload takes over
+from there, and the browser copy is cleared.
+
+Every change is also kept in the browser on its own (debounced), even one that
+doesn't compile, so a reload brings it back. A built-in song with browser edits
+shows an **edited** badge in the file bar and a **revert** key. Revert asks
+first, then throws the browser edits away and brings back the original.
+
+Browser edits live in that browser only, per site. Another browser or machine
+doesn't see them, and clearing site data loses them. To move a song:
+
+- **share** copies a link with the song in the URL hash, which never reaches a
+  server. Opening a link runs its code, so the receiver first gets a dialog
+  with the song's name and size: "open it" or "don't". A shared song isn't
+  saved in their browser until they edit it.
+- **download** saves the song as `<id>.ts`, byte for byte, e.g. to drop into
+  `src/songs/` of a checkout.
+
+### In Cursor or VS Code
+
+On a local checkout, run `npm install` and `npm run dev`, then edit
+`src/songs/*.ts`. Every save hot-swaps the music without restarting it.
+
+With the Strudel Live extension you don't have to save: ⌘/Ctrl+Enter, or a
+pause in typing, plays your unsaved buffer, and the playing tokens light up in
+the editor. See [Editor integration](#editor-integration-vs-code--cursor) and
+[Live eval](#live-eval). To install it:
+
+```bash
+npm run ext:package
+cursor --install-extension vscode-extension/strudel-live.vsix
+```
+
+For VS Code, the second line is
+`code --install-extension vscode-extension/strudel-live.vsix`.
+
+### Both at once
+
+Under `npm run dev` the browser and your editor work on the same song, and
+neither silently overwrites the other's edits.
+
+- While your editor evaluates an unsaved buffer, the browser shows it read-only
+  with a **take over** key. Take over to edit it in the browser instead.
+- If you typed in the browser and the file is then saved (or your editor
+  evaluates newer text), the browser keeps your text and offers **load theirs**
+  ("file saved in Cursor · load it"). Loading it drops the browser edits.
+- Saving the file with exactly the browser's text hands the browser back to
+  following the file.
+- Browser edits aren't in the file until you press ⌘/Ctrl+S in the browser (or
+  copy them over), so your editor doesn't see them before that. After that,
+  your editor sees the write like any other external change.
 
 ## The stage
 

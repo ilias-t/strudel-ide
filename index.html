@@ -82,6 +82,8 @@
         <main class="screen code-pane" id="code-pane" data-testid="code-view" aria-label="Song source">
           <div class="code-head">
             <span class="code-file" id="code-file"></span>
+            <span class="code-edited" id="code-edited" data-testid="code-edited" hidden title="Your edits to this song are kept in this browser. Revert brings back the original.">edited</span>
+            <button class="chip code-revert" id="code-revert" data-testid="code-revert" hidden title="Throw away the edits kept in this browser and play the original again">revert</button>
             <span class="code-unsaved" id="code-unsaved" data-testid="code-unsaved" hidden title="Evaluated from the editor without saving (live eval). Save the file to keep it.">unsaved</span>
             <span class="code-stale" id="code-stale" hidden title="The code shown isn't the version playing yet">not playing yet</span>
             <span class="code-status" id="code-status" data-testid="code-status" role="status" aria-live="polite" hidden></span>
@@ -90,6 +92,10 @@
             <span class="code-head-gap"></span>
             <button class="chip follow-chip" id="follow-chip" data-testid="follow-playhead" hidden title="Scroll with the music again (F)">follow the music</button>
             <span class="code-swap" id="code-swap" data-state="idle"><span class="led" aria-hidden="true"></span><span id="code-swap-text"></span></span>
+            <span class="code-keys">
+              <button class="chip code-share" id="code-share" data-testid="code-share" title="Copy a link with this song in it (the song travels in the link)">share</button>
+              <button class="chip code-download" id="code-download" data-testid="code-download" title="Download this song as a .ts file">download</button>
+            </span>
             <button class="chip code-mode" id="code-mode" data-testid="code-edit" aria-pressed="false" title="Edit the song here while it plays (E)"><span class="code-mode-label">edit</span><kbd aria-hidden="true">E</kbd></button>
           </div>
           <div class="code-scroll" id="code-scroll" tabindex="0">
@@ -99,6 +105,13 @@
             </div>
           </div>
           <div class="code-editor" id="code-editor" data-testid="code-editor" hidden></div>
+
+          <div class="code-toast" id="code-toast" data-testid="code-toast" role="status" aria-live="polite" hidden></div>
+
+          <div class="edit-hint" id="edit-hint" data-testid="edit-hint" hidden>
+            <span class="edit-hint-text">press <kbd>E</kbd> to edit — it plays as you type</span>
+            <button class="edit-hint-close" id="edit-hint-dismiss" data-testid="edit-hint-dismiss" aria-label="Dismiss this hint" title="Got it">×</button>
+          </div>
 
           <button class="audio-hint" id="audio-hint" hidden>Click anywhere to enable audio</button>
 
@@ -180,11 +193,13 @@
           <dt><kbd>F</kbd></dt><dd>Follow the music in the code again</dd>
           <dt><kbd>E</kbd></dt><dd>Edit the song here (or double-click the code)</dd>
           <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd></dt><dd>While editing: play the edit now</dd>
+          <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd></dt><dd>While editing: save (to the file locally, in this browser on the site)</dd>
           <dt><kbd>Esc</kbd></dt><dd>While editing: hand the keys back to the stage</dd>
           <dt><kbd>?</kbd></dt><dd>This card</dd>
           <dt>Knobs</dt><dd>Drag or scroll (<kbd>Shift</kbd>: fine), arrow keys; double-click or <kbd>Delete</kbd> for the file's value</dd>
         </dl>
-        <p class="help-note">Click a section to jump there on the next bar. Edit <code>src/songs/*.ts</code> in your editor; every save hot-swaps without stopping the music.</p>
+        <p class="help-note help-editing" data-testid="help-editing"><b>Editing.</b> Press <kbd>E</kbd> to edit the song here; typing plays live after a short pause, and <kbd>⌘</kbd><kbd>↵</kbd> plays the edit now. <kbd>⌘</kbd><kbd>S</kbd> saves: to <code>src/songs/</code> under <code>npm run dev</code>, in this browser on the site (edits are kept there as you type; <b>revert</b> brings the original back). <b>share</b> copies a link with the song in it; <b>download</b> saves the <code>.ts</code> file.</p>
+        <p class="help-note">Click a section to jump there on the next bar. Or edit <code>src/songs/*.ts</code> in your editor; every save hot-swaps without stopping the music.</p>
         <button class="key help-close" id="help-close">close</button>
       </div>
     </div>

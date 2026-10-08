@@ -23,6 +23,9 @@ import { formatKnob, knobTextWidth, type KnobInfo } from "../engine/knobs";
 import { Timeline } from "./timeline";
 import { SegmentDisplay } from "./segments";
 import { Room } from "./room";
+import * as songsStore from "../songs-store";
+import { SongSaver } from "./song-saver";
+import { ask, askOpen } from "./ask";
 
 /** Legend names for the pianoroll's colour families (drums share shades of ember) */
 const LEGEND: Record<TrackRole, string | null> = {
@@ -50,6 +53,8 @@ export interface Stage {
   toggleCodeView(): void;
   /** Ranges lit in the code view now */
   highlights(): [number, number][];
+  /** The songs store replayed the saved edits at boot; these didn't build */
+  storeReplayed(failed: { id: string }[]): void;
 }
 
 export function mountStage(): Stage {
@@ -90,6 +95,12 @@ export function mountStage(): Stage {
   const takeOverKey = $<HTMLButtonElement>("code-takeover");
   const loadKey = $<HTMLButtonElement>("code-load");
   const modeKey = $<HTMLButtonElement>("code-mode");
+  const editedBadge = $("code-edited");
+  const revertKey = $<HTMLButtonElement>("code-revert");
+  const shareKey = $<HTMLButtonElement>("code-share");
+  const downloadKey = $<HTMLButtonElement>("code-download");
+  const codeToast = $("code-toast");
+  const editHint = $("edit-hint");
 
   let reveal: (file: string, line: number, column?: number) => RevealResult = () => "none";
   const codeView = new CodeView({
@@ -196,7 +207,8 @@ export function mountStage(): Stage {
     playLabel.textContent = !state.ready ? "Loading…" : state.playing ? "Stop" : "Play";
     playBtn.setAttribute("aria-label", state.playing ? "Stop" : "Play");
 
-    if (songSelect.options.length !== player.allSongs().length) renderSongSelector();
+    // ids and names: a user song renamed by an edit keeps the same count
+    if (songListKey() !== shownSongList) renderSongSelector();
     if (songSelect.value !== state.songId) songSelect.value = state.songId;
     followToggle.checked = state.followEdits;
 
@@ -231,7 +243,7 @@ export function mountStage(): Stage {
       // same text, maybe a different status (an IDE buffer saved as is): the session decides
       syncSession(state.songId, source);
     }
-    codeUnsaved.hidden = !source?.live;
+    renderEdited();
     renderStale(state);
 
     // an edit landing in the song that was already playing (not play, not a song change)
@@ -278,12 +290,19 @@ export function mountStage(): Stage {
     );
   }
 
+  /** Each song's id and the name it plays under now (an edit may rename it) */
+  const songList = () => player.allSongs().map(({ id, song }) => ({ id, name: player.playingSongOf(id)?.name ?? song.name }));
+  const songListKey = () => songList().map(({ id, name }) => `${id}\u0000${name}`).join("\u0001");
+  let shownSongList = "";
+
   function renderSongSelector() {
+    const list = songList();
+    shownSongList = list.map(({ id, name }) => `${id}\u0000${name}`).join("\u0001");
     songSelect.replaceChildren(
-      ...player.allSongs().map(({ id, song }) => {
+      ...list.map(({ id, name }) => {
         const option = document.createElement("option");
         option.value = id;
-        option.textContent = song.name;
+        option.textContent = name;
         return option;
       })
     );
@@ -375,6 +394,7 @@ export function mountStage(): Stage {
     const existing = sessions.get(songId);
     if (existing) {
       existing.incoming(incomingOf(source));
+      restoreSaved(songId, existing);
       return existing;
     }
     const session = new EditSession({
@@ -386,7 +406,64 @@ export function mountStage(): Stage {
       },
     });
     sessions.set(songId, session);
+    restoreSaved(songId, session);
     return session;
+  }
+
+  // ── edits kept in this browser (src/songs-store, src/ui/song-saver.ts) ────
+  // Invariant: a song has a saved edit exactly while the browser owns its
+  // buffer. Typing saves it; going back to the file / the IDE (load theirs, a
+  // save of the same text, revert) drops it.
+
+  /** A built-in song's own text (its file): what revert brings back */
+  const originalText = (id: string) => player.fileSource(id)?.text;
+
+  const saver = new SongSaver({
+    store: songsStore,
+    originalText,
+    onSaved: (id) => {
+      if (id === player.currentSongId_()) renderEdited();
+    },
+  });
+  // a reload or a closed tab within the debounce must not lose the last keys
+  addEventListener("pagehide", () => saver.flush());
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") saver.flush();
+  });
+
+  /** The edit kept in this browser for `id` that the buffer should show, if any */
+  function savedEdit(id: string): string | null {
+    const mine = songsStore.getMySong(id);
+    if (!mine) return null;
+    if (player.isBuiltInSong(id)) return mine.text === originalText(id) ? null : mine.text;
+    // a user song's stored text is the song itself: only text the player doesn't have is an edit
+    return mine.text === player.sourceOf(id)?.text ? null : mine.text;
+  }
+
+  /** A saved edit comes back as the browser's buffer (after a reload, or before the store's replay lands) */
+  function restoreSaved(songId: string, session: EditSession) {
+    if (session.view().owner === "browser") return;
+    const text = savedEdit(songId);
+    if (text === null) return;
+    // the store's boot replay may still be compiling it: that eval is ours, don't evaluate twice
+    const evaluated = player.sourceOf(songId)?.text === text || player.evalPending(songId);
+    session.restore(text, { evaluated });
+  }
+
+  /** The file bar's "edited" badge and revert key; "unsaved" only for edits that aren't kept */
+  function renderEdited() {
+    const id = player.currentSongId_();
+    const mine = songsStore.getMySong(id);
+    // the buffer went back to the file (e.g. saved with exactly this text): nothing is edited any more
+    if (mine && player.isBuiltInSong(id) && mine.text === originalText(id) && !saver.pending(id)) songsStore.discard(id);
+    const edited = player.isBuiltInSong(id) && savedEdit(id) !== null;
+    editedBadge.hidden = revertKey.hidden = !edited;
+    const source = player.currentSource();
+    codeUnsaved.hidden = !source?.live || (edited && source.origin === "browser");
+    codeUnsaved.title =
+      source?.origin === "browser"
+        ? "Evaluated in the browser, not kept yet."
+        : "Evaluated from the editor without saving (live eval). Save the file to keep it.";
   }
 
   /** The current song's source → its session → the editor */
@@ -441,6 +518,7 @@ export function mountStage(): Stage {
     }
     mode = "edit";
     writeStorage(MODE_KEY, "edit");
+    dismissHint(); // found it
     renderMode();
     let mod: typeof import("./code-editor");
     try {
@@ -501,7 +579,11 @@ export function mountStage(): Stage {
     const ed = new mod.CodeEditor({
       host: editorHost,
       followChip: $("follow-chip"),
-      onEdit: (text) => sessions.get(shownSongId)?.edit(text),
+      onEdit: (text) => {
+        const id = shownSongId;
+        // kept in this browser as typed (even when it doesn't build), so a reload doesn't lose it
+        if (sessions.get(id)?.edit(text)) saver.edit(id, text);
+      },
       onCommit: () => void commit(),
       onKnobChip: (name) => knobPanel.focus(name),
       onPick: ({ line, column }) => {
@@ -524,12 +606,171 @@ export function mountStage(): Stage {
     if (result?.ok && !player.getState().playing) void player.play();
   }
 
+  /** What the code unit shows: the editor's buffer while editing, else the song's current text */
+  const shownText = () => (editor && surface === editor ? editor.value() : player.currentSource()?.text ?? "");
+
+  /**
+   * ⌘/Ctrl+S while editing. Under the dev server: write src/songs/<id>.ts
+   * (HMR then brings the file in, and the store drops the kept copy). On the
+   * site: keep the buffer in this browser now.
+   */
+  async function save() {
+    const id = shownSongId;
+    const session = sessions.get(id);
+    if (!id || !session || !editor || surface !== editor) return;
+    const view = session.view();
+    if (view.readOnly) {
+      toast(`${ideName} is editing this song: take over to save it here`, "warn");
+      return;
+    }
+    const text = view.text;
+    if (!(await songsStore.canSaveToFile())) {
+      const kept = saver.keep(id, text);
+      toast(
+        kept === "saved"
+          ? "saved in this browser"
+          : kept === "unchanged"
+            ? "nothing to save: this is the original"
+            : "not saved: this browser blocks storage",
+        kept === "not-persisted" ? "error" : "ok"
+      );
+      return;
+    }
+    const builtIn = player.isBuiltInSong(id);
+    if (builtIn && text === originalText(id)) {
+      saver.cancel(id);
+      songsStore.discard(id);
+      renderEdited();
+      toast("nothing to save: the file says the same");
+      return;
+    }
+    saver.flush(id); // the kept copy is this text, so a successful save can drop it
+    toast("saving…", "pending");
+    const result = await songsStore.saveToFile(id, text, { create: !builtIn });
+    renderEdited();
+    if (result.ok) toast(`saved to ${result.file}`);
+    else toast(`not saved: ${result.error}`, "error");
+  }
+
+  async function share() {
+    const id = player.currentSongId_();
+    let url: string;
+    try {
+      url = await songsStore.shareUrl(id, shownText());
+    } catch (err) {
+      toast(`can't share: ${err instanceof Error ? err.message : String(err)}`, "error");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast("link copied");
+    } catch {
+      // no clipboard (denied, insecure context): hand over the link to copy by hand
+      const field = document.createElement("input");
+      field.type = "text";
+      field.readOnly = true;
+      field.value = url;
+      field.className = "share-link-field";
+      field.dataset.testid = "share-link-url";
+      field.setAttribute("aria-label", "Share link");
+      field.addEventListener("focus", () => field.select());
+      const shown = ask({
+        testid: "share-link",
+        title: "Copy this link",
+        note: "The clipboard isn't available here. The link is selected: copy it with ⌘/Ctrl+C.",
+        content: field,
+        confirm: "done",
+      });
+      requestAnimationFrame(() => {
+        field.focus();
+        field.select();
+      });
+      await shown;
+    }
+  }
+
+  async function revertSong() {
+    const id = player.currentSongId_();
+    if (askOpen() || savedEdit(id) === null) return;
+    const name = player.playingSongOf(id)?.name ?? id;
+    const ok = await ask({
+      testid: "revert-dialog",
+      title: "Throw away your edits?",
+      facts: [
+        ["song", name],
+        ["file", `src/songs/${id}.ts`],
+      ],
+      note: "The edits kept in this browser go, and the original plays again. This can't be undone. (download keeps a copy.)",
+      confirm: "revert",
+      cancel: "keep them",
+      tone: "warn",
+      focus: "cancel",
+    });
+    if (!ok || player.currentSongId_() !== id) return;
+    saver.cancel(id); // a pending write would bring the edit back
+    // a fresh session starts from the original (the old one would see it as a conflict)
+    sessions.get(id)?.dispose();
+    sessions.delete(id);
+    songsStore.revert(id); // forgets the entry; the player plays the file again
+    shownSongId = "";
+    render(player.getState());
+    toast("reverted to the original");
+  }
+
+  let toastTimer: ReturnType<typeof setTimeout> | undefined;
+  function toast(text: string, kind: "ok" | "warn" | "error" | "pending" = "ok") {
+    codeToast.textContent = text;
+    codeToast.dataset.kind = kind;
+    codeToast.hidden = false;
+    clearTimeout(toastTimer);
+    if (kind !== "pending") toastTimer = setTimeout(() => (codeToast.hidden = true), kind === "ok" ? 2500 : 6000);
+  }
+
+  // ── first visit on the site: point at the edit key ─────────────────────────
+  const HINT_KEY = "hint-edit";
+  function dismissHint() {
+    editHint.hidden = true;
+    writeStorage(HINT_KEY, "done");
+  }
+  if (readStorage(HINT_KEY) !== "done" && readStorage(MODE_KEY) !== "edit") {
+    // the hosted site: no dev server to save to (the same test the save key uses)
+    void songsStore.canSaveToFile().then((local) => {
+      if (!local && mode === "view" && readStorage(HINT_KEY) !== "done") editHint.hidden = false;
+    });
+  }
+  $("edit-hint-dismiss").addEventListener("click", dismissHint);
+
+  revertKey.addEventListener("click", () => void revertSong());
+  shareKey.addEventListener("click", () => void share());
+  downloadKey.addEventListener("click", () => {
+    const id = player.currentSongId_();
+    songsStore.download(id, shownText());
+    toast(`downloaded ${id}.ts`);
+  });
+  // ⌘/Ctrl+S while editing saves the song, never the page (capture: before Monaco and the browser)
+  addEventListener(
+    "keydown",
+    (e) => {
+      if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey || e.key.toLowerCase() !== "s" || mode !== "edit") return;
+      e.preventDefault();
+      if (!e.repeat && !askOpen()) void save();
+    },
+    true
+  );
+
   modeKey.addEventListener("click", () => (mode === "edit" ? exitEdit() : void enterEdit({ focus: true })));
   takeOverKey.addEventListener("click", () => {
     sessions.get(shownSongId)?.takeOver();
     editor?.focus();
   });
-  loadKey.addEventListener("click", () => sessions.get(shownSongId)?.loadIncoming());
+  loadKey.addEventListener("click", () => {
+    const id = shownSongId;
+    // the browser's edits are given up for theirs: a reload must not bring them back
+    saver.cancel(id);
+    songsStore.discard(id);
+    sessions.get(id)?.loadIncoming();
+    renderEdited();
+  });
   // a double-click in the read-only code starts editing right there
   codeLines.addEventListener("dblclick", (e) => {
     if ((e.target as Element | null)?.closest?.(".knob-chip")) return;
@@ -796,6 +1037,16 @@ export function mountStage(): Stage {
     },
     toggleCodeView,
     highlights: () => surface.litRanges(),
+    storeReplayed(failed) {
+      // a saved edit that doesn't build: evaluate it as typing, so its error shows inline in the editor
+      for (const { id } of failed) {
+        const session = sessions.get(id);
+        const text = savedEdit(id);
+        if (session && text !== null && session.view().text === text && session.view().status.kind === "idle") {
+          session.restore(text, { evaluated: false });
+        }
+      }
+    },
   };
 }
 

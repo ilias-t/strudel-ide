@@ -190,6 +190,16 @@ export function allSongs(): { id: string; song: Song }[] {
   return [...songsModule.getAllSongs(), ...[...userSongs].map(([id, { song }]) => ({ id, song }))];
 }
 
+/** The song as it plays now: an evaluated buffer, else the user song / file (the picker shows its name) */
+export function playingSongOf(id: string): Song | undefined {
+  return liveSongs.get(id)?.song ?? userSongs.get(id)?.song ?? songsModule.songs[id];
+}
+
+/** A built-in song's file on disk (null for user songs): what "revert" brings back */
+export function fileSource(id: string): PlayerSource | null {
+  return isBuiltInSong(id) ? songsModule.songSources[id] ?? null : null;
+}
+
 export function songsRecord(): Record<string, Song> {
   if (!userSongs.size) return songsModule.songs;
   return { ...songsModule.songs, ...Object.fromEntries([...userSongs].map(([id, { song }]) => [id, song])) };
@@ -836,6 +846,11 @@ function nextSeq(songId: string): number {
 
 /** Browser evals/adds still compiling, per song (play() waits for the current song's) */
 const pendingEvals = new Map<string, Promise<unknown>>();
+/** A browser eval/add of this song is still compiling (e.g. a saved edit replayed at boot) */
+export function evalPending(songId: string): boolean {
+  return pendingEvals.has(songId);
+}
+
 function trackPending<T>(songId: string, run: Promise<T>): Promise<T> {
   pendingEvals.set(songId, run);
   void run.finally(() => {

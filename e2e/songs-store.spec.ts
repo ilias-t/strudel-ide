@@ -100,8 +100,21 @@ test("a share link round-trips: the song travels in the URL hash", async ({ play
   const errors: string[] = [];
   const asked: string[] = [];
   other.on("pageerror", (e) => errors.push(e.message));
-  other.on("dialog", (dialog) => (asked.push(dialog.message()), void dialog.accept()));
+  // the question is the stage's own card (src/ui/share-confirm.ts), never a native dialog
+  other.on("dialog", (dialog) => (errors.push(`native dialog: ${dialog.message()}`), void dialog.dismiss()));
+  await other.exposeFunction("__e2eAsked", (text: string) => asked.push(text));
+  await other.addInitScript(() => {
+    new MutationObserver((records) => {
+      for (const r of records)
+        for (const n of r.addedNodes)
+          if (n instanceof HTMLElement) {
+            const card = n.matches('[data-testid="share-dialog"]') ? n : n.querySelector('[data-testid="share-dialog"]');
+            if (card) void (window as unknown as { __e2eAsked(t: string): void }).__e2eAsked(card.textContent ?? "");
+          }
+    }).observe(document, { childList: true, subtree: true });
+  });
   await other.goto(url);
+  await other.getByTestId("share-dialog-confirm").click({ timeout: 30_000 });
   await other.waitForFunction(() => window.__strudel?.getState().ready === true, null, { timeout: 30_000 });
   await expect.poll(() => other.evaluate(() => window.__strudel!.getState().songId)).toBe("shared-tune");
   expect(await other.evaluate(() => window.__strudel!.currentSource())).toMatchObject({
@@ -112,7 +125,8 @@ test("a share link round-trips: the song travels in the URL hash", async ({ play
   expect(await other.evaluate(() => window.__strudel!.getState().playing), "a link never auto-plays").toBe(false);
   expect(await other.evaluate(() => window.__strudel!.store.listMySongs()), "nor persists by itself").toEqual([]);
   expect(asked).toHaveLength(1);
-  expect(asked[0]).toMatch(/shared song "shared-tune".*runs that code/s);
+  expect(asked[0]).toMatch(/shared song.*Shared Tune.*shared-tune\.ts.*runs that code/s);
+  await expect(other.getByTestId("share-dialog")).toHaveCount(0);
   expect(errors).toEqual([]);
   await context.close();
 });
@@ -129,6 +143,9 @@ test("a declined share link runs nothing", async ({ player, page, browser }) => 
   const requests: string[] = [];
   other.on("request", (req) => requests.push(new URL(req.url()).pathname));
   await other.goto(url);
+  // the stage's own card asks (src/ui/share-confirm.ts): "don't"
+  await other.getByTestId("share-dialog-cancel").click({ timeout: 30_000 });
+  await expect(other.getByTestId("share-dialog")).toHaveCount(0);
   await other.waitForFunction(() => window.__strudel?.getState().ready === true, null, { timeout: 30_000 });
   await other.waitForTimeout(500);
   expect(await other.evaluate(() => Object.keys(window.__strudel!.songs()))).not.toContain("nope-tune");

@@ -24,6 +24,7 @@ import { startLive } from "./engine/live";
 import { engine, guardDestination, loadSamples, type Repl, type Scheduler } from "./engine/strudel";
 import { mountStage } from "./ui/stage";
 import * as songsStore from "./songs-store";
+import { confirmSharedSong } from "./ui/share-confirm";
 
 export type { PlayerState, PlayerError } from "./engine/types";
 
@@ -134,7 +135,9 @@ void player.validateCurrent();
 
 // Songs kept in this browser (overrides, user songs) and a share link (#song=…).
 // With nothing stored and no link this does nothing: the compiler isn't loaded.
-void songsStore.initSongsStore(player).then(({ failed, shared }) => {
+// A share link's code only runs once the person says so, on the stage's own card.
+void songsStore.initSongsStore(player, { confirmShare: confirmSharedSong }).then(({ failed, shared }) => {
+  stage.storeReplayed(failed);
   for (const { id, error } of failed) console.warn(`[strudel-ide] stored song ${id} did not load: ${error}`);
   if (shared && !shared.ok) console.warn(`[strudel-ide] share link: ${shared.error}`);
 });

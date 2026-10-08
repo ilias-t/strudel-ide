@@ -1,6 +1,9 @@
 import { defineConfig } from "vite";
+import strudelLocations from "./vite-plugins/strudel-locations";
 
 export default defineConfig({
+  // mini-notation strings in src/songs/*.ts → m("...", offset) for live highlighting
+  plugins: [strudelLocations()],
   server: {
     port: 3000,
     open: !process.env.CI && !process.env.NO_OPEN,

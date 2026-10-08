@@ -52,6 +52,37 @@ export function toPattern(result: Pattern | Tracks): Pattern {
   return isPattern(result) ? result : stack(...Object.values(result));
 }
 
+export interface BuiltSong {
+  /** The (stacked) pattern to play */
+  pattern: Pattern;
+  /** Track names when createPattern() returned named tracks, otherwise null */
+  tracks: string[] | null;
+}
+
+/**
+ * Build a song's playable pattern. This is the single place the player turns a
+ * Song into a Pattern, so per-track features (mute/solo) hook in here via
+ * `isAudible`. Throws whatever createPattern() throws.
+ */
+export function buildPattern(
+  song: Song,
+  isAudible: (track: string) => boolean = () => true
+): BuiltSong {
+  const result = song.createPattern();
+  if (isPattern(result)) return { pattern: result, tracks: null };
+  if (!result || typeof result !== "object") {
+    throw new Error(
+      `createPattern() must return a Pattern or a record of named Patterns, got ${typeof result}`
+    );
+  }
+  const entries = Object.entries(result);
+  for (const [name, value] of entries) {
+    if (!isPattern(value)) throw new Error(`Track "${name}" is not a Pattern`);
+  }
+  const audible = entries.filter(([name]) => isAudible(name)).map(([, p]) => p);
+  return { pattern: stack(...audible), tracks: entries.map(([name]) => name) };
+}
+
 // Auto-import all song modules (excluding index.ts and _template.ts)
 const songModules = import.meta.glob<{ default: Song }>(
   ["./*.ts", "!./index.ts", "!./_template.ts"],

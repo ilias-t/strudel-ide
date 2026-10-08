@@ -32,89 +32,21 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import ts from "typescript";
-import MagicString from "magic-string";
 import type { Plugin } from "vite";
 import { isSongFile } from "./strudel-locations.ts";
 import type { StrudelBridgeApi } from "./strudel-bridge.ts";
-import { contentVersion } from "../src/live/protocol.ts";
+import * as shared from "../src/compile/knobs.ts";
+import { KnobWriteError, numberLiteral, type KnobChange, type KnobWrite } from "../src/compile/knobs.ts";
 
 export const KNOB_ENDPOINT = "/__strudel/knob";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Transform
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Is `knob` declared in the file (a local helper shadows the global)? */
-function declaresKnob(sf: ts.SourceFile): boolean {
-  let found = false;
-  const visit = (node: ts.Node) => {
-    if (found) return;
-    if (
-      (ts.isVariableDeclaration(node) || ts.isParameter(node) || ts.isBindingElement(node) ||
-        ts.isFunctionDeclaration(node) || ts.isImportSpecifier(node) || ts.isImportClause(node)) &&
-      node.name && ts.isIdentifier(node.name) && node.name.text === "knob"
-    ) {
-      found = true;
-      return;
-    }
-    ts.forEachChild(node, visit);
-  };
-  visit(sf);
-  return found;
-}
+// The transform and the literal rewrite live in src/compile/knobs.ts, shared
+// with the browser compiler. These bind them to the Node `typescript`.
+export { KnobWriteError, numberLiteral, type KnobChange, type KnobWrite };
 
 /** Route a song file's knob() calls through a helper that passes the file */
-export function transformKnobs(code: string, file: string): { code: string; map: ReturnType<MagicString["generateMap"]> } | null {
-  const sf = ts.createSourceFile(file, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  if (declaresKnob(sf)) return null;
-  const s = new MagicString(code);
-  const visit = (node: ts.Node) => {
-    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "knob") {
-      s.overwrite(node.expression.getStart(sf), node.expression.getEnd(), "__strudel_knob");
-    }
-    ts.forEachChild(node, visit);
-  };
-  visit(sf);
-  const f = JSON.stringify(file);
-  // Prepended on line 1 (no newline), so line numbers stay put
-  s.prepend(`(globalThis as any).__strudelKnobModule?.(${f}); `);
-  s.append(
-    `\n// ── injected by vite-plugins/strudel-knobs.ts ──\n` +
-      `function __strudel_knob(...args: any[]): Pattern { const g = globalThis as any; return g.__strudelKnob ? g.__strudelKnob(${f}, ...args) : g.knob(...args); }\n`
-  );
-  return { code: s.toString(), map: s.generateMap({ hires: true, source: file, includeContent: true }) };
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Write-back
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface KnobWrite {
-  name: string;
-  value: number;
-}
-
-export interface KnobChange {
-  name: string;
-  /** The literal now in the file */
-  literal: string;
-  /** 1-based line of the (first) call */
-  line: number;
-}
-
-export class KnobWriteError extends Error {
-  readonly status: number;
-  constructor(message: string, status = 422) {
-    super(message);
-    this.status = status;
-  }
-}
-
-/** The source text for a number: the shortest literal that reads back as exactly `value` */
-export function numberLiteral(value: number): string {
-  if (typeof value !== "number" || !Number.isFinite(value)) throw new KnobWriteError(`value must be a finite number`, 400);
-  const v = Object.is(value, -0) ? 0 : value;
-  return String(v);
+export function transformKnobs(code: string, file: string) {
+  return shared.transformKnobs(ts, code, file);
 }
 
 /**
@@ -122,75 +54,12 @@ export function numberLiteral(value: number): string {
  * `file`) differs from the file on disk.
  */
 export function checkLiveBuffer(code: string, file: string, writes: KnobWrite[], buffer: { text: string } | null) {
-  if (!buffer || contentVersion(buffer.text) === contentVersion(code)) return;
-  const sf = ts.createSourceFile(file, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  const onlyInBuffer = writes.find(({ name }) => typeof name === "string" && !knobValueArgs(sf, name).length);
-  if (onlyInBuffer) {
-    throw new KnobWriteError(
-      `knob("${onlyInBuffer.name}", …) is only in the unsaved editor buffer of ${file}, not in the file: save the file first, then write the knob`,
-      409
-    );
-  }
-  throw new KnobWriteError(
-    `${file} has unsaved changes that are playing (evaluated from the editor): save the file first, or write the knob from the editor`,
-    409
-  );
+  shared.checkLiveBuffer(ts, code, file, writes, buffer);
 }
 
-/** Value argument of each `knob("<name>", <value>, …)` call */
-function knobValueArgs(sf: ts.SourceFile, name: string): ts.Expression[] {
-  const found: ts.Expression[] = [];
-  const visit = (node: ts.Node) => {
-    if (
-      ts.isCallExpression(node) &&
-      ts.isIdentifier(node.expression) &&
-      node.expression.text === "knob" &&
-      node.arguments.length >= 2
-    ) {
-      const first = node.arguments[0];
-      if ((ts.isStringLiteral(first) || ts.isNoSubstitutionTemplateLiteral(first)) && first.text === name) {
-        found.push(node.arguments[1]);
-      }
-    }
-    ts.forEachChild(node, visit);
-  };
-  visit(sf);
-  return found;
-}
-
-const isNumericLiteral = (e: ts.Expression) =>
-  ts.isNumericLiteral(e) ||
-  (ts.isPrefixUnaryExpression(e) &&
-    (e.operator === ts.SyntaxKind.MinusToken || e.operator === ts.SyntaxKind.PlusToken) &&
-    ts.isNumericLiteral(e.operand));
-
-/**
- * Rewrite the value literal of the named knobs in `code`. All-or-nothing:
- * throws KnobWriteError if any knob's call is missing or not a numeric literal.
- */
-export function rewriteKnobValues(code: string, file: string, writes: KnobWrite[]): { code: string; changes: KnobChange[] } {
-  if (!writes.length) throw new KnobWriteError("no knobs to write", 400);
-  const sf = ts.createSourceFile(file, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  const s = new MagicString(code);
-  const changes: KnobChange[] = [];
-  for (const { name, value } of writes) {
-    if (typeof name !== "string" || !name) throw new KnobWriteError("knob name must be a non-empty string", 400);
-    const literal = numberLiteral(value);
-    const args = knobValueArgs(sf, name);
-    if (!args.length) throw new KnobWriteError(`no knob("${name}", …) call in ${file}`, 404);
-    for (const arg of args) {
-      if (!isNumericLiteral(arg)) {
-        const { line } = sf.getLineAndCharacterOfPosition(arg.getStart(sf));
-        throw new KnobWriteError(
-          `knob("${name}", …) in ${file}:${line + 1}: the value is \`${arg.getText(sf)}\`, not a number literal, so it can't be written back`
-        );
-      }
-      s.overwrite(arg.getStart(sf), arg.getEnd(), literal);
-    }
-    const { line } = sf.getLineAndCharacterOfPosition(args[0].getStart(sf));
-    changes.push({ name, literal, line: line + 1 });
-  }
-  return { code: s.toString(), changes };
+/** Rewrite the value literal of the named knobs in `code` (all-or-nothing, throws KnobWriteError) */
+export function rewriteKnobValues(code: string, file: string, writes: KnobWrite[]) {
+  return shared.rewriteKnobValues(ts, code, file, writes);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

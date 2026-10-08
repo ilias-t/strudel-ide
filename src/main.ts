@@ -74,6 +74,7 @@ window.__strudel = {
   knobs: player.knobs,
   setKnob: player.setKnob,
   resetKnob: player.resetKnob,
+  grabKnob: player.grabKnob,
   writeKnobs: player.writeKnobs,
   onKnobsChange: player.onKnobsChange,
   toggleCodeView: stage.toggleCodeView,
@@ -151,6 +152,8 @@ declare global {
       /** Turn a knob (no rebuild, no swap) */
       setKnob: typeof player.setKnob;
       resetKnob: typeof player.resetKnob;
+      /** Hold a knob (an editor-side drag): file edits don't reset it meanwhile */
+      grabKnob: typeof player.grabKnob;
       /** Write live values into the song file (dev server); all dirty knobs by default */
       writeKnobs: typeof player.writeKnobs;
       onKnobsChange: typeof player.onKnobsChange;

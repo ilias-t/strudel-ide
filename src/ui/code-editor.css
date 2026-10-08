@@ -1,0 +1,164 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Edit mode (code-editor.ts): Monaco on the code unit's black glass.
+   Loaded with the lazy editor chunk, never at boot. Colours come from
+   stage.css (the glass, the .t-* syntax colours, the track colours).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.code-editor {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.code-editor .monaco-editor,
+.code-editor .monaco-editor .margin,
+.code-editor .monaco-editor-background {
+  background: var(--glass);
+}
+
+.code-editor .monaco-editor .line-numbers {
+  font-size: 11px;
+}
+
+/* read-only (your IDE owns the buffer): a quieter caret, clicks open the IDE */
+.code-editor[data-readonly="true"] .monaco-editor .cursors-layer {
+  opacity: 0.35;
+}
+.code-editor[data-readonly="true"] .monaco-editor .view-lines {
+  cursor: pointer;
+}
+
+/* syntax colours the Monarch tokenizer can't tell apart (from tokenize.ts) */
+.code-editor .monaco-editor .t-f {
+  color: var(--cobalt-px) !important;
+}
+.code-editor .monaco-editor .t-t {
+  color: #cfc9bd !important;
+}
+
+/* live highlights: a coloured underline while a token sounds… */
+.code-editor .monaco-editor .cm-lit {
+  border-radius: 2.5px;
+  box-shadow: inset 0 -1.5px 0 color-mix(in srgb, var(--c, var(--ember)) 80%, transparent);
+  background: color-mix(in srgb, var(--c, var(--ember)) 9%, transparent);
+}
+
+/* …and a hard invert on each hit: dark text on the track colour */
+.code-editor .monaco-editor .cm-flash {
+  border-radius: 2.5px;
+  background: var(--c, var(--ember)) !important;
+  color: #0a0a0a !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c, var(--ember)) 55%, transparent);
+}
+
+/* the player's error line */
+.code-editor .monaco-editor .cm-error-line {
+  background: linear-gradient(90deg, rgba(255, 68, 51, 0.13), rgba(255, 68, 51, 0) 70%);
+}
+.code-editor .monaco-editor .cm-error-gutter {
+  background: var(--red);
+  width: 2px !important;
+  margin-left: 4px;
+}
+.code-editor .monaco-editor .cm-error-text {
+  text-decoration: underline wavy var(--red);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  text-decoration-skip-ink: none;
+}
+
+/* the gap a knob chip sits on (injected figure spaces) */
+.code-editor .monaco-editor .cm-chip-slot {
+  user-select: none;
+}
+
+/* knob chips are content widgets: same chip as the code view, sized to its gap */
+.code-editor .cm-knob-chip {
+  min-width: 0 !important;
+  margin-left: 0.6ch;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 11.7px;
+  line-height: 15px;
+  z-index: 2;
+}
+
+/* suggest + hover: small slabs of the same glass, edged like the gear */
+.monaco-editor .suggest-widget,
+.monaco-editor .monaco-hover,
+.monaco-editor .parameter-hints-widget {
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px #2a2a2d,
+    0 14px 34px rgba(0, 0, 0, 0.55);
+  font-family: var(--ui);
+  font-stretch: 85%;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.monaco-editor .suggest-details-container,
+.monaco-editor .suggest-details {
+  border-radius: 6px;
+}
+
+.monaco-editor .monaco-hover .hover-contents,
+.monaco-editor .suggest-details .docs {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #d8d3c8;
+}
+
+.monaco-editor .monaco-hover code,
+.monaco-editor .suggest-details code,
+.monaco-editor .parameter-hints-widget code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--px);
+}
+
+/* @example blocks (Monaco renders fences as div[data-code]): inset glass, like
+   the code screen itself, wrapped rather than clipped */
+.monaco-editor .monaco-hover .rendered-markdown div[data-code],
+.monaco-editor .suggest-details .rendered-markdown div[data-code] {
+  margin: 6px 0;
+  padding: 6px 9px;
+  border-radius: 4px;
+  background: var(--glass);
+  box-shadow: inset 0 0 0 1px #1d1d20;
+}
+.monaco-editor .rendered-markdown div[data-code] > span {
+  font-size: 11.5px !important;
+  line-height: 15px !important;
+}
+.monaco-editor .rendered-markdown .monaco-tokenized-source {
+  white-space: pre-wrap !important; /* the suggest details otherwise clip long examples */
+  overflow-wrap: anywhere;
+}
+.monaco-editor .monaco-hover .rendered-markdown pre,
+.monaco-editor .suggest-details .rendered-markdown pre {
+  margin: 6px 0;
+  padding: 7px 9px;
+  border-radius: 4px;
+  background: var(--glass);
+  box-shadow: inset 0 0 0 1px #1d1d20;
+  white-space: pre-wrap;
+}
+
+.monaco-editor .monaco-hover .rendered-markdown pre code,
+.monaco-editor .suggest-details .rendered-markdown pre code {
+  font-size: 11.5px;
+  line-height: 15px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.monaco-editor .monaco-hover hr {
+  border-color: #1d1d20;
+}

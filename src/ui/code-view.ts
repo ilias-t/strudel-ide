@@ -23,6 +23,7 @@
 import { tokenize, type TokenKind } from "./tokenize";
 import { findKnobCalls, type KnobCall } from "../live/knob-calls";
 import type { Range } from "../live/highlights";
+import type { CodeSurface } from "./code-surface";
 
 const PACK = 2 ** 22;
 const key = (start: number, end: number) => start * PACK + end;
@@ -57,7 +58,7 @@ export interface CodeViewOptions {
   onPick?: (pos: { offset: number; line: number; column: number }) => void;
 }
 
-export class CodeView {
+export class CodeView implements CodeSurface {
   private text = "";
   private version: string | undefined;
   /** text node per rendered token piece, ordered by offset */
@@ -279,11 +280,17 @@ export class CodeView {
     if ((e.target as Element | null)?.closest?.(".knob-chip")) return; // knob chips focus the knob instead
     const selection = getSelection();
     if (selection && !selection.isCollapsed && selection.toString()) return; // selecting text
+    const offset = this.offsetAt(e);
+    if (offset === null) return;
+    this.o.onPick({ offset, ...this.lineColumnAt(offset) });
+  }
+
+  /** Offset of the character under a pointer event on a code line (else that line's start), or null */
+  offsetAt(e: MouseEvent): number | null {
     const lineEl = (e.target as Element | null)?.closest?.<HTMLElement>(".ln");
-    if (!lineEl) return;
+    if (!lineEl) return null;
     const lineNo = Number(lineEl.dataset.line);
     // the character under the pointer, else the start of the clicked line
-    let offset = -1;
     const doc = document as Document & {
       caretPositionFromPoint?(x: number, y: number): { offsetNode: Node; offset: number } | null;
     };
@@ -292,13 +299,10 @@ export class CodeView {
     const node = caret?.offsetNode ?? range?.startContainer;
     const at = caret?.offset ?? range?.startOffset ?? 0;
     const i = node instanceof Text && lineEl.contains(node) ? this.nodes.indexOf(node) : -1;
-    if (i >= 0) offset = this.nodeStarts[i] + at;
-    else {
-      offset = 0;
-      for (let n = 1; n < lineNo && offset >= 0; n++) offset = this.text.indexOf("\n", offset) + 1;
-      if (offset < 0) return;
-    }
-    this.o.onPick({ offset, ...this.lineColumnAt(offset) });
+    if (i >= 0) return this.nodeStarts[i] + at;
+    let offset = 0;
+    for (let n = 1; n < lineNo && offset >= 0; n++) offset = this.text.indexOf("\n", offset) + 1;
+    return offset < 0 ? null : offset;
   }
 
   private render() {

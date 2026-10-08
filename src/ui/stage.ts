@@ -12,6 +12,11 @@ import type { PlayerError, PlayerState } from "../engine/types";
 import { contentVersion } from "../live/protocol";
 import { songFile, songIdForFile, type EditorLinkStatus, type RevealResult } from "../live/editor-link";
 import { CodeView } from "./code-view";
+import type { CodeSurface } from "./code-surface";
+import type { CodeEditor } from "./code-editor";
+import { EditSession, type SessionView } from "./edit-session";
+import { editorSourceCalls, evalEdit, hasEngine, setEngineForTests } from "./editor-source";
+import { readStorage, writeStorage } from "../engine/storage";
 import { Mixer } from "./mixer";
 import { KnobPanel } from "./knobs";
 import { formatKnob, knobTextWidth, type KnobInfo } from "../engine/knobs";
@@ -78,6 +83,13 @@ export function mountStage(): Stage {
   const room = new Room(stage);
   const codeSwap = $("code-swap");
   const codeSwapText = $("code-swap-text");
+  const codeScroll = $("code-scroll");
+  const codeLines = $("code-lines");
+  const editorHost = $("code-editor");
+  const codeStatus = $("code-status");
+  const takeOverKey = $<HTMLButtonElement>("code-takeover");
+  const loadKey = $<HTMLButtonElement>("code-load");
+  const modeKey = $<HTMLButtonElement>("code-mode");
 
   let reveal: (file: string, line: number, column?: number) => RevealResult = () => "none";
   const codeView = new CodeView({
@@ -93,6 +105,12 @@ export function mountStage(): Stage {
       if (file) reveal(file, line, column);
     },
   });
+  /** What the code unit shows now: the read-only view, or the editor in edit mode */
+  let surface: CodeSurface = codeView;
+  let editor: CodeEditor | null = null;
+  let mode: "view" | "edit" = "view";
+  /** Whether the shown text was the playing text last frame (null: hand over the ranges) */
+  let shownSame: boolean | null = null;
 
   const knobPanel = new KnobPanel(
     { root: $("knobs"), grid: $("knob-grid"), writeAll: $<HTMLButtonElement>("knobs-write-all"), status: $("knobs-status") },
@@ -112,8 +130,9 @@ export function mountStage(): Stage {
     shownKnobs = list;
     knobPanel.render(list, player.currentSongId_());
     const byName = new Map(list.map((k) => [k.name, k]));
-    for (const [name, chips] of codeView.knobChips()) {
+    for (const [name, chips] of surface.knobChips()) {
       const knob = byName.get(name);
+      if (knob && surface === editor) editor.setChipTextWidth(name, knobTextWidth(knob));
       const text = knob ? formatKnob(knob, knob.value) : "";
       for (const chip of chips) {
         if (chip.dataset.value !== text) chip.dataset.value = text;
@@ -155,7 +174,8 @@ export function mountStage(): Stage {
     const i = track === undefined ? undefined : trackIndex.get(track);
     return i === undefined ? undefined : trackColor(track!, i);
   };
-  codeView.setColorResolver((start, end) => colorOfTrack(rangeTrack.get(start * 2 ** 22 + end)));
+  const colorOfRange = (start: number, end: number) => colorOfTrack(rangeTrack.get(start * 2 ** 22 + end));
+  codeView.setColorResolver(colorOfRange);
 
   // ── state → DOM ───────────────────────────────────────────────────────────
   let shownSongId = "";
@@ -191,7 +211,7 @@ export function mountStage(): Stage {
     stage.dataset.code = state.codeView ? "on" : "off";
     room.setLook(player.songsRecord()[state.songId]?.room ?? "dusk");
     room.setPlaying(state.playing);
-    codeView.setEnabled(state.codeView);
+    surface.setEnabled(state.codeView);
 
     // the code: the current song's text (on disk, or an evaluated editor buffer)
     const source = player.currentSource();
@@ -202,14 +222,17 @@ export function mountStage(): Stage {
       const otherFile = state.songId !== shownSongId;
       shownSongId = state.songId;
       shownSource = source;
-      codeView.setSource(source.text, source.version, otherFile);
+      if (editor && surface === editor) showInEditor(editor, state.songId, source, otherFile);
+      else codeView.setSource(source.text, source.version, otherFile);
       codeFile.textContent = source.file;
       rangeTrack.clear();
       renderKnobs(player.knobs()); // new chips
+    } else if (source?.text !== undefined && editor && surface === editor) {
+      // same text, maybe a different status (an IDE buffer saved as is): the session decides
+      syncSession(state.songId, source);
     }
     codeUnsaved.hidden = !source?.live;
-    const playing = player.playingSource();
-    codeStale.hidden = !(state.playing && playing && source && playing.version !== source.version);
+    renderStale(state);
 
     // an edit landing in the song that was already playing (not play, not a song change)
     if (state.swapCount !== shownSwaps) {
@@ -277,16 +300,16 @@ export function mountStage(): Stage {
   function renderError(err: PlayerError | null) {
     errorPanel.hidden = err === null;
     const inThisFile = err?.file && player.currentSource()?.file.endsWith(err.file);
-    codeView.setErrorLine(err && inThisFile && err.line ? err.line : null);
+    surface.setErrorLine(err && inThisFile && err.line ? err.line : null);
     // reveal each located error once (the line arrives asynchronously, on the same object)
     const revealKey = err && inThisFile && err.line ? `${err.message}@${err.line}` : "";
     if (revealKey && revealKey !== lastRevealed) {
       // hold the error line in view (following the music would scroll it away)
-      codeView.revealLine(err!.line!);
-      codeView.setFollowing(false);
+      surface.revealLine(err!.line!);
+      surface.setFollowing(false);
       pausedForError = true;
     } else if (!err && pausedForError) {
-      codeView.setFollowing(true);
+      surface.setFollowing(true);
       pausedForError = false;
     }
     lastRevealed = revealKey;
@@ -316,14 +339,224 @@ export function mountStage(): Stage {
 
   errorLocation.addEventListener("click", () => {
     if (lastError?.line) {
-      codeView.revealLine(lastError.line);
-      codeView.setFollowing(false);
+      surface.revealLine(lastError.line);
+      surface.setFollowing(false);
     }
     // …and in the editor
     const id = songIdForFile(lastError?.file);
     if (id && lastError?.line) reveal(songFile(id), lastError.line, lastError.column);
   });
   $("error-dismiss").addEventListener("click", () => player.setError(null));
+
+  // ── edit mode: Monaco, loaded only when the user starts editing ───────────
+  // The read-only CodeView stays the boot-time view. The "edit" key, E or a
+  // double-click in the code swap in the editor (a lazy chunk) on the same
+  // glass; the choice is remembered, so a returning editor gets it right away.
+  const MODE_KEY = "code-mode";
+  const sessions = new Map<string, EditSession>();
+  let editorModule: Promise<typeof import("./code-editor")> | null = null;
+  let ideName = "your editor";
+
+  type Source = NonNullable<ReturnType<typeof player.currentSource>>;
+  /**
+   * What the session hears. An evaluated buffer stays `live` even when the
+   * browser sent it (the session knows its own echoes, and a live buffer is
+   * not the file: a later save must not count as "already shown"). Only a
+   * session that starts on a browser-sent buffer takes it as editable.
+   */
+  const incomingOf = (source: Source, initial = false) => ({
+    text: source.text ?? "",
+    version: source.version,
+    live: !!source.live && !(initial && (source as { origin?: string }).origin === "browser"),
+  });
+
+  /** The song's session, told about `source` (a new session starts from it) */
+  function syncSession(songId: string, source: Source): EditSession {
+    const existing = sessions.get(songId);
+    if (existing) {
+      existing.incoming(incomingOf(source));
+      return existing;
+    }
+    const session = new EditSession({
+      initial: incomingOf(source, true),
+      evaluate: (text, intent) => evalEdit(songId, text, intent),
+      ideName: () => ideName,
+      onChange: (view) => {
+        if (songId === shownSongId && editor && surface === editor) applyView(editor, view);
+      },
+    });
+    sessions.set(songId, session);
+    return session;
+  }
+
+  /** The current song's source → its session → the editor */
+  function showInEditor(ed: CodeEditor, songId: string, source: Source, otherFile: boolean) {
+    if (otherFile) ed.setFile(source.file, source.text ?? "");
+    applyView(ed, syncSession(songId, source).view(), otherFile);
+  }
+
+  let shownMarker: SessionView["marker"] = null;
+  function applyView(ed: CodeEditor, view: SessionView, otherFile = false) {
+    if (ed.value() !== view.text) ed.setSource(view.text, undefined, otherFile);
+    else if (otherFile) ed.setSource(view.text, undefined, true);
+    ed.setReadOnly(view.readOnly);
+    // a new result's marker, placed only while its line/column still index the
+    // buffer (Monaco then carries it along as the user types)
+    if (view.marker !== shownMarker || otherFile) {
+      shownMarker = view.marker;
+      ed.setMarker(view.marker && view.markerText === view.text ? view.marker : null);
+    }
+    const { kind, text } = view.status;
+    codeStatus.hidden = !text;
+    if (codeStatus.textContent !== text) codeStatus.textContent = text;
+    codeStatus.dataset.kind = kind;
+    // announce what needs attention, not every "editing…" / "evaluating…"
+    codeStatus.setAttribute("aria-live", kind === "error" || kind === "conflict" || kind === "readonly" ? "polite" : "off");
+    codeStatus.title = view.marker?.message ?? text;
+    takeOverKey.hidden = view.status.action !== "takeOver";
+    loadKey.hidden = view.status.action !== "load";
+    renderStale(lastState);
+  }
+
+  /** "not playing yet": the shown code (or the buffer being edited) isn't what plays */
+  function renderStale(state: PlayerState | null) {
+    const source = player.currentSource();
+    const playing = player.playingSource();
+    let stale = !!(state?.playing && playing && source && playing.version !== source.version);
+    if (!stale && state?.playing && playing?.text !== undefined && editor && surface === editor) {
+      stale = playing.file === source?.file && !editor.matches(playing.text);
+    }
+    codeStale.hidden = !stale;
+  }
+
+  function loadEditor() {
+    editorModule ??= import("./code-editor");
+    return editorModule;
+  }
+
+  async function enterEdit({ focus = false, offset }: { focus?: boolean; offset?: number } = {}) {
+    if (mode === "edit" && editor) {
+      if (focus) editor.focus(offset);
+      return;
+    }
+    mode = "edit";
+    writeStorage(MODE_KEY, "edit");
+    renderMode();
+    let mod: typeof import("./code-editor");
+    try {
+      mod = await loadEditor();
+    } catch (err) {
+      console.error("[editor] could not load the editor", err);
+      editorModule = null;
+      mode = "view";
+      renderMode();
+      codeStatus.hidden = false;
+      codeStatus.dataset.kind = "error";
+      codeStatus.textContent = "the editor didn't load: check your connection, then press E";
+      return;
+    }
+    if (mode !== "edit") return; // left again while it loaded
+    editor ??= createEditor(mod);
+    codeScroll.hidden = true;
+    editorHost.hidden = false;
+    codeView.setSource("", undefined, true); // one set of knob chips on the page
+    surface = editor;
+    shownSame = null;
+    surface.setEnabled(player.getState().codeView);
+    surface.setFollowing(true);
+    shownSongId = ""; // show the current song in the editor
+    render(player.getState());
+    if (focus) editor.focus(offset);
+  }
+
+  function exitEdit() {
+    if (mode === "view") return;
+    mode = "view";
+    writeStorage(MODE_KEY, "view");
+    renderMode();
+    if (surface === codeView) return;
+    if (editorHost.contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
+    surface = codeView;
+    shownSame = null;
+    editorHost.hidden = true;
+    codeScroll.hidden = false;
+    codeStatus.hidden = takeOverKey.hidden = loadKey.hidden = true;
+    surface.setFollowing(true);
+    shownSongId = "";
+    render(player.getState());
+  }
+
+  function renderMode() {
+    stage.dataset.codeMode = mode;
+    modeKey.setAttribute("aria-pressed", String(mode === "edit"));
+    modeKey.title = mode === "edit" ? "Back to the read-only view" : "Edit the song here while it plays (E)";
+    if (mode === "edit" && !editor) {
+      codeStatus.hidden = false;
+      codeStatus.dataset.kind = "pending";
+      codeStatus.textContent = "loading the editor…";
+    }
+  }
+
+  function createEditor(mod: typeof import("./code-editor")): CodeEditor {
+    const ed = new mod.CodeEditor({
+      host: editorHost,
+      followChip: $("follow-chip"),
+      onEdit: (text) => sessions.get(shownSongId)?.edit(text),
+      onCommit: () => void commit(),
+      onKnobChip: (name) => knobPanel.focus(name),
+      onPick: ({ line, column }) => {
+        const file = player.currentSource()?.file;
+        if (file) reveal(file, line, column);
+      },
+      onChipsChanged: () => renderKnobs(),
+      // hand the keyboard back to the stage's shortcuts
+      onEscape: () => (document.activeElement as HTMLElement | null)?.blur(),
+    });
+    ed.setColorResolver(colorOfRange);
+    return ed;
+  }
+
+  /** ⌘/Ctrl+Enter: evaluate now; like strudel.cc it also starts the music */
+  async function commit() {
+    const session = sessions.get(shownSongId);
+    if (!session || session.view().readOnly) return;
+    const result = await session.commit();
+    if (result?.ok && !player.getState().playing) void player.play();
+  }
+
+  modeKey.addEventListener("click", () => (mode === "edit" ? exitEdit() : void enterEdit({ focus: true })));
+  takeOverKey.addEventListener("click", () => {
+    sessions.get(shownSongId)?.takeOver();
+    editor?.focus();
+  });
+  loadKey.addEventListener("click", () => sessions.get(shownSongId)?.loadIncoming());
+  // a double-click in the read-only code starts editing right there
+  codeLines.addEventListener("dblclick", (e) => {
+    if ((e.target as Element | null)?.closest?.(".knob-chip")) return;
+    const offset = codeView.offsetAt(e);
+    void enterEdit({ focus: true, offset: offset ?? undefined });
+  });
+  // a returning editor gets the editor right away (still a lazy chunk)
+  if (readStorage(MODE_KEY) === "edit") void enterEdit();
+
+  // tests and devtools (separate from window.__strudel, which main.ts builds)
+  window.__strudelEditor = {
+    mode: () => mode,
+    loaded: () => !!editor,
+    enter: (opts) => enterEdit(opts),
+    exit: exitEdit,
+    value: () => editor?.value() ?? null,
+    markers: () => editor?.markers("strudel").map((m) => ({ message: m.message, line: m.startLineNumber, column: m.startColumn })) ?? [],
+    allMarkers: () => editor?.markers().map((m) => ({ owner: m.owner, message: m.message, line: m.startLineNumber })) ?? [],
+    session: () => sessions.get(shownSongId)?.view() ?? null,
+    calls: () => editorSourceCalls().map((c) => ({ ...c })),
+    hasEngine,
+    setEngineForTests,
+    litRanges: () => (editor ? editor.litRanges() : []),
+    flashing: () => (editor ? editor.flashingRanges() : []),
+    suggest: () => editor?.suggest(),
+    focus: (offset) => editor?.focus(offset),
+  };
 
   // ── controls ──────────────────────────────────────────────────────────────
   renderSongSelector();
@@ -387,7 +620,10 @@ export function mountStage(): Stage {
     } else if (e.key === "l" || e.key === "L") {
       player.toggleLoop();
     } else if (e.key === "f" || e.key === "F") {
-      codeView.setFollowing(true);
+      surface.setFollowing(true);
+    } else if (e.key === "e" || e.key === "E") {
+      e.preventDefault(); // don't type the "e" into the editor it focuses
+      void enterEdit({ focus: true });
     } else if (e.key === "[" || e.key === "]") {
       player.stepSection(e.key === "]" ? 1 : -1);
     } else {
@@ -425,7 +661,7 @@ export function mountStage(): Stage {
     const color = colorOfTrack(track) ?? "";
     for (const loc of locs) {
       if (track !== undefined) rangeTrack.set(loc.start * 2 ** 22 + loc.end, track);
-      codeView.flash(loc.start, loc.end, color);
+      surface.flash(loc.start, loc.end, color);
     }
   };
 
@@ -456,8 +692,17 @@ export function mountStage(): Stage {
     renderCue(state);
     renderSwap(state, now);
 
+    // the shown text just became (or stopped being) the playing text, e.g. a
+    // surface switch or an undo back to it: the highlighter only reports
+    // changes, so hand over what's lit now
+    const same = sameSource();
+    if (same !== shownSame) {
+      shownSame = same;
+      surface.setRanges(same && live ? live.ranges() : []);
+    }
+
     if (live && state?.playing) {
-      const sourceOk = sameSource();
+      const sourceOk = same;
       live.pollOnsets((hap) => {
         if (!sourceOk) {
           const track = hap.context.track;
@@ -472,7 +717,7 @@ export function mountStage(): Stage {
     }
     mixer.frame(now);
     room.frame(now);
-    codeView.frame(now);
+    surface.frame(now);
   }
   requestAnimationFrame(frame);
 
@@ -520,16 +765,19 @@ export function mountStage(): Stage {
   function sameSource() {
     const playing = player.playingSource();
     const shown = player.currentSource();
-    return !!playing && !!shown && playing.file === shown.file && playing.version === shown.version;
+    if (!playing || !shown || playing.file !== shown.file || playing.version !== shown.version) return false;
+    // edit mode: the buffer may be ahead of (or behind) what plays
+    return !(editor && surface === editor) || (playing.text !== undefined && editor.matches(playing.text));
   }
 
   return {
     attachLive(l) {
       live = l;
-      l.onRanges((ranges) => codeView.setRanges(sameSource() ? ranges : []));
+      l.onRanges((ranges) => surface.setRanges(sameSource() ? ranges : []));
     },
     setEditorLink(status) {
       const app = editorName(status.scheme);
+      ideName = status.state === "editor" ? app : "your editor";
       linkEl.dataset.state = status.state;
       linkEl.dataset.connected = String(status.state === "editor");
       linkEl.dataset.editors = String(status.editors);
@@ -547,7 +795,7 @@ export function mountStage(): Stage {
       reveal = fn;
     },
     toggleCodeView,
-    highlights: () => codeView.litRanges(),
+    highlights: () => surface.litRanges(),
   };
 }
 
@@ -561,4 +809,31 @@ function editorName(scheme: string | null): string {
     windsurf: "Windsurf",
   };
   return (scheme && names[scheme]) || "VS Code";
+}
+
+declare global {
+  interface Window {
+    /** Edit mode (tests, devtools): see mountStage() */
+    __strudelEditor?: {
+      mode(): "view" | "edit";
+      /** The Monaco chunk is loaded and mounted */
+      loaded(): boolean;
+      enter(opts?: { focus?: boolean; offset?: number }): Promise<void>;
+      exit(): void;
+      value(): string | null;
+      /** Evaluation markers (typing / commit errors) on the current song */
+      markers(): { message: string; line: number; column: number }[];
+      /** Every marker, TypeScript's included */
+      allMarkers(): { owner: string; message: string; line: number }[];
+      session(): SessionView | null;
+      /** What the adapter was asked to evaluate (src/ui/editor-source.ts) */
+      calls(): ReturnType<typeof editorSourceCalls>[number][];
+      hasEngine: typeof hasEngine;
+      setEngineForTests: typeof setEngineForTests;
+      litRanges(): [number, number][];
+      flashing(): [number, number][];
+      suggest(): void;
+      focus(offset?: number): void;
+    };
+  }
 }

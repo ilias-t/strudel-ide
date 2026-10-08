@@ -21,6 +21,7 @@
     "test:knobs": "node --test test/knobs.test.ts",
     "test:starters": "node --test test/starters.test.ts",
     "test:catalog": "node --test test/catalog.test.mjs",
+    "test:editor": "node --test test/editor-docs.test.ts test/edit-session.test.ts test/editor-source.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:build": "npm run -s build",
@@ -28,13 +29,14 @@
     "gen:types": "node scripts/gen-strudel-types.mjs && node scripts/gen-sound-types.mjs && node scripts/gen-catalog.mjs",
     "gen:catalog": "node scripts/gen-catalog.mjs",
     "audit:types": "node scripts/audit-types.mjs",
-    "check": "npm run -s typecheck && node scripts/audit-types.mjs --strict --quiet && node scripts/check-songs.mjs && node scripts/test-locations.mjs && npm run -s test:bridge && npm run -s test:knobs && npm run -s test:starters && node scripts/gen-catalog.mjs --check && npm run -s test:catalog && npm run -s ext:check && node scripts/test-strudel-cc.mjs",
+    "check": "npm run -s typecheck && node scripts/audit-types.mjs --strict --quiet && node scripts/check-songs.mjs && node scripts/test-locations.mjs && npm run -s test:bridge && npm run -s test:knobs && npm run -s test:starters && node scripts/gen-catalog.mjs --check && npm run -s test:catalog && npm run -s ext:check && node scripts/test-strudel-cc.mjs && npm run -s test:editor",
     "ext:build": "node scripts/ext.mjs build",
     "ext:check": "node scripts/ext.mjs check",
     "ext:package": "node scripts/ext.mjs package"
   },
   "dependencies": {
-    "@strudel/web": "^1.1.0"
+    "@strudel/web": "^1.1.0",
+    "monaco-editor": "0.52.2"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

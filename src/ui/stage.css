@@ -859,13 +859,15 @@ code {
   color: var(--amber);
 }
 
-/* the view/edit key at the end of the file bar */
+/* the view/edit key at the end of the file bar, and the library key before it */
+.code-library,
 .code-mode {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: 0 4px 0 9px;
 }
+.code-library kbd,
 .code-mode kbd {
   padding: 0 4px;
   font-size: 9.5px;
@@ -878,6 +880,12 @@ code {
   background: var(--px);
   box-shadow: none;
 }
+.code-library[aria-expanded="true"] {
+  color: var(--glass);
+  background: var(--px);
+  box-shadow: none;
+}
+.code-library[aria-expanded="true"] kbd,
 .code-mode[aria-pressed="true"] kbd {
   background: rgba(0, 0, 0, 0.12);
   color: #3a3936;
@@ -1737,6 +1745,16 @@ code {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0.5px 0 #131315, 0 0 12px rgba(245, 197, 24, 0.5);
 }
 
+.mixer-keys {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.add-track[aria-expanded="true"] {
+  transform: translateY(1.5px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0.5px 0 #131315, 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
 .mixer-empty {
   align-self: center;
   padding: 0 8px;
@@ -1922,6 +1940,23 @@ code {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
+/* Drawers: the library and the track builder slide over the rack column       */
+/* (src/ui/discover/; their own CSS loads with them)                           */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+.m-drawer {
+  grid-column: 2;
+  grid-row: 2 / 4;
+}
+
+/* the units underneath step away while a drawer is open (their screens would
+   otherwise paint over the drawer's coat: .mod is never a stacking context) */
+.stage[data-drawer] .rack,
+.stage[data-drawer]:not([data-code="off"]) .m-view {
+  visibility: hidden;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
 /* Help: a printed card lying on the desk                                      */
 /* ─────────────────────────────────────────────────────────────────────────── */
 
@@ -1979,11 +2014,13 @@ code {
   color: #6b675f;
 }
 
-.help-editing {
+.help-editing,
+.help-discover {
   color: #3d3a35;
 }
 
-.help-editing b {
+.help-editing b,
+.help-discover b {
   color: #232220;
 }
 
@@ -2077,6 +2114,11 @@ code {
   }
   .m-mixer {
     height: 300px;
+  }
+  .m-drawer {
+    position: fixed;
+    inset: 16px;
+    z-index: 15;
   }
   .m-seq {
     grid-template-columns: minmax(0, 1fr);

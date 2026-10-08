@@ -32,10 +32,11 @@
     "gen:types": "node scripts/gen-strudel-types.mjs && node scripts/gen-sound-types.mjs && node scripts/gen-catalog.mjs",
     "gen:catalog": "node scripts/gen-catalog.mjs",
     "audit:types": "node scripts/audit-types.mjs",
-    "check": "npm run -s typecheck && node scripts/audit-types.mjs --strict --quiet && node scripts/check-songs.mjs && node scripts/test-locations.mjs && npm run -s test:bridge && npm run -s test:knobs && npm run -s test:compile && npm run -s test:store && npm run -s test:local && npm run -s test:starters && node scripts/gen-catalog.mjs --check && npm run -s test:catalog && npm run -s ext:check && node scripts/test-strudel-cc.mjs && npm run -s test:editor",
+    "check": "npm run -s typecheck && node scripts/audit-types.mjs --strict --quiet && node scripts/check-songs.mjs && node scripts/test-locations.mjs && npm run -s test:bridge && npm run -s test:knobs && npm run -s test:compile && npm run -s test:store && npm run -s test:local && npm run -s test:starters && node scripts/gen-catalog.mjs --check && npm run -s test:catalog && npm run -s ext:check && node scripts/test-strudel-cc.mjs && npm run -s test:editor && npm run -s test:discover",
     "ext:build": "node scripts/ext.mjs build",
     "ext:check": "node scripts/ext.mjs check",
-    "ext:package": "node scripts/ext.mjs package"
+    "ext:package": "node scripts/ext.mjs package",
+    "test:discover": "node --test \"test/discover-*.test.ts\""
   },
   "dependencies": {
     "@strudel/web": "^1.1.0",

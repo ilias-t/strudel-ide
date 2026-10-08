@@ -451,6 +451,59 @@ export class CodeEditor implements CodeSurface {
     this.editor.trigger("stage", "editor.action.triggerSuggest", {});
   }
 
+  // ── edits from the stage (library, palette, track builder) ────────────────
+
+  /** The selection as offsets into value() (start === end: just the caret), or null without a model */
+  selectionOffsets(): { start: number; end: number } | null {
+    const model = this.model;
+    const sel = this.editor.getSelection();
+    if (!model || !sel) return null;
+    const a = model.getOffsetAt(sel.getStartPosition());
+    const b = model.getOffsetAt(sel.getEndPosition());
+    return { start: Math.min(a, b), end: Math.max(a, b) };
+  }
+
+  /**
+   * Replace [start, end) ranges of value() with new text, as one edit the user
+   * made: one undo step (⌘Z reverts all of it), and it reaches onEdit like
+   * typing (so it is evaluated and kept like typing). Offsets index into the
+   * text before the edit. Refused (false) while read-only or without a model.
+   * `caret` puts the caret at that offset of the *new* text; `select` selects
+   * a range of it. The edited spot is revealed.
+   */
+  applyEdits(
+    edits: { start: number; end: number; text: string }[],
+    { caret, select }: { caret?: number; select?: [number, number] } = {}
+  ): boolean {
+    const model = this.model;
+    if (!model || this.readOnly || !edits.length) return false;
+    const ops = edits.map((e) => {
+      const a = model.getPositionAt(e.start);
+      const b = model.getPositionAt(e.end);
+      return { range: new monaco.Range(a.lineNumber, a.column, b.lineNumber, b.column), text: e.text, forceMoveMarkers: true };
+    });
+    this.editor.pushUndoStop();
+    const ok = this.editor.executeEdits("stage", ops);
+    this.editor.pushUndoStop();
+    if (!ok) return false;
+    const [from, to] = select ?? (caret !== undefined ? [caret, caret] : [null, null]);
+    if (from !== null && to !== null) {
+      const a = model.getPositionAt(from);
+      const b = model.getPositionAt(to);
+      this.editor.setSelection(new monaco.Selection(a.lineNumber, a.column, b.lineNumber, b.column));
+      this.editor.revealRangeInCenterIfOutsideViewport(new monaco.Range(a.lineNumber, a.column, b.lineNumber, b.column));
+    }
+    return true;
+  }
+
+  /** Undo / redo the last edit (tests; the user has ⌘Z) */
+  undo() {
+    this.editor.trigger("stage", "undo", null);
+  }
+  redo() {
+    this.editor.trigger("stage", "redo", null);
+  }
+
   // ── CodeSurface ────────────────────────────────────────────────────────────
 
   setEnabled(on: boolean) {

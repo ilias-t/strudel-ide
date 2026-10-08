@@ -96,6 +96,7 @@
               <button class="chip code-share" id="code-share" data-testid="code-share" title="Copy a link with this song in it (the song travels in the link)">share</button>
               <button class="chip code-download" id="code-download" data-testid="code-download" title="Download this song as a .ts file">download</button>
             </span>
+            <button class="chip code-library" id="code-library" data-testid="library-key" aria-controls="library" aria-expanded="false" title="Browse, hear and insert sounds and functions (B)"><span class="code-library-label">library</span><kbd aria-hidden="true">B</kbd></button>
             <button class="chip code-mode" id="code-mode" data-testid="code-edit" aria-pressed="false" title="Edit the song here while it plays (E)"><span class="code-mode-label">edit</span><kbd aria-hidden="true">E</kbd></button>
           </div>
           <div class="code-scroll" id="code-scroll" tabindex="0">
@@ -151,12 +152,20 @@
       <aside class="mod m-mixer mixer" id="mixer" data-testid="mixer" aria-label="Mixer">
         <div class="mod-head">
           <span class="label"><b>mixer</b> <span id="track-count"></span></span>
-          <button class="key small" id="unmute-all" data-testid="unmute-all" title="Clear all mutes and solos (0)">reset</button>
+          <span class="mixer-keys">
+            <button class="key small add-track" id="add-track" data-testid="add-track" aria-controls="track-builder" aria-expanded="false" title="Add a track to this song: pick a role, a snippet and a sound">+ track</button>
+            <button class="key small" id="unmute-all" data-testid="unmute-all" title="Clear all mutes and solos (0)">reset</button>
+          </span>
         </div>
         <div class="strips" id="strips"></div>
         <p class="mixer-empty" id="mixer-empty" hidden>This song returns a single pattern. Return named tracks, like <code>{ kick, bass }</code>, to mix them here.</p>
       </aside>
       </div>
+
+      <!-- ── Drawers: units that slide over the rack column, one at a time
+           (src/ui/discover/: filled lazily when first opened; stage[data-drawer]) ── -->
+      <section class="mod m-drawer m-library" id="library" data-testid="library" aria-label="Library" hidden></section>
+      <section class="mod m-drawer m-builder" id="track-builder" data-testid="track-builder" aria-label="Add a track" hidden></section>
 
       <!-- ── Sequencer strip: sections, a LED per bar, loop ──────────────── -->
       <footer class="mod m-seq timeline" id="timeline" data-testid="timeline">
@@ -192,6 +201,8 @@
           <dt><kbd>C</kbd></dt><dd>Show / hide the code</dd>
           <dt><kbd>F</kbd></dt><dd>Follow the music in the code again</dd>
           <dt><kbd>E</kbd></dt><dd>Edit the song here (or double-click the code)</dd>
+          <dt><kbd>B</kbd></dt><dd>Library: browse, hear and insert sounds and functions</dd>
+          <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd></dt><dd>Command palette: sounds, functions, snippets, songs, actions. Wins over the editor's own <kbd>⌘</kbd><kbd>K</kbd> chords</dd>
           <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd></dt><dd>While editing: play the edit now</dd>
           <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd></dt><dd>While editing: save (to the file locally, in this browser on the site)</dd>
           <dt><kbd>Esc</kbd></dt><dd>While editing: hand the keys back to the stage</dd>
@@ -199,10 +210,14 @@
           <dt>Knobs</dt><dd>Drag or scroll (<kbd>Shift</kbd>: fine), arrow keys; double-click or <kbd>Delete</kbd> for the file's value</dd>
         </dl>
         <p class="help-note help-editing" data-testid="help-editing"><b>Editing.</b> Press <kbd>E</kbd> and type: it plays after a short pause, <kbd>⌘</kbd><kbd>↵</kbd> plays it now. <kbd>⌘</kbd><kbd>S</kbd> saves to <code>src/songs/</code> under <code>npm run dev</code>, or in this browser on the site, where edits are also kept as you type (<b>revert</b> brings the original back). <b>share</b> copies a link to the song; <b>download</b> saves the <code>.ts</code> file.</p>
+        <p class="help-note help-discover" data-testid="help-discover"><b>Finding things.</b> The library (<kbd>B</kbd>) and the palette (<kbd>⌘</kbd><kbd>K</kbd>) play a sound or an example with ▶ and insert it at the cursor (switching to editing first). <b>+ track</b> on the mixer adds a track to the song from a snippet.</p>
         <p class="help-note">Click a section to jump there on the next bar. Or edit <code>src/songs/*.ts</code> in your editor; every save hot-swaps without stopping the music.</p>
         <button class="key help-close" id="help-close">close</button>
       </div>
     </div>
+
+    <!-- ── Command palette (⌘/Ctrl+K): filled lazily, src/ui/discover/palette.ts ── -->
+    <div class="palette-overlay" id="palette" data-testid="palette" hidden></div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

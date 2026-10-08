@@ -26,6 +26,7 @@ import { Room } from "./room";
 import * as songsStore from "../songs-store";
 import { SongSaver } from "./song-saver";
 import { ask, askOpen } from "./ask";
+import { mountDiscovery } from "./discover/hooks";
 
 /** Legend names for the pianoroll's colour families (drums share shades of ember) */
 const LEGEND: Record<TrackRole, string | null> = {
@@ -902,6 +903,25 @@ export function mountStage(): Stage {
     } else {
       return;
     }
+  });
+
+  // ── discovery: library (B), palette (⌘K), track builder (src/ui/discover/, lazy) ──
+  mountDiscovery({
+    mode: () => mode,
+    async editor() {
+      await enterEdit();
+      if (mode !== "edit" || !editor || surface !== editor) return null;
+      if (sessions.get(shownSongId)?.view().readOnly) {
+        toast(`${ideName} is editing this song: take over to edit it here`, "warn");
+        return null;
+      }
+      return editor;
+    },
+    exitEdit,
+    toast,
+    showHelp: () => showHelp(true),
+    toggleCodeView,
+    follow: () => surface.setFollowing(true),
   });
 
   player.onStateChange(render);

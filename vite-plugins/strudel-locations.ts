@@ -335,7 +335,7 @@ export default function strudelLocations(): Plugin {
       if (!isSongFile(id, root)) return null;
       const file = path.relative(root, id.split("?")[0]).split(path.sep).join("/");
       const result = transformSong(code, file, await loadStrudelNames());
-      return { code: result.code, map: result.map };
+      return { code: result.code, map: result.map.toString() };
     },
   };
 }

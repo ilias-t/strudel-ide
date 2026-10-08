@@ -18,6 +18,7 @@
   "include": [
     "./**/*.ts",
     "../playwright.config.ts",
+    "../vite-plugins/strudel-modules.d.ts",
     "../src/vite-env.d.ts",
     "../src/strudel.d.ts",
     "../src/strudel.generated.d.ts",

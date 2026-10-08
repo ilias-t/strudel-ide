@@ -15,5 +15,5 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["vite-plugins/strudel-bridge.ts", "test/**/*.ts", "src/vite-env.d.ts"]
+  "include": ["vite-plugins/*.ts", "test/**/*.ts", "src/vite-env.d.ts"]
 }

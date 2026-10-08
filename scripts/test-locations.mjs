@@ -22,6 +22,7 @@ import * as mini from "@strudel/mini";
 import * as tonal from "@strudel/tonal";
 import { transformSong, loadStrudelNames, contentVersion, isSongFile } from "../vite-plugins/strudel-locations.ts";
 import { createHighlighter, stripImplicitLocations } from "../src/live/highlights.ts";
+import { KnobRegistry, installKnobGlobals } from "../src/engine/knobs.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(root, "node_modules/.cache/strudel-locations");
@@ -46,6 +47,8 @@ for (const m of ["pianoroll", "punchcard", "scope", "tscope", "fscope", "spectru
   if (!core.Pattern.prototype[m]) core.Pattern.prototype[m] = function () { return this; };
 }
 for (const fn of ["samples", "initStrudel", "aliasBank", "soundAlias"]) globalThis[fn] ??= async () => {};
+// The app's knob() (src/engine/knobs.ts): plays its default here
+installKnobGlobals(new KnobRegistry(), core.pure);
 
 const names = await loadStrudelNames();
 

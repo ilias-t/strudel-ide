@@ -11,6 +11,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import * as core from "@strudel/core";
 import * as mini from "@strudel/mini";
 import * as tonal from "@strudel/tonal";
+import { KnobRegistry, installKnobGlobals } from "../src/engine/knobs.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const songsDir = join(root, "src/songs");
@@ -36,6 +37,8 @@ for (const m of ["pianoroll", "punchcard", "scope", "tscope", "fscope", "spectru
 for (const fn of ["samples", "initStrudel", "aliasBank", "soundAlias"]) {
   globalThis[fn] ??= async () => {};
 }
+// The app's knob() (src/engine/knobs.ts): plays its default here
+installKnobGlobals(new KnobRegistry(), core.pure);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Known sounds

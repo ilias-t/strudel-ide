@@ -4,7 +4,7 @@
 //
 // Copy this file to create a new song:
 //   1. Duplicate it with your song name (e.g. my-song.ts) — songs are auto-discovered
-//   2. Set the name, then tweak the knobs below
+//   2. Set the name, then tweak the knobs below (knob() ones also live, on the stage)
 //   3. Each track is its own named pattern, returned at the bottom.
 //      The player stacks them (and the mixer can mute/solo them by name).
 //
@@ -19,7 +19,8 @@ import type { Song } from ".";
 // ─── 🎛️ KNOBS ──────────────────────────────────────────────────────────────
 const bpm = 120; // quarter notes per minute; 1 cycle = 1 bar of 4/4
 const progression = "<C Am F G>"; // one chord per bar
-const cutoff = 1200; // Hz: lower = darker
+// A knob: turn it on the stage while it plays, then "Write to file" to keep it
+const cutoff = knob("cutoff", 1200, 200, 5000, { log: true }); // Hz: lower = darker
 
 const song: Song = {
   name: "My Song",
@@ -39,7 +40,7 @@ const song: Song = {
     const bass = chord(progression).rootNotes(2)
       .struct("x ~ x ~ x ~ x x")
       .s("sawtooth")
-      .lpf(cutoff / 3)
+      .lpf(cutoff.div(3))
       .decay(0.2)
       .sustain(0.3)
       .gain(0.5);
@@ -47,7 +48,7 @@ const song: Song = {
     // ─── 🎹 CHORDS — chord symbols turned into piano voicings ────────────────
     const chords = chord(progression).voicing()
       .s("piano")
-      .lpf(cutoff * 2)
+      .lpf(cutoff.mul(2))
       .gain(0.5)
       .room(0.3);
 

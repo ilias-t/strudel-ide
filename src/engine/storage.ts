@@ -7,6 +7,7 @@ export const KEYS = {
   follow: "follow-edits",
   codeView: "code-view",
   mix: (songId: string) => `mix:${songId}`,
+  knobs: (songId: string) => `knobs:${songId}`,
 };
 
 export function readStorage(key: string): string | null {

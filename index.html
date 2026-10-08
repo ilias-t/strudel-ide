@@ -89,6 +89,16 @@
         </div>
         <div class="strips" id="strips"></div>
         <p class="mixer-empty" id="mixer-empty" hidden>This song returns a single pattern. Return named tracks, like <code>{ kick, bass }</code>, to mix them here.</p>
+
+        <!-- knob("name", value, min, max) controls of the current song (src/ui/knobs.ts) -->
+        <section class="knobs" id="knobs" data-testid="knobs" aria-labelledby="knobs-title" hidden>
+          <div class="panel-head">
+            <span class="panel-title" id="knobs-title">Knobs</span>
+            <button class="chip knobs-write-all" id="knobs-write-all" data-testid="knobs-write-all" hidden>Write all</button>
+          </div>
+          <div class="knob-grid" id="knob-grid"></div>
+          <p class="knobs-status" id="knobs-status" data-testid="knobs-status" role="status" hidden></p>
+        </section>
       </aside>
 
       <!-- ── Timeline ────────────────────────────────────────────────────── -->
@@ -123,6 +133,7 @@
           <dt><kbd>C</kbd></dt><dd>Show / hide the code</dd>
           <dt><kbd>F</kbd></dt><dd>Follow the music in the code again</dd>
           <dt><kbd>?</kbd></dt><dd>This help</dd>
+          <dt>Knobs</dt><dd>Drag or scroll (<kbd>Shift</kbd>: fine), arrow keys; double-click or <kbd>Delete</kbd> for the file's value</dd>
         </dl>
         <p class="help-note">Click a section in the timeline to jump there. Edit <code>src/songs/*.ts</code> in your editor; every save hot-swaps without stopping the music.</p>
         <button class="chip help-close" id="help-close">Close</button>

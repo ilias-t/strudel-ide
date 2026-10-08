@@ -150,7 +150,7 @@ const song: Song = {
       .gain(0.32)
       .pan(dice(0.73).range(0.15, 0.85)) // each bell rings somewhere new
       .hpf(300)
-      .delay(0.35)
+      .delay(knob("bell echo", 0.35, 0, 0.8))
       .delaytime(BEAT * 0.75) // dotted eighth
       .delayfeedback(0.45)
       .room(0.7)
@@ -232,7 +232,7 @@ const song: Song = {
       .hpf(2000)
       .pan(dice(0.61));
 
-    const shore = stack(waves, oceanDrum, chimes).room(0.4).rsize(4).orbit(4);
+    const shore = stack(waves, oceanDrum, chimes).room(knob("shore", 0.4, 0, 1)).rsize(4).orbit(4);
 
     // ─────────────────────────────────────────────────────────────────────────
     // 🎚️ TRACKS

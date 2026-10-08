@@ -44,11 +44,11 @@ const BARS = {
 type Section = keyof typeof BARS;
 
 const DRUMS = "EmuSP12"; // the SP-12: gritty 12-bit hits
-const KICK_N = 0; // 0–13
+const KICK_N = knob("kick", 0, 0, 13, 1); // which SP-12 kick: 0–13
 const SNARE_N = 0; // 0–20
 const GHOST_N = 4; // a different snare for the ghost notes
 
-const WOBBLE = 2; // drop-2 reese filter wobbles per bar
+const WOBBLE = knob("wobble", 2, 0.5, 8, { step: 0.5, log: true }); // drop-2 reese filter wobbles per bar
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 🧩 HELPERS (plain strings, so they can live outside createPattern)

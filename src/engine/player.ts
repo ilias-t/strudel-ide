@@ -26,7 +26,8 @@ import { Mix } from "./mix";
 import { errorFrom } from "./errors";
 import { composeTracks } from "./tracks";
 import { TimeMap, normalizeSections, sectionAt, songLength } from "./timemap";
-import { KEYS, readStorage, writeStorage } from "./storage";
+import { KEYS, readJson, readStorage, writeJson, writeStorage } from "./storage";
+import { KnobRegistry, installKnobGlobals, type KnobInfo, type SavedKnobs } from "./knobs";
 import { bpmToCps, engine, internals, warmOrbits, type Repl } from "./strudel";
 import { applyVisualization, clearVisualization } from "../ui/viz";
 import { audioOutputLatency } from "../live/highlights";
@@ -56,6 +57,16 @@ let playWhenReady = false;
 
 const mix = new Mix();
 const timeMap = new TimeMap();
+
+/** Live knob values (see knobs.ts). Installed now: song modules call knob() when imported. */
+const knobRegistry = new KnobRegistry({
+  load: (songId) => readJson<SavedKnobs>(KEYS.knobs(songId)),
+  save: (songId, saved) => writeJson(KEYS.knobs(songId), saved),
+  onChange: (songId) => {
+    if (songId === currentSongId) knobsChanged();
+  },
+});
+installKnobGlobals(knobRegistry, engine.pure);
 
 /** The current song's last successful build (also while stopped, for the mixer) */
 interface Build {
@@ -350,7 +361,7 @@ function bareOf(b: Build): Pattern {
 function buildCurrent(): Build {
   const songId = currentSongId;
   const song = currentSong();
-  const { pattern, tracks, parts } = songsModule.buildPattern(song);
+  const { pattern, tracks, parts } = knobRegistry.build(songId, () => songsModule.buildPattern(song));
   return {
     songId,
     song,
@@ -483,6 +494,7 @@ export async function selectSong(id: string): Promise<boolean> {
 
 function switchTo(id: string) {
   currentSongId = id;
+  knobsChanged();
   writeStorage(KEYS.song, id);
   mix.load(id);
   startSection = 0;
@@ -677,9 +689,103 @@ export function initialSongId(): string {
 /** Pick the initial song and validate it (so the mixer knows its tracks before play) */
 export function initSong() {
   currentSongId = initialSongId();
+  knobsChanged();
   mix.load(currentSongId);
 }
 
 export function validateCurrent() {
   return swap();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Knobs: live values for the current song's knob() calls (see knobs.ts)
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Turning a knob changes what its pattern returns at the next query: no
+// rebuild, no hot-swap (swapCount stays put). Writing it to the file is an
+// ordinary edit: the HMR swap brings a default equal to the live value.
+
+export type { KnobInfo };
+
+/** The current song's knobs, in declaration order */
+export function knobs(): KnobInfo[] {
+  return knobRegistry.list(currentSongId);
+}
+
+/** Set a knob's live value (clamped to its range, snapped to its step). Returns the value set, or null. */
+export function setKnob(name: string, value: number): number | null {
+  return knobRegistry.set(currentSongId, name, value);
+}
+
+/** Back to the value written in the file */
+export function resetKnob(name: string): number | null {
+  const knob = knobRegistry.get(currentSongId, name);
+  return knob ? setKnob(name, knob.def) : null;
+}
+
+/** The user holds a knob (mid-drag): a file edit meanwhile doesn't reset it */
+export function grabKnob(name: string, on: boolean) {
+  knobRegistry.grab(currentSongId, name, on);
+}
+
+type KnobsListener = (knobs: KnobInfo[], songId: string) => void;
+const knobListeners = new Set<KnobsListener>();
+
+/** Subscribe to the current song's knobs (values, defaults, list), batched per frame. Returns an unsubscribe function. */
+export function onKnobsChange(listener: KnobsListener): () => void {
+  knobListeners.add(listener);
+  return () => knobListeners.delete(listener);
+}
+
+let knobsQueued = false;
+function knobsChanged() {
+  if (knobsQueued) return;
+  knobsQueued = true;
+  const flush = () => {
+    if (!knobsQueued) return;
+    knobsQueued = false;
+    const list = knobs();
+    for (const listener of knobListeners) {
+      try {
+        listener(list, currentSongId);
+      } catch (e) {
+        console.error("onKnobsChange listener failed", e);
+      }
+    }
+  };
+  // next frame while visible (drags), or a timer when the tab is hidden
+  requestAnimationFrame(flush);
+  setTimeout(flush, 50);
+}
+
+export interface KnobWriteResult {
+  ok: boolean;
+  error?: string;
+  /** What was written: the literal now in the file, per knob */
+  changes?: { name: string; literal: string; line: number }[];
+}
+
+/**
+ * Write knobs' live values into the song file as their new defaults (every
+ * dirty knob of the current song when `names` is omitted), in one edit. The
+ * dev server rewrites the literals (vite-plugins/strudel-knobs.ts); the HMR
+ * update then hot-swaps seamlessly and the knobs are no longer dirty.
+ */
+export async function writeKnobs(names?: string[]): Promise<KnobWriteResult> {
+  const file = currentSource()?.file;
+  if (!file) return { ok: false, error: "no song file" };
+  const list = knobs().filter((k) => (names ? names.includes(k.name) : k.dirty));
+  if (!list.length) return { ok: true, changes: [] };
+  try {
+    const res = await fetch("/__strudel/knob", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file, knobs: list.map((k) => ({ name: k.name, value: k.value })) }),
+    });
+    const body = (await res.json().catch(() => null)) as KnobWriteResult | null;
+    if (!res.ok || !body?.ok) return { ok: false, error: body?.error ?? `HTTP ${res.status}` };
+    return body;
+  } catch (err) {
+    return { ok: false, error: `writing needs the dev server (${err instanceof Error ? err.message : String(err)})` };
+  }
 }

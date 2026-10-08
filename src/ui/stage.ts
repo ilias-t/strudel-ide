@@ -12,6 +12,8 @@ import type { PlayerError, PlayerState } from "../engine/types";
 import { contentVersion } from "../live/protocol";
 import { CodeView } from "./code-view";
 import { Mixer } from "./mixer";
+import { KnobPanel } from "./knobs";
+import { formatKnob, knobTextWidth, type KnobInfo } from "../engine/knobs";
 import { Timeline } from "./timeline";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -48,7 +50,42 @@ export function mountStage(): Stage {
     lines: $("code-lines"),
     overlay: $("code-highlights"),
     followChip: $("follow-chip"),
+    onKnobChip: (name) => knobPanel.focus(name),
   });
+
+  const knobPanel = new KnobPanel(
+    { root: $("knobs"), grid: $("knob-grid"), writeAll: $<HTMLButtonElement>("knobs-write-all"), status: $("knobs-status") },
+    {
+      setKnob: player.setKnob,
+      resetKnob: player.resetKnob,
+      grabKnob: player.grabKnob,
+      writeKnobs: player.writeKnobs,
+    },
+    // write-back is a dev-server endpoint
+    { canWrite: import.meta.env.DEV }
+  );
+
+  /** Live values → knob panel + the chips next to each knob( call in the code */
+  let shownKnobs: KnobInfo[] = [];
+  function renderKnobs(list: KnobInfo[] = shownKnobs) {
+    shownKnobs = list;
+    knobPanel.render(list, player.currentSongId_());
+    const byName = new Map(list.map((k) => [k.name, k]));
+    for (const [name, chips] of codeView.knobChips()) {
+      const knob = byName.get(name);
+      const text = knob ? formatKnob(knob, knob.value) : "";
+      for (const chip of chips) {
+        if (chip.dataset.value !== text) chip.dataset.value = text;
+        const dirty = String(!!knob?.dirty);
+        if (chip.dataset.dirty !== dirty) chip.dataset.dirty = dirty;
+        if (knob && !chip.style.minWidth) {
+          const widest = knobTextWidth(knob);
+          chip.style.minWidth = `calc(${widest + 2}ch + 14px)`;
+        }
+      }
+    }
+  }
+  player.onKnobsChange((list) => renderKnobs(list));
 
   const mixer = new Mixer($("strips"), $("mixer-empty"), $<HTMLButtonElement>("unmute-all"), {
     toggleTrack: player.toggleTrack,
@@ -115,6 +152,7 @@ export function mountStage(): Stage {
       codeView.setSource(source.text, source.version, otherFile);
       codeFile.textContent = source.file;
       rangeTrack.clear();
+      renderKnobs(player.knobs()); // new chips
     }
     const playing = player.playingSource();
     codeStale.hidden = !(state.playing && playing && source && playing.version !== source.version);

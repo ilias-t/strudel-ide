@@ -73,6 +73,7 @@ interface EngineApi {
   initStrudel(options?: { onToggle?: (started: boolean) => void }): Promise<Repl>;
   Pattern: new (query: QueryFn) => Pattern;
   silence: Pattern;
+  pure(value: unknown): Pattern;
   samples(url: string): Promise<void>;
   aliasBank(map: string | Record<string, string | string[]>): Promise<void>;
   getAudioContext(): AudioContext;

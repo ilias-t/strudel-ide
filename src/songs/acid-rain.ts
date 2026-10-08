@@ -29,6 +29,8 @@ const ROOTS = "<0 0 0 0 -2 -2 -1 -1>"; // scale degree of each bar's root: A A A
 
 const DRUMS = "RolandTR909";
 const FILTER = "ladder"; // 303-style ladder filter; try "24db" (a nastier biquad) or "12db"
+const FILTER_RIDE = knob("filter", 1, 0.25, 4, { log: true, step: 0.01 }); // × the cutoff automation: ride it!
+const ECHO = knob("echo", 0.22, 0, 0.6); // dotted-8th echo send on the acid line
 
 // The 303 "pattern memory": one bar of 16th notes. Numbers are scale degrees
 // (0 = A2, 7 = A3 an octave up, 8 = Bb3), "~" is a rest.
@@ -132,7 +134,7 @@ const song: Song = {
     // 🎛️ The cutoff knob (Hz), ridden across the whole arrangement.
     // rangex = exponential range, which is how a filter knob feels.
     // perlin adds the slow drift of a hand that never quite sits still.
-    const knob = track({
+    const cutoff = track({
       intro: saw.rangex(140, 420).slow(BARS.intro), // creeping open
       groove: sine.rangex(300, 1100).slow(BARS.groove), // breathing
       build: saw.rangex(500, 3200).slow(BARS.build), // twist it all the way up
@@ -149,12 +151,12 @@ const song: Song = {
     const ladder: Pattern = acidLine.ftype(FILTER);
 
     const acid = ladder
-      .lpf(knob)
+      .lpf(cutoff.mul(FILTER_RIDE))
       .lpq(resonance)
       .shape(0.3) // a bit of drive, like a 303 into a mixer channel pushed hot
       .hpf(70) // leave the sub to the rumble
       .gain(0.5)
-      .delay(0.22)
+      .delay(ECHO)
       .delaytime(BEAT * 0.75) // dotted 8th echo
       .delayfeedback(0.45)
       .room(0.15)

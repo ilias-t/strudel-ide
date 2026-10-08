@@ -13,8 +13,12 @@
 //   setRanges()  the tokens sounding now (createHighlighter, ≤ 30 Hz): outlined
 //   flash()      a hap just started on that token: a short pulse, so "bd*4"
 //                visibly hits four times while staying outlined
+//
+// Each `knob("name", …)` call gets an inline chip after its closing paren
+// showing the knob's live value (knobChips(); the text is CSS-generated, so it
+// is never copied with the code). Clicking a chip calls onKnobChip.
 
-import { tokenize, type TokenKind } from "./tokenize";
+import { tokenize, type Token, type TokenKind } from "./tokenize";
 import type { Range } from "../live/highlights";
 
 const PACK = 2 ** 22;
@@ -45,6 +49,46 @@ export interface CodeViewOptions {
   overlay: HTMLElement;
   /** Shown when the user scrolled away; clicking it resumes following */
   followChip: HTMLElement;
+  /** A knob chip in the code was clicked */
+  onKnobChip?: (name: string) => void;
+}
+
+/** A `knob("name", …)` call in the text: `end` is just past its closing paren */
+export interface KnobCall {
+  name: string;
+  start: number;
+  end: number;
+}
+
+/**
+ * Find `knob("name", …)` calls with the tokenizer (not in comments or
+ * strings, not `.knob(`), and where each call's parentheses close.
+ */
+export function findKnobCalls(text: string, tokens: Token[] = tokenize(text)): KnobCall[] {
+  const calls: KnobCall[] = [];
+  const significant = tokens.filter((t) => t.kind !== "" || text.slice(t.start, t.end).trim() !== "");
+  for (let i = 0; i < significant.length; i++) {
+    const t = significant[i];
+    if (t.kind !== "f" || text.slice(t.start, t.end) !== "knob" || text[t.start - 1] === ".") continue;
+    const open = significant[i + 1];
+    const name = significant[i + 2];
+    if (!open || open.kind !== "p" || text[open.start] !== "(" || !name || name.kind !== "s") continue;
+    let depth = 0;
+    let end = -1;
+    for (let j = i + 1; j < significant.length && end < 0; j++) {
+      const p = significant[j];
+      if (p.kind !== "p") continue;
+      for (let k = p.start; k < p.end; k++) {
+        if (text[k] === "(") depth++;
+        else if (text[k] === ")" && --depth === 0) {
+          end = k + 1;
+          break;
+        }
+      }
+    }
+    if (end > 0) calls.push({ name: text.slice(name.start + 1, name.end - 1), start: t.start, end });
+  }
+  return calls;
 }
 
 export class CodeView {
@@ -55,6 +99,7 @@ export class CodeView {
   private nodes: Text[] = [];
   private lineEls: HTMLElement[] = [];
   private errorLine: number | null = null;
+  private chips = new Map<string, HTMLElement[]>();
 
   private rectCache = new Map<number, Rect | null>();
   private boxes = new Map<number, Box>();
@@ -84,6 +129,10 @@ export class CodeView {
       if (/^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End)$/.test(e.key)) stopFollowing();
     });
     o.followChip.addEventListener("click", () => this.setFollowing(true));
+    o.content.addEventListener("click", (e) => {
+      const chip = (e.target as HTMLElement).closest<HTMLElement>(".knob-chip");
+      if (chip?.dataset.knob) o.onKnobChip?.(chip.dataset.knob);
+    });
 
     new ResizeObserver(() => {
       this.viewportH = o.scroller.clientHeight;
@@ -129,6 +178,11 @@ export class CodeView {
   setRanges(ranges: Range[]) {
     this.ranges = ranges;
     this.rangesDirty = true;
+  }
+
+  /** Chip elements per knob name (in the current text) */
+  knobChips(): ReadonlyMap<string, HTMLElement[]> {
+    return this.chips;
   }
 
   /** Current lit ranges (for tests) */
@@ -258,6 +312,10 @@ export class CodeView {
     this.nodeStarts = [];
     this.nodes = [];
     this.lineEls = [];
+    this.chips = new Map();
+    // knob chips go right after each call's closing paren
+    const inlays = findKnobCalls(text, tokens).sort((a, b) => a.end - b.end);
+    let nextInlay = 0;
 
     let lineNo = 0;
     let line!: HTMLElement;
@@ -276,7 +334,31 @@ export class CodeView {
     };
     newLine();
 
+    const addChip = (call: KnobCall) => {
+      const chip = document.createElement("span");
+      chip.className = "knob-chip";
+      chip.dataset.knob = call.name;
+      chip.dataset.testid = "knob-chip";
+      chip.setAttribute("aria-hidden", "true");
+      chip.title = `${call.name}: click to focus the knob`;
+      lt.append(chip);
+      const list = this.chips.get(call.name) ?? [];
+      list.push(chip);
+      this.chips.set(call.name, list);
+    };
     const addPiece = (kind: TokenKind, start: number, piece: string) => {
+      // split the piece at chip positions
+      while (nextInlay < inlays.length && inlays[nextInlay].end <= start) nextInlay++;
+      const at = inlays[nextInlay]?.end;
+      if (at !== undefined && at > start && at <= start + piece.length) {
+        addText(kind, start, piece.slice(0, at - start));
+        addChip(inlays[nextInlay++]);
+        if (at < start + piece.length) addPiece(kind, at, piece.slice(at - start));
+        return;
+      }
+      addText(kind, start, piece);
+    };
+    const addText = (kind: TokenKind, start: number, piece: string) => {
       const visible = piece.endsWith("\r") ? piece.slice(0, -1) : piece;
       if (!visible) return;
       const node = document.createTextNode(visible);

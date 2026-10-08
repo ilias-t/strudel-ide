@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   server: {
     port: 3000,
-    open: true,
+    open: !process.env.CI && !process.env.NO_OPEN,
     proxy: {
       // Proxy requests to /strudel-samples to the Strudel CDN
       "/strudel-samples": {

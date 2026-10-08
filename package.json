@@ -7,7 +7,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "check:songs": "node scripts/check-songs.mjs",
+    "check": "tsc --noEmit && node scripts/check-songs.mjs"
   },
   "dependencies": {
     "@strudel/web": "^1.1.0"

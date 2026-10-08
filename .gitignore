@@ -10,3 +10,5 @@ test-results/
 playwright-report/
 # App snapshot (with a fixture song) the e2e server serves; deleted after the run
 .e2e-app/
+# npm run render / analyze output
+renders/

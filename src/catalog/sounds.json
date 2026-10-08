@@ -1,0 +1,3240 @@
+{
+  "groups": [
+    {
+      "id": "drums",
+      "label": "Drums",
+      "kinds": [
+        {
+          "id": "kick",
+          "label": "Kick",
+          "sounds": [
+            "bassdrum1",
+            "bassdrum2",
+            "bd",
+            "sbd"
+          ]
+        },
+        {
+          "id": "snare",
+          "label": "Snare",
+          "sounds": [
+            "sd",
+            "snare_hi",
+            "snare_low",
+            "snare_modern"
+          ]
+        },
+        {
+          "id": "clap",
+          "label": "Clap",
+          "sounds": [
+            "clap",
+            "cp"
+          ]
+        },
+        {
+          "id": "rim",
+          "label": "Rim",
+          "sounds": [
+            "rim",
+            "snare_rim"
+          ]
+        },
+        {
+          "id": "hat",
+          "label": "Hi-hat",
+          "sounds": [
+            "hh",
+            "hihat"
+          ]
+        },
+        {
+          "id": "openhat",
+          "label": "Open hat",
+          "sounds": [
+            "oh"
+          ]
+        },
+        {
+          "id": "cymbal",
+          "label": "Cymbal",
+          "sounds": [
+            "clash",
+            "clash2",
+            "cr",
+            "fingercymbal",
+            "gong",
+            "gong2",
+            "rd",
+            "sus_cymbal",
+            "sus_cymbal2"
+          ]
+        },
+        {
+          "id": "tom",
+          "label": "Tom",
+          "sounds": [
+            "ht",
+            "lt",
+            "mt",
+            "tom2_mallet",
+            "tom2_rim",
+            "tom2_stick",
+            "tom_mallet",
+            "tom_rim",
+            "tom_stick"
+          ]
+        },
+        {
+          "id": "shaker",
+          "label": "Shaker",
+          "sounds": [
+            "cabasa",
+            "sh",
+            "shaker_large",
+            "shaker_small",
+            "sleighbells",
+            "tambourine",
+            "tambourine2",
+            "tb"
+          ]
+        },
+        {
+          "id": "perc",
+          "label": "Percussion",
+          "sounds": [
+            "agogo",
+            "anvil",
+            "bongo",
+            "brakedrum",
+            "cajon",
+            "cb",
+            "clave",
+            "conga",
+            "cowbell",
+            "darbuka",
+            "flexatone",
+            "framedrum",
+            "guiro",
+            "marktrees",
+            "misc",
+            "mridangam_ardha",
+            "mridangam_chaapu",
+            "mridangam_dhi",
+            "mridangam_dhin",
+            "mridangam_dhum",
+            "mridangam_gumki",
+            "mridangam_ka",
+            "mridangam_ki",
+            "mridangam_na",
+            "mridangam_nam",
+            "mridangam_ta",
+            "mridangam_tha",
+            "mridangam_thom",
+            "oceandrum",
+            "perc",
+            "ratchet",
+            "slapstick",
+            "slitdrum",
+            "timpani",
+            "timpani2",
+            "timpani_roll",
+            "triangles",
+            "vibraslap",
+            "woodblock"
+          ]
+        },
+        {
+          "id": "break",
+          "label": "Break",
+          "sounds": [
+            "brk"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "instruments",
+      "label": "Instruments",
+      "kinds": [
+        {
+          "id": "keys",
+          "label": "Keys",
+          "sounds": [
+            "clavisynth",
+            "fmpiano",
+            "kawai",
+            "piano",
+            "piano1",
+            "steinway"
+          ]
+        },
+        {
+          "id": "organ",
+          "label": "Organ",
+          "sounds": [
+            "organ_4inch",
+            "organ_8inch",
+            "organ_full",
+            "pipeorgan_loud",
+            "pipeorgan_loud_pedal",
+            "pipeorgan_quiet",
+            "pipeorgan_quiet_pedal"
+          ]
+        },
+        {
+          "id": "mallets",
+          "label": "Mallets & bells",
+          "sounds": [
+            "balafon",
+            "balafon_hard",
+            "balafon_soft",
+            "belltree",
+            "glockenspiel",
+            "handbells",
+            "handchimes",
+            "kalimba",
+            "kalimba2",
+            "kalimba3",
+            "kalimba4",
+            "kalimba5",
+            "marimba",
+            "tubularbells",
+            "tubularbells2",
+            "vibraphone",
+            "vibraphone_bowed",
+            "vibraphone_soft",
+            "wineglass",
+            "wineglass_slow",
+            "xylophone_hard_ff",
+            "xylophone_hard_pp",
+            "xylophone_medium_ff",
+            "xylophone_medium_pp",
+            "xylophone_soft_ff",
+            "xylophone_soft_pp"
+          ]
+        },
+        {
+          "id": "plucked",
+          "label": "Plucked",
+          "sounds": [
+            "dantranh",
+            "dantranh_tremolo",
+            "dantranh_vibrato",
+            "folkharp",
+            "harp",
+            "psaltery_pluck",
+            "strumstick"
+          ]
+        },
+        {
+          "id": "strings",
+          "label": "Bowed strings",
+          "sounds": [
+            "psaltery_bow",
+            "psaltery_spiccato"
+          ]
+        },
+        {
+          "id": "wind",
+          "label": "Wind",
+          "sounds": [
+            "didgeridoo",
+            "harmonica",
+            "harmonica_soft",
+            "harmonica_vib",
+            "ocarina",
+            "ocarina_small",
+            "ocarina_small_stacc",
+            "ocarina_vib",
+            "recorder_alto_stacc",
+            "recorder_alto_sus",
+            "recorder_alto_vib",
+            "recorder_bass_stacc",
+            "recorder_bass_sus",
+            "recorder_bass_vib",
+            "recorder_soprano_stacc",
+            "recorder_soprano_sus",
+            "recorder_tenor_stacc",
+            "recorder_tenor_sus",
+            "recorder_tenor_vib",
+            "sax",
+            "sax_stacc",
+            "sax_vib",
+            "saxello",
+            "saxello_stacc",
+            "saxello_vib",
+            "super64",
+            "super64_acc",
+            "super64_vib"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synths",
+      "label": "Synths",
+      "kinds": [
+        {
+          "id": "synth",
+          "label": "Waveforms",
+          "sounds": [
+            "bytebeat",
+            "pulse",
+            "saw",
+            "sawtooth",
+            "sin",
+            "sine",
+            "sqr",
+            "square",
+            "supersaw",
+            "tri",
+            "triangle"
+          ]
+        },
+        {
+          "id": "noise",
+          "label": "Noise",
+          "sounds": [
+            "brown",
+            "crackle",
+            "pink",
+            "white"
+          ]
+        },
+        {
+          "id": "wavetable",
+          "label": "Wavetables",
+          "sounds": [
+            "wt_digital",
+            "wt_digital_bad_day",
+            "wt_digital_basique",
+            "wt_digital_crickets",
+            "wt_digital_curses",
+            "wt_digital_echoes",
+            "wt_vgame"
+          ]
+        },
+        {
+          "id": "zzfx",
+          "label": "ZzFX",
+          "sounds": [
+            "z_noise",
+            "z_sawtooth",
+            "z_sine",
+            "z_square",
+            "z_tan",
+            "z_triangle",
+            "zzfx"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fx",
+      "label": "FX",
+      "kinds": [
+        {
+          "id": "fx",
+          "label": "Effects",
+          "sounds": [
+            "ballwhistle",
+            "fx",
+            "siren",
+            "trainwhistle"
+          ]
+        }
+      ]
+    }
+  ],
+  "banks": {
+    "AJKPercusyn": {
+      "aliases": [
+        "Percysyn"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "ht",
+        "sd"
+      ]
+    },
+    "AkaiLinn": {
+      "aliases": [
+        "Linn"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "rd",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "AkaiMPC60": {
+      "aliases": [
+        "MPC60"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd"
+      ]
+    },
+    "AkaiXR10": {
+      "aliases": [
+        "XR10"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "AlesisHR16": {
+      "aliases": [
+        "HR16"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "hh",
+        "ht",
+        "lt",
+        "oh",
+        "perc",
+        "rim",
+        "sd",
+        "sh"
+      ]
+    },
+    "AlesisSR16": {
+      "aliases": [
+        "SR16"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "misc",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "BossDR110": {
+      "aliases": [
+        "DR110"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "cr",
+        "hh",
+        "oh",
+        "rd",
+        "sd"
+      ]
+    },
+    "BossDR220": {
+      "aliases": [
+        "DR220"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "sd"
+      ]
+    },
+    "BossDR55": {
+      "aliases": [
+        "DR55"
+      ],
+      "parts": [
+        "bd",
+        "hh",
+        "rim",
+        "sd"
+      ]
+    },
+    "BossDR550": {
+      "aliases": [
+        "DR550"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "CasioRZ1": {
+      "aliases": [
+        "RZ1"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "rd",
+        "rim",
+        "sd"
+      ]
+    },
+    "CasioSK1": {
+      "aliases": [
+        "SK1"
+      ],
+      "parts": [
+        "bd",
+        "hh",
+        "ht",
+        "mt",
+        "oh",
+        "sd"
+      ]
+    },
+    "CasioVL1": {
+      "aliases": [
+        "VL1"
+      ],
+      "parts": [
+        "bd",
+        "hh",
+        "sd"
+      ]
+    },
+    "DoepferMS404": {
+      "aliases": [
+        "MS404"
+      ],
+      "parts": [
+        "bd",
+        "hh",
+        "lt",
+        "oh",
+        "sd"
+      ]
+    },
+    "EmuDrumulator": {
+      "aliases": [
+        "Drumulator"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rim",
+        "sd"
+      ]
+    },
+    "EmuModular": {
+      "aliases": [],
+      "parts": [
+        "bd",
+        "misc",
+        "perc"
+      ]
+    },
+    "EmuSP12": {
+      "aliases": [
+        "SP12"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd"
+      ]
+    },
+    "KorgDDM110": {
+      "aliases": [
+        "DDM110"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "oh",
+        "rim",
+        "sd"
+      ]
+    },
+    "KorgKPR77": {
+      "aliases": [
+        "KPR77"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "hh",
+        "oh",
+        "sd"
+      ]
+    },
+    "KorgKR55": {
+      "aliases": [
+        "KR55"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cr",
+        "hh",
+        "ht",
+        "oh",
+        "perc",
+        "rim",
+        "sd"
+      ]
+    },
+    "KorgKRZ": {
+      "aliases": [
+        "KRZ"
+      ],
+      "parts": [
+        "bd",
+        "cr",
+        "fx",
+        "hh",
+        "ht",
+        "lt",
+        "misc",
+        "oh",
+        "rd",
+        "sd"
+      ]
+    },
+    "KorgM1": {
+      "aliases": [
+        "M1"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "KorgMinipops": {
+      "aliases": [
+        "Minipops"
+      ],
+      "parts": [
+        "bd",
+        "hh",
+        "misc",
+        "oh",
+        "sd"
+      ]
+    },
+    "KorgPoly800": {
+      "aliases": [
+        "Poly800"
+      ],
+      "parts": [
+        "bd"
+      ]
+    },
+    "KorgT3": {
+      "aliases": [
+        "T3"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "hh",
+        "misc",
+        "oh",
+        "perc",
+        "rim",
+        "sd",
+        "sh"
+      ]
+    },
+    "Linn9000": {
+      "aliases": [
+        "9000"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "tb"
+      ]
+    },
+    "LinnDrum": {
+      "aliases": [],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "LinnLM1": {
+      "aliases": [
+        "LM1"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "hh",
+        "ht",
+        "lt",
+        "oh",
+        "perc",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "LinnLM2": {
+      "aliases": [
+        "LM2"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "MFB512": {
+      "aliases": [],
+      "parts": [
+        "bd",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "sd"
+      ]
+    },
+    "MPC1000": {
+      "aliases": [],
+      "parts": [
+        "bd",
+        "cp",
+        "hh",
+        "oh",
+        "perc",
+        "sd",
+        "sh"
+      ]
+    },
+    "MoogConcertMateMG1": {
+      "aliases": [
+        "ConcertMateMG1"
+      ],
+      "parts": [
+        "bd",
+        "sd"
+      ]
+    },
+    "OberheimDMX": {
+      "aliases": [
+        "DMX"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "RhodesPolaris": {
+      "aliases": [
+        "Polaris"
+      ],
+      "parts": [
+        "bd",
+        "misc",
+        "sd"
+      ]
+    },
+    "RhythmAce": {
+      "aliases": [
+        "Ace"
+      ],
+      "parts": [
+        "bd",
+        "hh",
+        "ht",
+        "lt",
+        "oh",
+        "perc",
+        "sd"
+      ]
+    },
+    "RolandCompurhythm1000": {
+      "aliases": [
+        "Compurhythm1000"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd"
+      ]
+    },
+    "RolandCompurhythm78": {
+      "aliases": [
+        "Compurhythm78"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "hh",
+        "misc",
+        "oh",
+        "perc",
+        "sd",
+        "tb"
+      ]
+    },
+    "RolandCompurhythm8000": {
+      "aliases": [
+        "Compurhythm8000"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rim",
+        "sd"
+      ]
+    },
+    "RolandD110": {
+      "aliases": [
+        "D110"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cr",
+        "hh",
+        "lt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "RolandD70": {
+      "aliases": [
+        "D70"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh"
+      ]
+    },
+    "RolandDDR30": {
+      "aliases": [
+        "DDR30"
+      ],
+      "parts": [
+        "bd",
+        "ht",
+        "lt",
+        "sd"
+      ]
+    },
+    "RolandJD990": {
+      "aliases": [
+        "JD990"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "sd",
+        "tb"
+      ]
+    },
+    "RolandMC202": {
+      "aliases": [
+        "MC202"
+      ],
+      "parts": [
+        "bd",
+        "ht",
+        "perc"
+      ]
+    },
+    "RolandMC303": {
+      "aliases": [
+        "MC303"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "fx",
+        "hh",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "RolandMT32": {
+      "aliases": [
+        "MT32"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "RolandR8": {
+      "aliases": [
+        "R8"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "RolandS50": {
+      "aliases": [
+        "S50"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "RolandSH09": {
+      "aliases": [
+        "SH09"
+      ],
+      "parts": [
+        "bd"
+      ]
+    },
+    "RolandSystem100": {
+      "aliases": [
+        "System100"
+      ],
+      "parts": [
+        "bd",
+        "hh",
+        "misc",
+        "oh",
+        "perc",
+        "sd"
+      ]
+    },
+    "RolandTR505": {
+      "aliases": [
+        "TR505"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd"
+      ]
+    },
+    "RolandTR606": {
+      "aliases": [
+        "TR606"
+      ],
+      "parts": [
+        "bd",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "oh",
+        "sd"
+      ]
+    },
+    "RolandTR626": {
+      "aliases": [
+        "TR626"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "RolandTR707": {
+      "aliases": [
+        "TR707"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "rim",
+        "sd",
+        "tb"
+      ]
+    },
+    "RolandTR727": {
+      "aliases": [
+        "TR727"
+      ],
+      "parts": [
+        "perc",
+        "sh"
+      ]
+    },
+    "RolandTR808": {
+      "aliases": [
+        "TR808"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rim",
+        "sd",
+        "sh"
+      ]
+    },
+    "RolandTR909": {
+      "aliases": [
+        "TR909"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "rd",
+        "rim",
+        "sd"
+      ]
+    },
+    "SakataDPM48": {
+      "aliases": [
+        "DPM48"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh"
+      ]
+    },
+    "SequentialCircuitsDrumtracks": {
+      "aliases": [
+        "CircuitsDrumtracks"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "oh",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "SequentialCircuitsTom": {
+      "aliases": [
+        "CircuitsTom"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "oh",
+        "sd"
+      ]
+    },
+    "SergeModular": {
+      "aliases": [],
+      "parts": [
+        "bd",
+        "misc",
+        "perc"
+      ]
+    },
+    "SimmonsSDS400": {
+      "aliases": [
+        "SDS400"
+      ],
+      "parts": [
+        "ht",
+        "lt",
+        "mt",
+        "sd"
+      ]
+    },
+    "SimmonsSDS5": {
+      "aliases": [
+        "SDS5"
+      ],
+      "parts": [
+        "bd",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "rim",
+        "sd"
+      ]
+    },
+    "SoundmastersR88": {
+      "aliases": [
+        "R88"
+      ],
+      "parts": [
+        "bd",
+        "cr",
+        "hh",
+        "oh",
+        "sd"
+      ]
+    },
+    "UnivoxMicroRhythmer12": {
+      "aliases": [
+        "MicroRhythmer12"
+      ],
+      "parts": [
+        "bd",
+        "hh",
+        "oh",
+        "sd"
+      ]
+    },
+    "ViscoSpaceDrum": {
+      "aliases": [
+        "SpaceDrum"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "hh",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rim",
+        "sd"
+      ]
+    },
+    "XdrumLM8953": {
+      "aliases": [
+        "LM8953"
+      ],
+      "parts": [
+        "bd",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "rd",
+        "rim",
+        "sd",
+        "tb"
+      ]
+    },
+    "YamahaRM50": {
+      "aliases": [
+        "RM50"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "YamahaRX21": {
+      "aliases": [
+        "RX21"
+      ],
+      "parts": [
+        "bd",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "mt",
+        "oh",
+        "sd"
+      ]
+    },
+    "YamahaRX5": {
+      "aliases": [
+        "RX5"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "fx",
+        "hh",
+        "lt",
+        "oh",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "YamahaRY30": {
+      "aliases": [
+        "RY30"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "hh",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    },
+    "YamahaTG33": {
+      "aliases": [
+        "TG33"
+      ],
+      "parts": [
+        "bd",
+        "cb",
+        "cp",
+        "cr",
+        "fx",
+        "ht",
+        "lt",
+        "misc",
+        "mt",
+        "oh",
+        "perc",
+        "rd",
+        "rim",
+        "sd",
+        "sh",
+        "tb"
+      ]
+    }
+  },
+  "sounds": {
+    "agogo": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 5
+    },
+    "anvil": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 9
+    },
+    "balafon": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 6,
+      "pitched": true
+    },
+    "balafon_hard": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 6,
+      "pitched": true
+    },
+    "balafon_soft": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 6,
+      "pitched": true
+    },
+    "ballwhistle": {
+      "kind": "fx",
+      "source": "vcsl",
+      "count": 2
+    },
+    "bassdrum1": {
+      "kind": "kick",
+      "source": "vcsl",
+      "count": 8
+    },
+    "bassdrum2": {
+      "kind": "kick",
+      "source": "vcsl",
+      "count": 30
+    },
+    "bd": {
+      "kind": "kick",
+      "source": "uzu-drumkit",
+      "count": 8,
+      "banks": {
+        "AJKPercusyn": 1,
+        "AkaiLinn": 1,
+        "AkaiMPC60": 2,
+        "AkaiXR10": 10,
+        "AlesisHR16": 1,
+        "AlesisSR16": 13,
+        "BossDR110": 1,
+        "BossDR220": 1,
+        "BossDR55": 2,
+        "BossDR550": 5,
+        "CasioRZ1": 1,
+        "CasioSK1": 1,
+        "CasioVL1": 1,
+        "DoepferMS404": 2,
+        "EmuDrumulator": 1,
+        "EmuModular": 2,
+        "EmuSP12": 14,
+        "KorgDDM110": 1,
+        "KorgKPR77": 1,
+        "KorgKR55": 1,
+        "KorgKRZ": 1,
+        "KorgM1": 3,
+        "KorgMinipops": 7,
+        "KorgPoly800": 4,
+        "KorgT3": 5,
+        "Linn9000": 1,
+        "LinnDrum": 1,
+        "LinnLM1": 4,
+        "LinnLM2": 4,
+        "MFB512": 1,
+        "MPC1000": 5,
+        "MoogConcertMateMG1": 3,
+        "OberheimDMX": 3,
+        "RhodesPolaris": 4,
+        "RhythmAce": 3,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm78": 1,
+        "RolandCompurhythm8000": 1,
+        "RolandD110": 1,
+        "RolandD70": 4,
+        "RolandDDR30": 8,
+        "RolandJD990": 10,
+        "RolandMC202": 5,
+        "RolandMC303": 16,
+        "RolandMT32": 1,
+        "RolandR8": 7,
+        "RolandS50": 4,
+        "RolandSH09": 43,
+        "RolandSystem100": 15,
+        "RolandTR505": 1,
+        "RolandTR606": 1,
+        "RolandTR626": 2,
+        "RolandTR707": 2,
+        "RolandTR808": 25,
+        "RolandTR909": 4,
+        "SakataDPM48": 3,
+        "SequentialCircuitsDrumtracks": 1,
+        "SequentialCircuitsTom": 1,
+        "SergeModular": 1,
+        "SimmonsSDS5": 12,
+        "SoundmastersR88": 1,
+        "UnivoxMicroRhythmer12": 1,
+        "ViscoSpaceDrum": 11,
+        "XdrumLM8953": 3,
+        "YamahaRM50": 103,
+        "YamahaRX21": 1,
+        "YamahaRX5": 2,
+        "YamahaRY30": 13,
+        "YamahaTG33": 4
+      }
+    },
+    "belltree": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 6,
+      "pitched": true
+    },
+    "bongo": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 28
+    },
+    "brakedrum": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 17
+    },
+    "brk": {
+      "kind": "break",
+      "source": "uzu-drumkit",
+      "count": 1
+    },
+    "brown": {
+      "kind": "noise",
+      "source": "superdough"
+    },
+    "bytebeat": {
+      "kind": "synth",
+      "source": "superdough"
+    },
+    "cabasa": {
+      "kind": "shaker",
+      "source": "vcsl",
+      "count": 6
+    },
+    "cajon": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 18
+    },
+    "cb": {
+      "kind": "perc",
+      "source": "uzu-drumkit",
+      "count": 1,
+      "banks": {
+        "AJKPercusyn": 2,
+        "AkaiLinn": 1,
+        "AkaiXR10": 1,
+        "AlesisSR16": 1,
+        "BossDR550": 2,
+        "CasioRZ1": 1,
+        "EmuDrumulator": 1,
+        "EmuSP12": 1,
+        "KorgKR55": 1,
+        "KorgM1": 1,
+        "Linn9000": 2,
+        "LinnDrum": 1,
+        "LinnLM1": 1,
+        "LinnLM2": 1,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm78": 1,
+        "RolandCompurhythm8000": 1,
+        "RolandD110": 2,
+        "RolandD70": 1,
+        "RolandJD990": 1,
+        "RolandMC303": 2,
+        "RolandMT32": 1,
+        "RolandR8": 1,
+        "RolandS50": 1,
+        "RolandTR505": 2,
+        "RolandTR626": 1,
+        "RolandTR707": 1,
+        "RolandTR808": 2,
+        "SequentialCircuitsDrumtracks": 1,
+        "ViscoSpaceDrum": 1,
+        "YamahaRM50": 6,
+        "YamahaRX5": 1,
+        "YamahaRY30": 2,
+        "YamahaTG33": 3
+      }
+    },
+    "clap": {
+      "kind": "clap",
+      "source": "vcsl",
+      "count": 10
+    },
+    "clash": {
+      "kind": "cymbal",
+      "source": "vcsl",
+      "count": 10
+    },
+    "clash2": {
+      "kind": "cymbal",
+      "source": "vcsl",
+      "count": 5
+    },
+    "clave": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 6
+    },
+    "clavisynth": {
+      "kind": "keys",
+      "source": "vcsl",
+      "count": 19,
+      "pitched": true
+    },
+    "conga": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 34
+    },
+    "cowbell": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 13
+    },
+    "cp": {
+      "kind": "clap",
+      "source": "uzu-drumkit",
+      "count": 2,
+      "banks": {
+        "AkaiLinn": 1,
+        "AkaiMPC60": 1,
+        "AkaiXR10": 1,
+        "AlesisHR16": 1,
+        "AlesisSR16": 1,
+        "BossDR110": 1,
+        "BossDR220": 1,
+        "BossDR550": 1,
+        "CasioRZ1": 1,
+        "EmuDrumulator": 1,
+        "EmuSP12": 1,
+        "KorgDDM110": 1,
+        "KorgKPR77": 1,
+        "KorgM1": 1,
+        "KorgT3": 1,
+        "LinnDrum": 1,
+        "LinnLM1": 1,
+        "LinnLM2": 1,
+        "MFB512": 1,
+        "MPC1000": 1,
+        "OberheimDMX": 1,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm8000": 1,
+        "RolandD70": 1,
+        "RolandJD990": 1,
+        "RolandMC303": 8,
+        "RolandMT32": 1,
+        "RolandR8": 1,
+        "RolandS50": 1,
+        "RolandTR505": 1,
+        "RolandTR626": 1,
+        "RolandTR707": 1,
+        "RolandTR808": 5,
+        "RolandTR909": 5,
+        "SakataDPM48": 1,
+        "SequentialCircuitsDrumtracks": 1,
+        "SequentialCircuitsTom": 1,
+        "YamahaRM50": 2,
+        "YamahaRX21": 1,
+        "YamahaRY30": 1,
+        "YamahaTG33": 1
+      }
+    },
+    "cr": {
+      "kind": "cymbal",
+      "source": "uzu-drumkit",
+      "count": 2,
+      "banks": {
+        "AkaiLinn": 1,
+        "AkaiMPC60": 1,
+        "AkaiXR10": 3,
+        "AlesisSR16": 2,
+        "BossDR110": 1,
+        "BossDR220": 1,
+        "BossDR550": 1,
+        "CasioRZ1": 1,
+        "EmuDrumulator": 1,
+        "EmuSP12": 1,
+        "KorgDDM110": 1,
+        "KorgKR55": 1,
+        "KorgKRZ": 1,
+        "KorgM1": 1,
+        "Linn9000": 2,
+        "LinnDrum": 1,
+        "LinnLM2": 1,
+        "MFB512": 1,
+        "OberheimDMX": 1,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm8000": 1,
+        "RolandD110": 1,
+        "RolandD70": 1,
+        "RolandJD990": 1,
+        "RolandMT32": 1,
+        "RolandR8": 1,
+        "RolandS50": 2,
+        "RolandTR505": 1,
+        "RolandTR606": 1,
+        "RolandTR626": 2,
+        "RolandTR707": 1,
+        "RolandTR808": 25,
+        "RolandTR909": 5,
+        "SakataDPM48": 1,
+        "SequentialCircuitsDrumtracks": 1,
+        "SequentialCircuitsTom": 1,
+        "SoundmastersR88": 1,
+        "XdrumLM8953": 1,
+        "YamahaRM50": 22,
+        "YamahaRX21": 1,
+        "YamahaRY30": 2,
+        "YamahaTG33": 3
+      }
+    },
+    "crackle": {
+      "kind": "noise",
+      "source": "superdough"
+    },
+    "dantranh": {
+      "kind": "plucked",
+      "source": "vcsl",
+      "count": 17,
+      "pitched": true
+    },
+    "dantranh_tremolo": {
+      "kind": "plucked",
+      "source": "vcsl",
+      "count": 16,
+      "pitched": true
+    },
+    "dantranh_vibrato": {
+      "kind": "plucked",
+      "source": "vcsl",
+      "count": 16,
+      "pitched": true
+    },
+    "darbuka": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 20
+    },
+    "didgeridoo": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 12
+    },
+    "fingercymbal": {
+      "kind": "cymbal",
+      "source": "vcsl",
+      "count": 1
+    },
+    "flexatone": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 8
+    },
+    "fmpiano": {
+      "kind": "keys",
+      "source": "vcsl",
+      "count": 22,
+      "pitched": true
+    },
+    "folkharp": {
+      "kind": "plucked",
+      "source": "vcsl",
+      "count": 29,
+      "pitched": true
+    },
+    "framedrum": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 18
+    },
+    "fx": {
+      "kind": "fx",
+      "banks": {
+        "KorgKRZ": 2,
+        "RolandMC303": 2,
+        "YamahaRX5": 1,
+        "YamahaTG33": 1
+      }
+    },
+    "glockenspiel": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 7,
+      "pitched": true
+    },
+    "gong": {
+      "kind": "cymbal",
+      "source": "vcsl",
+      "count": 7
+    },
+    "gong2": {
+      "kind": "cymbal",
+      "source": "vcsl",
+      "count": 6
+    },
+    "guiro": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 5
+    },
+    "handbells": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 3
+    },
+    "handchimes": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 19,
+      "pitched": true
+    },
+    "harmonica": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 9,
+      "pitched": true
+    },
+    "harmonica_soft": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 10,
+      "pitched": true
+    },
+    "harmonica_vib": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 10,
+      "pitched": true
+    },
+    "harp": {
+      "kind": "plucked",
+      "source": "vcsl",
+      "count": 23,
+      "pitched": true
+    },
+    "hh": {
+      "kind": "hat",
+      "source": "uzu-drumkit",
+      "count": 5,
+      "banks": {
+        "AkaiLinn": 1,
+        "AkaiMPC60": 1,
+        "AkaiXR10": 2,
+        "AlesisHR16": 1,
+        "AlesisSR16": 3,
+        "BossDR110": 1,
+        "BossDR220": 1,
+        "BossDR55": 2,
+        "BossDR550": 2,
+        "CasioRZ1": 1,
+        "CasioSK1": 1,
+        "CasioVL1": 1,
+        "DoepferMS404": 1,
+        "EmuDrumulator": 1,
+        "EmuSP12": 2,
+        "KorgDDM110": 1,
+        "KorgKPR77": 1,
+        "KorgKR55": 1,
+        "KorgKRZ": 1,
+        "KorgM1": 2,
+        "KorgMinipops": 4,
+        "KorgT3": 2,
+        "Linn9000": 1,
+        "LinnDrum": 3,
+        "LinnLM1": 1,
+        "LinnLM2": 2,
+        "MFB512": 1,
+        "MPC1000": 4,
+        "OberheimDMX": 1,
+        "RhythmAce": 1,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm78": 2,
+        "RolandCompurhythm8000": 1,
+        "RolandD110": 1,
+        "RolandD70": 1,
+        "RolandJD990": 4,
+        "RolandMC303": 6,
+        "RolandMT32": 1,
+        "RolandR8": 2,
+        "RolandSystem100": 2,
+        "RolandTR505": 1,
+        "RolandTR606": 1,
+        "RolandTR626": 1,
+        "RolandTR707": 1,
+        "RolandTR808": 1,
+        "RolandTR909": 4,
+        "SakataDPM48": 2,
+        "SequentialCircuitsDrumtracks": 1,
+        "SequentialCircuitsTom": 1,
+        "SimmonsSDS5": 5,
+        "SoundmastersR88": 1,
+        "UnivoxMicroRhythmer12": 1,
+        "ViscoSpaceDrum": 6,
+        "XdrumLM8953": 2,
+        "YamahaRM50": 18,
+        "YamahaRX21": 1,
+        "YamahaRX5": 1,
+        "YamahaRY30": 4
+      }
+    },
+    "hihat": {
+      "kind": "hat",
+      "source": "vcsl",
+      "count": 15
+    },
+    "ht": {
+      "kind": "tom",
+      "source": "uzu-drumkit",
+      "count": 1,
+      "banks": {
+        "AJKPercusyn": 1,
+        "AkaiLinn": 1,
+        "AkaiMPC60": 1,
+        "AkaiXR10": 1,
+        "AlesisHR16": 1,
+        "BossDR220": 1,
+        "BossDR550": 3,
+        "CasioRZ1": 1,
+        "CasioSK1": 1,
+        "EmuDrumulator": 1,
+        "EmuSP12": 6,
+        "KorgDDM110": 2,
+        "KorgKR55": 1,
+        "KorgKRZ": 1,
+        "KorgM1": 2,
+        "Linn9000": 2,
+        "LinnDrum": 2,
+        "LinnLM1": 1,
+        "LinnLM2": 1,
+        "MFB512": 1,
+        "OberheimDMX": 1,
+        "RhythmAce": 1,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm8000": 1,
+        "RolandDDR30": 4,
+        "RolandJD990": 1,
+        "RolandMC202": 3,
+        "RolandMC303": 5,
+        "RolandMT32": 1,
+        "RolandR8": 4,
+        "RolandS50": 1,
+        "RolandTR505": 1,
+        "RolandTR606": 1,
+        "RolandTR626": 2,
+        "RolandTR707": 1,
+        "RolandTR808": 5,
+        "RolandTR909": 9,
+        "SakataDPM48": 1,
+        "SequentialCircuitsDrumtracks": 1,
+        "SequentialCircuitsTom": 2,
+        "SimmonsSDS400": 3,
+        "SimmonsSDS5": 3,
+        "ViscoSpaceDrum": 7,
+        "XdrumLM8953": 2,
+        "YamahaRM50": 25,
+        "YamahaRX21": 1,
+        "YamahaRY30": 3,
+        "YamahaTG33": 2
+      }
+    },
+    "kalimba": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 11,
+      "pitched": true
+    },
+    "kalimba2": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 25,
+      "pitched": true
+    },
+    "kalimba3": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 22,
+      "pitched": true
+    },
+    "kalimba4": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 22,
+      "pitched": true
+    },
+    "kalimba5": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 14,
+      "pitched": true
+    },
+    "kawai": {
+      "kind": "keys",
+      "source": "vcsl",
+      "count": 37,
+      "pitched": true
+    },
+    "lt": {
+      "kind": "tom",
+      "source": "uzu-drumkit",
+      "count": 1,
+      "banks": {
+        "AkaiLinn": 1,
+        "AkaiMPC60": 1,
+        "AkaiXR10": 2,
+        "AlesisHR16": 1,
+        "BossDR220": 1,
+        "BossDR550": 3,
+        "CasioRZ1": 1,
+        "DoepferMS404": 1,
+        "EmuDrumulator": 1,
+        "EmuSP12": 6,
+        "KorgDDM110": 2,
+        "KorgKRZ": 1,
+        "Linn9000": 2,
+        "LinnDrum": 2,
+        "LinnLM1": 1,
+        "LinnLM2": 1,
+        "MFB512": 1,
+        "OberheimDMX": 1,
+        "RhythmAce": 1,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm8000": 1,
+        "RolandD110": 1,
+        "RolandD70": 1,
+        "RolandDDR30": 4,
+        "RolandJD990": 5,
+        "RolandMC303": 5,
+        "RolandMT32": 1,
+        "RolandR8": 4,
+        "RolandS50": 2,
+        "RolandTR505": 1,
+        "RolandTR606": 1,
+        "RolandTR626": 2,
+        "RolandTR707": 1,
+        "RolandTR808": 5,
+        "RolandTR909": 9,
+        "SakataDPM48": 2,
+        "SimmonsSDS400": 6,
+        "SimmonsSDS5": 8,
+        "ViscoSpaceDrum": 2,
+        "XdrumLM8953": 2,
+        "YamahaRM50": 49,
+        "YamahaRX21": 1,
+        "YamahaRX5": 1,
+        "YamahaRY30": 3,
+        "YamahaTG33": 2
+      }
+    },
+    "marimba": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 10,
+      "pitched": true
+    },
+    "marktrees": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 6
+    },
+    "misc": {
+      "kind": "perc",
+      "source": "uzu-drumkit",
+      "count": 5,
+      "banks": {
+        "AkaiMPC60": 2,
+        "AkaiXR10": 4,
+        "AlesisSR16": 3,
+        "BossDR550": 3,
+        "EmuModular": 1,
+        "EmuSP12": 7,
+        "KorgKRZ": 1,
+        "KorgM1": 16,
+        "KorgMinipops": 4,
+        "KorgT3": 4,
+        "RhodesPolaris": 4,
+        "RolandCompurhythm78": 4,
+        "RolandJD990": 12,
+        "RolandMC303": 8,
+        "RolandS50": 6,
+        "RolandSystem100": 2,
+        "SergeModular": 1,
+        "ViscoSpaceDrum": 2,
+        "YamahaRM50": 28,
+        "YamahaRY30": 8,
+        "YamahaTG33": 10
+      }
+    },
+    "mridangam_ardha": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 20
+    },
+    "mridangam_chaapu": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 13
+    },
+    "mridangam_dhi": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 7
+    },
+    "mridangam_dhin": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 8
+    },
+    "mridangam_dhum": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 7
+    },
+    "mridangam_gumki": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 14
+    },
+    "mridangam_ka": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 12
+    },
+    "mridangam_ki": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 7
+    },
+    "mridangam_na": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 12
+    },
+    "mridangam_nam": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 8
+    },
+    "mridangam_ta": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 9
+    },
+    "mridangam_tha": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 7
+    },
+    "mridangam_thom": {
+      "kind": "perc",
+      "source": "mridangam",
+      "count": 7
+    },
+    "mt": {
+      "kind": "tom",
+      "source": "uzu-drumkit",
+      "count": 1,
+      "banks": {
+        "AkaiLinn": 1,
+        "AkaiMPC60": 1,
+        "AkaiXR10": 2,
+        "BossDR220": 1,
+        "BossDR550": 2,
+        "CasioRZ1": 1,
+        "CasioSK1": 1,
+        "EmuDrumulator": 1,
+        "EmuSP12": 4,
+        "KorgM1": 1,
+        "Linn9000": 1,
+        "LinnDrum": 1,
+        "LinnLM2": 1,
+        "MFB512": 1,
+        "OberheimDMX": 1,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm8000": 1,
+        "RolandD70": 1,
+        "RolandJD990": 2,
+        "RolandMC303": 6,
+        "RolandMT32": 1,
+        "RolandR8": 4,
+        "RolandS50": 1,
+        "RolandTR505": 1,
+        "RolandTR626": 2,
+        "RolandTR707": 1,
+        "RolandTR808": 5,
+        "RolandTR909": 9,
+        "SakataDPM48": 1,
+        "SimmonsSDS400": 8,
+        "SimmonsSDS5": 6,
+        "ViscoSpaceDrum": 2,
+        "XdrumLM8953": 2,
+        "YamahaRM50": 34,
+        "YamahaRX21": 1,
+        "YamahaRY30": 2,
+        "YamahaTG33": 2
+      }
+    },
+    "ocarina": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 11,
+      "pitched": true
+    },
+    "ocarina_small": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 10,
+      "pitched": true
+    },
+    "ocarina_small_stacc": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 13,
+      "pitched": true
+    },
+    "ocarina_vib": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 10,
+      "pitched": true
+    },
+    "oceandrum": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 3
+    },
+    "oh": {
+      "kind": "openhat",
+      "source": "uzu-drumkit",
+      "count": 4,
+      "banks": {
+        "AkaiLinn": 1,
+        "AkaiMPC60": 1,
+        "AkaiXR10": 1,
+        "AlesisHR16": 1,
+        "AlesisSR16": 4,
+        "BossDR110": 1,
+        "BossDR220": 1,
+        "BossDR550": 2,
+        "CasioSK1": 1,
+        "DoepferMS404": 1,
+        "EmuDrumulator": 1,
+        "EmuSP12": 1,
+        "KorgDDM110": 1,
+        "KorgKPR77": 1,
+        "KorgKR55": 1,
+        "KorgKRZ": 1,
+        "KorgM1": 2,
+        "KorgMinipops": 4,
+        "KorgT3": 2,
+        "Linn9000": 1,
+        "LinnDrum": 1,
+        "LinnLM1": 1,
+        "LinnLM2": 2,
+        "MFB512": 1,
+        "MPC1000": 1,
+        "OberheimDMX": 1,
+        "RhythmAce": 1,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm78": 2,
+        "RolandCompurhythm8000": 1,
+        "RolandD110": 2,
+        "RolandD70": 1,
+        "RolandJD990": 2,
+        "RolandMC303": 5,
+        "RolandMT32": 2,
+        "RolandR8": 1,
+        "RolandS50": 1,
+        "RolandSystem100": 3,
+        "RolandTR505": 1,
+        "RolandTR606": 1,
+        "RolandTR626": 1,
+        "RolandTR707": 1,
+        "RolandTR808": 5,
+        "RolandTR909": 5,
+        "SakataDPM48": 1,
+        "SequentialCircuitsDrumtracks": 1,
+        "SequentialCircuitsTom": 1,
+        "SimmonsSDS5": 2,
+        "SoundmastersR88": 1,
+        "UnivoxMicroRhythmer12": 1,
+        "ViscoSpaceDrum": 3,
+        "XdrumLM8953": 1,
+        "YamahaRM50": 12,
+        "YamahaRX21": 1,
+        "YamahaRX5": 1,
+        "YamahaRY30": 4,
+        "YamahaTG33": 1
+      }
+    },
+    "organ_4inch": {
+      "kind": "organ",
+      "source": "vcsl",
+      "count": 27,
+      "pitched": true
+    },
+    "organ_8inch": {
+      "kind": "organ",
+      "source": "vcsl",
+      "count": 27,
+      "pitched": true
+    },
+    "organ_full": {
+      "kind": "organ",
+      "source": "vcsl",
+      "count": 27,
+      "pitched": true
+    },
+    "perc": {
+      "kind": "perc",
+      "banks": {
+        "AkaiMPC60": 5,
+        "AkaiXR10": 15,
+        "AlesisHR16": 8,
+        "AlesisSR16": 7,
+        "BossDR220": 1,
+        "BossDR550": 11,
+        "EmuDrumulator": 1,
+        "EmuModular": 2,
+        "EmuSP12": 1,
+        "KorgKR55": 2,
+        "KorgM1": 7,
+        "KorgT3": 4,
+        "Linn9000": 3,
+        "LinnDrum": 6,
+        "LinnLM1": 3,
+        "MPC1000": 1,
+        "RhythmAce": 6,
+        "RolandCompurhythm1000": 3,
+        "RolandCompurhythm78": 8,
+        "RolandCompurhythm8000": 2,
+        "RolandD110": 3,
+        "RolandD70": 1,
+        "RolandJD990": 6,
+        "RolandMC202": 1,
+        "RolandMC303": 39,
+        "RolandMT32": 13,
+        "RolandR8": 8,
+        "RolandS50": 14,
+        "RolandSystem100": 19,
+        "RolandTR505": 3,
+        "RolandTR626": 8,
+        "RolandTR727": 10,
+        "RolandTR808": 16,
+        "SakataDPM48": 2,
+        "SergeModular": 5,
+        "ViscoSpaceDrum": 2,
+        "YamahaRM50": 56,
+        "YamahaRY30": 13,
+        "YamahaTG33": 12
+      }
+    },
+    "piano": {
+      "kind": "keys",
+      "source": "piano",
+      "count": 29,
+      "pitched": true
+    },
+    "piano1": {
+      "kind": "keys",
+      "source": "vcsl",
+      "count": 22,
+      "pitched": true
+    },
+    "pink": {
+      "kind": "noise",
+      "source": "superdough"
+    },
+    "pipeorgan_loud": {
+      "kind": "organ",
+      "source": "vcsl",
+      "count": 21,
+      "pitched": true
+    },
+    "pipeorgan_loud_pedal": {
+      "kind": "organ",
+      "source": "vcsl",
+      "count": 11,
+      "pitched": true
+    },
+    "pipeorgan_quiet": {
+      "kind": "organ",
+      "source": "vcsl",
+      "count": 21,
+      "pitched": true
+    },
+    "pipeorgan_quiet_pedal": {
+      "kind": "organ",
+      "source": "vcsl",
+      "count": 11,
+      "pitched": true
+    },
+    "psaltery_bow": {
+      "kind": "strings",
+      "source": "vcsl",
+      "count": 11,
+      "pitched": true
+    },
+    "psaltery_pluck": {
+      "kind": "plucked",
+      "source": "vcsl",
+      "count": 11,
+      "pitched": true
+    },
+    "psaltery_spiccato": {
+      "kind": "strings",
+      "source": "vcsl",
+      "count": 11,
+      "pitched": true
+    },
+    "pulse": {
+      "kind": "synth",
+      "source": "superdough"
+    },
+    "ratchet": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 8
+    },
+    "rd": {
+      "kind": "cymbal",
+      "source": "uzu-drumkit",
+      "count": 1,
+      "banks": {
+        "AkaiLinn": 1,
+        "AkaiMPC60": 1,
+        "AkaiXR10": 1,
+        "AlesisSR16": 3,
+        "BossDR110": 1,
+        "BossDR220": 1,
+        "BossDR550": 2,
+        "CasioRZ1": 2,
+        "EmuSP12": 1,
+        "KorgKRZ": 1,
+        "KorgM1": 1,
+        "Linn9000": 2,
+        "LinnDrum": 1,
+        "LinnLM2": 1,
+        "OberheimDMX": 1,
+        "RolandCompurhythm1000": 1,
+        "RolandD110": 1,
+        "RolandD70": 1,
+        "RolandJD990": 1,
+        "RolandMC303": 2,
+        "RolandMT32": 1,
+        "RolandR8": 2,
+        "RolandS50": 1,
+        "RolandTR505": 1,
+        "RolandTR626": 2,
+        "RolandTR909": 5,
+        "SakataDPM48": 1,
+        "SequentialCircuitsDrumtracks": 1,
+        "XdrumLM8953": 1,
+        "YamahaRM50": 13,
+        "YamahaRY30": 3,
+        "YamahaTG33": 2
+      }
+    },
+    "recorder_alto_stacc": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 12,
+      "pitched": true
+    },
+    "recorder_alto_sus": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 12,
+      "pitched": true
+    },
+    "recorder_alto_vib": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 12,
+      "pitched": true
+    },
+    "recorder_bass_stacc": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 15,
+      "pitched": true
+    },
+    "recorder_bass_sus": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 12,
+      "pitched": true
+    },
+    "recorder_bass_vib": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 14,
+      "pitched": true
+    },
+    "recorder_soprano_stacc": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 12,
+      "pitched": true
+    },
+    "recorder_soprano_sus": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 13,
+      "pitched": true
+    },
+    "recorder_tenor_stacc": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 12,
+      "pitched": true
+    },
+    "recorder_tenor_sus": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 13,
+      "pitched": true
+    },
+    "recorder_tenor_vib": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 14,
+      "pitched": true
+    },
+    "rim": {
+      "kind": "rim",
+      "source": "uzu-drumkit",
+      "count": 2,
+      "banks": {
+        "AkaiMPC60": 1,
+        "AkaiXR10": 2,
+        "AlesisHR16": 1,
+        "AlesisSR16": 1,
+        "BossDR55": 1,
+        "BossDR550": 1,
+        "CasioRZ1": 1,
+        "EmuDrumulator": 1,
+        "EmuSP12": 2,
+        "KorgDDM110": 1,
+        "KorgKR55": 1,
+        "KorgM1": 1,
+        "KorgT3": 1,
+        "Linn9000": 1,
+        "LinnDrum": 3,
+        "LinnLM1": 1,
+        "LinnLM2": 2,
+        "OberheimDMX": 1,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm8000": 1,
+        "RolandD110": 1,
+        "RolandD70": 1,
+        "RolandMC303": 6,
+        "RolandMT32": 1,
+        "RolandR8": 2,
+        "RolandTR505": 1,
+        "RolandTR626": 1,
+        "RolandTR707": 1,
+        "RolandTR808": 1,
+        "RolandTR909": 3,
+        "SakataDPM48": 1,
+        "SequentialCircuitsDrumtracks": 1,
+        "SimmonsSDS5": 7,
+        "ViscoSpaceDrum": 1,
+        "XdrumLM8953": 2,
+        "YamahaRX5": 1,
+        "YamahaRY30": 2,
+        "YamahaTG33": 1
+      }
+    },
+    "saw": {
+      "kind": "synth",
+      "source": "superdough",
+      "aliasOf": "sawtooth"
+    },
+    "sawtooth": {
+      "kind": "synth",
+      "source": "superdough"
+    },
+    "sax": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 23,
+      "pitched": true
+    },
+    "sax_stacc": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 23,
+      "pitched": true
+    },
+    "sax_vib": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 19,
+      "pitched": true
+    },
+    "saxello": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 8,
+      "pitched": true
+    },
+    "saxello_stacc": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 8,
+      "pitched": true
+    },
+    "saxello_vib": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 8,
+      "pitched": true
+    },
+    "sbd": {
+      "kind": "kick",
+      "source": "superdough"
+    },
+    "sd": {
+      "kind": "snare",
+      "source": "uzu-drumkit",
+      "count": 5,
+      "banks": {
+        "AJKPercusyn": 1,
+        "AkaiLinn": 1,
+        "AkaiMPC60": 3,
+        "AkaiXR10": 10,
+        "AlesisHR16": 1,
+        "AlesisSR16": 12,
+        "BossDR110": 1,
+        "BossDR220": 1,
+        "BossDR55": 8,
+        "BossDR550": 6,
+        "CasioRZ1": 1,
+        "CasioSK1": 1,
+        "CasioVL1": 1,
+        "DoepferMS404": 1,
+        "EmuDrumulator": 1,
+        "EmuSP12": 21,
+        "KorgDDM110": 1,
+        "KorgKPR77": 1,
+        "KorgKR55": 1,
+        "KorgKRZ": 2,
+        "KorgM1": 4,
+        "KorgMinipops": 13,
+        "KorgT3": 5,
+        "Linn9000": 1,
+        "LinnDrum": 3,
+        "LinnLM1": 1,
+        "LinnLM2": 4,
+        "MFB512": 1,
+        "MPC1000": 4,
+        "MoogConcertMateMG1": 2,
+        "OberheimDMX": 3,
+        "RhodesPolaris": 4,
+        "RhythmAce": 3,
+        "RolandCompurhythm1000": 1,
+        "RolandCompurhythm78": 1,
+        "RolandCompurhythm8000": 1,
+        "RolandD110": 3,
+        "RolandD70": 5,
+        "RolandDDR30": 8,
+        "RolandJD990": 15,
+        "RolandMC303": 26,
+        "RolandMT32": 2,
+        "RolandR8": 12,
+        "RolandS50": 3,
+        "RolandSystem100": 21,
+        "RolandTR505": 1,
+        "RolandTR606": 1,
+        "RolandTR626": 3,
+        "RolandTR707": 2,
+        "RolandTR808": 25,
+        "RolandTR909": 16,
+        "SakataDPM48": 2,
+        "SequentialCircuitsDrumtracks": 1,
+        "SequentialCircuitsTom": 1,
+        "SimmonsSDS400": 3,
+        "SimmonsSDS5": 21,
+        "SoundmastersR88": 2,
+        "UnivoxMicroRhythmer12": 1,
+        "ViscoSpaceDrum": 3,
+        "XdrumLM8953": 5,
+        "YamahaRM50": 108,
+        "YamahaRX21": 1,
+        "YamahaRX5": 3,
+        "YamahaRY30": 21,
+        "YamahaTG33": 5
+      }
+    },
+    "sh": {
+      "kind": "shaker",
+      "source": "uzu-drumkit",
+      "count": 1,
+      "banks": {
+        "AkaiLinn": 1,
+        "AkaiXR10": 1,
+        "AlesisHR16": 3,
+        "AlesisSR16": 1,
+        "BossDR550": 2,
+        "KorgM1": 1,
+        "KorgT3": 3,
+        "LinnDrum": 1,
+        "LinnLM1": 1,
+        "LinnLM2": 1,
+        "MPC1000": 1,
+        "OberheimDMX": 1,
+        "RolandD110": 1,
+        "RolandD70": 1,
+        "RolandMC303": 7,
+        "RolandMT32": 2,
+        "RolandR8": 2,
+        "RolandS50": 4,
+        "RolandTR626": 1,
+        "RolandTR727": 2,
+        "RolandTR808": 2,
+        "SakataDPM48": 2,
+        "SequentialCircuitsDrumtracks": 1,
+        "YamahaRM50": 6,
+        "YamahaRX5": 1,
+        "YamahaRY30": 2,
+        "YamahaTG33": 1
+      }
+    },
+    "shaker_large": {
+      "kind": "shaker",
+      "source": "vcsl",
+      "count": 6
+    },
+    "shaker_small": {
+      "kind": "shaker",
+      "source": "vcsl",
+      "count": 16
+    },
+    "sin": {
+      "kind": "synth",
+      "source": "superdough",
+      "aliasOf": "sine"
+    },
+    "sine": {
+      "kind": "synth",
+      "source": "superdough"
+    },
+    "siren": {
+      "kind": "fx",
+      "source": "vcsl",
+      "count": 5
+    },
+    "slapstick": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 5
+    },
+    "sleighbells": {
+      "kind": "shaker",
+      "source": "vcsl",
+      "count": 6
+    },
+    "slitdrum": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 6
+    },
+    "snare_hi": {
+      "kind": "snare",
+      "source": "vcsl",
+      "count": 8
+    },
+    "snare_low": {
+      "kind": "snare",
+      "source": "vcsl",
+      "count": 20
+    },
+    "snare_modern": {
+      "kind": "snare",
+      "source": "vcsl",
+      "count": 72
+    },
+    "snare_rim": {
+      "kind": "rim",
+      "source": "vcsl",
+      "count": 4
+    },
+    "sqr": {
+      "kind": "synth",
+      "source": "superdough",
+      "aliasOf": "square"
+    },
+    "square": {
+      "kind": "synth",
+      "source": "superdough"
+    },
+    "steinway": {
+      "kind": "keys",
+      "source": "vcsl",
+      "count": 42,
+      "pitched": true
+    },
+    "strumstick": {
+      "kind": "plucked",
+      "source": "vcsl",
+      "count": 19,
+      "pitched": true
+    },
+    "super64": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 13,
+      "pitched": true
+    },
+    "super64_acc": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 13,
+      "pitched": true
+    },
+    "super64_vib": {
+      "kind": "wind",
+      "source": "vcsl",
+      "count": 13,
+      "pitched": true
+    },
+    "supersaw": {
+      "kind": "synth",
+      "source": "superdough"
+    },
+    "sus_cymbal": {
+      "kind": "cymbal",
+      "source": "vcsl",
+      "count": 25
+    },
+    "sus_cymbal2": {
+      "kind": "cymbal",
+      "source": "vcsl",
+      "count": 23
+    },
+    "tambourine": {
+      "kind": "shaker",
+      "source": "vcsl",
+      "count": 7
+    },
+    "tambourine2": {
+      "kind": "shaker",
+      "source": "vcsl",
+      "count": 7
+    },
+    "tb": {
+      "kind": "shaker",
+      "source": "uzu-drumkit",
+      "count": 1,
+      "banks": {
+        "AkaiLinn": 1,
+        "AkaiXR10": 1,
+        "AlesisSR16": 1,
+        "BossDR550": 1,
+        "KorgM1": 1,
+        "Linn9000": 1,
+        "LinnDrum": 1,
+        "LinnLM1": 1,
+        "LinnLM2": 1,
+        "OberheimDMX": 1,
+        "RolandCompurhythm78": 1,
+        "RolandD110": 1,
+        "RolandJD990": 1,
+        "RolandMC303": 5,
+        "RolandMT32": 1,
+        "RolandR8": 1,
+        "RolandS50": 2,
+        "RolandTR626": 1,
+        "RolandTR707": 1,
+        "SequentialCircuitsDrumtracks": 1,
+        "XdrumLM8953": 1,
+        "YamahaRM50": 3,
+        "YamahaRX5": 1,
+        "YamahaRY30": 1,
+        "YamahaTG33": 1
+      }
+    },
+    "timpani": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 30
+    },
+    "timpani2": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 204
+    },
+    "timpani_roll": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 10
+    },
+    "tom2_mallet": {
+      "kind": "tom",
+      "source": "vcsl",
+      "count": 8
+    },
+    "tom2_rim": {
+      "kind": "tom",
+      "source": "vcsl",
+      "count": 6
+    },
+    "tom2_stick": {
+      "kind": "tom",
+      "source": "vcsl",
+      "count": 8
+    },
+    "tom_mallet": {
+      "kind": "tom",
+      "source": "vcsl",
+      "count": 8
+    },
+    "tom_rim": {
+      "kind": "tom",
+      "source": "vcsl",
+      "count": 6
+    },
+    "tom_stick": {
+      "kind": "tom",
+      "source": "vcsl",
+      "count": 8
+    },
+    "trainwhistle": {
+      "kind": "fx",
+      "source": "vcsl",
+      "count": 6
+    },
+    "tri": {
+      "kind": "synth",
+      "source": "superdough",
+      "aliasOf": "triangle"
+    },
+    "triangle": {
+      "kind": "synth",
+      "source": "superdough"
+    },
+    "triangles": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 37
+    },
+    "tubularbells": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 9,
+      "pitched": true
+    },
+    "tubularbells2": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 11,
+      "pitched": true
+    },
+    "vibraphone": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 11,
+      "pitched": true
+    },
+    "vibraphone_bowed": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 6,
+      "pitched": true
+    },
+    "vibraphone_soft": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 11,
+      "pitched": true
+    },
+    "vibraslap": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 4
+    },
+    "white": {
+      "kind": "noise",
+      "source": "superdough"
+    },
+    "wineglass": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 4,
+      "pitched": true
+    },
+    "wineglass_slow": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 4,
+      "pitched": true
+    },
+    "woodblock": {
+      "kind": "perc",
+      "source": "vcsl",
+      "count": 10
+    },
+    "wt_digital": {
+      "kind": "wavetable",
+      "source": "uzu-wavetables",
+      "count": 5
+    },
+    "wt_digital_bad_day": {
+      "kind": "wavetable",
+      "source": "uzu-wavetables",
+      "count": 1
+    },
+    "wt_digital_basique": {
+      "kind": "wavetable",
+      "source": "uzu-wavetables",
+      "count": 1
+    },
+    "wt_digital_crickets": {
+      "kind": "wavetable",
+      "source": "uzu-wavetables",
+      "count": 1
+    },
+    "wt_digital_curses": {
+      "kind": "wavetable",
+      "source": "uzu-wavetables",
+      "count": 1
+    },
+    "wt_digital_echoes": {
+      "kind": "wavetable",
+      "source": "uzu-wavetables",
+      "count": 1
+    },
+    "wt_vgame": {
+      "kind": "wavetable",
+      "source": "uzu-wavetables",
+      "count": 11
+    },
+    "xylophone_hard_ff": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 8,
+      "pitched": true
+    },
+    "xylophone_hard_pp": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 8,
+      "pitched": true
+    },
+    "xylophone_medium_ff": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 8,
+      "pitched": true
+    },
+    "xylophone_medium_pp": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 8,
+      "pitched": true
+    },
+    "xylophone_soft_ff": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 8,
+      "pitched": true
+    },
+    "xylophone_soft_pp": {
+      "kind": "mallets",
+      "source": "vcsl",
+      "count": 8,
+      "pitched": true
+    },
+    "z_noise": {
+      "kind": "zzfx",
+      "source": "superdough"
+    },
+    "z_sawtooth": {
+      "kind": "zzfx",
+      "source": "superdough"
+    },
+    "z_sine": {
+      "kind": "zzfx",
+      "source": "superdough"
+    },
+    "z_square": {
+      "kind": "zzfx",
+      "source": "superdough"
+    },
+    "z_tan": {
+      "kind": "zzfx",
+      "source": "superdough"
+    },
+    "z_triangle": {
+      "kind": "zzfx",
+      "source": "superdough"
+    },
+    "zzfx": {
+      "kind": "zzfx",
+      "source": "superdough"
+    }
+  }
+}

@@ -1,0 +1,527 @@
+{
+  "snippets": [
+    {
+      "id": "kick-four-on-the-floor",
+      "role": "kick",
+      "title": "Four on the floor",
+      "description": "A kick on every beat: the pulse of house and techno.",
+      "code": "s(\"bd*4\").bank(\"RolandTR909\").gain(0.9)",
+      "tags": [
+        "house",
+        "techno"
+      ],
+      "bpm": 124
+    },
+    {
+      "id": "kick-garage",
+      "role": "kick",
+      "title": "Broken garage kick",
+      "description": "Skip beat 3 and push a kick onto the last 16th of beat 2: the shuffle of UK garage.",
+      "code": "s(\"bd ~ ~ ~ ~ ~ ~ bd ~ ~ bd ~ ~ ~ ~ ~\").bank(\"RolandTR909\").gain(0.85).swingBy(0.1, 8)",
+      "tags": [
+        "garage",
+        "2-step"
+      ],
+      "bpm": 132
+    },
+    {
+      "id": "kick-half-time",
+      "role": "kick",
+      "title": "Half-time kick",
+      "description": "Kicks on 1 and the 'and' of 2 with the snare left for beat 3: the space of trap and half-time dnb.",
+      "code": "s(\"bd ~ ~ ~ ~ ~ bd ~ ~ ~ ~ ~ ~ ~ ~ ~\").bank(\"RolandTR808\").gain(0.9).lpf(2000)",
+      "tags": [
+        "trap",
+        "half-time"
+      ],
+      "bpm": 140
+    },
+    {
+      "id": "kick-two-step-dnb",
+      "role": "kick",
+      "title": "Two-step (dnb)",
+      "description": "Kick on 1 and on the 'and' of 3, snares on 2 and 4 fill the gaps: the drum & bass two-step.",
+      "code": "s(\"bd ~ ~ ~ ~ ~ ~ ~ ~ ~ bd ~ ~ ~ ~ ~\").bank(\"RolandTR909\").gain(0.85)",
+      "tags": [
+        "dnb",
+        "jungle"
+      ],
+      "bpm": 174
+    },
+    {
+      "id": "kick-boom-bap",
+      "role": "kick",
+      "title": "Boom-bap kick",
+      "description": "A lazy hip-hop kick on 8ths, swung so the off-beats drag behind.",
+      "code": "s(\"<[bd ~ ~ bd bd ~ ~ ~] [bd ~ ~ bd ~ bd ~ ~]>\").bank(\"AkaiMPC60\").gain(0.9).lpf(3000).swingBy(0.12, 4)",
+      "tags": [
+        "hip-hop",
+        "lofi"
+      ],
+      "bpm": 88
+    },
+    {
+      "id": "kick-techno-rumble",
+      "role": "kick",
+      "title": "Driving techno kick",
+      "description": "Four on the floor with a little saturation (shape) for weight; keep gain down, shape adds level.",
+      "code": "s(\"bd*4\").bank(\"RolandTR909\").shape(0.3).lpf(5000).gain(0.75)",
+      "tags": [
+        "techno"
+      ],
+      "bpm": 132
+    },
+    {
+      "id": "snare-backbeat-clap",
+      "role": "snare",
+      "title": "Backbeat clap",
+      "description": "Claps on beats 2 and 4, the backbeat almost every groove leans on.",
+      "code": "s(\"~ cp ~ cp\").bank(\"RolandTR909\").gain(0.7)",
+      "tags": [
+        "house",
+        "techno"
+      ]
+    },
+    {
+      "id": "snare-backbeat-808",
+      "role": "snare",
+      "title": "808 backbeat",
+      "description": "Snare on 2 and 4 with a short room, the classic 808 crack.",
+      "code": "s(\"~ sd ~ sd\").bank(\"RolandTR808\").gain(0.7).room(0.2)",
+      "tags": [
+        "hip-hop",
+        "electro"
+      ]
+    },
+    {
+      "id": "snare-ghost-notes",
+      "role": "snare",
+      "title": "Ghost notes",
+      "description": "Quiet extra snares between the backbeat: stack a loud and a soft layer to make it groove.",
+      "code": "stack(s(\"~ sd ~ sd\").gain(0.75), s(\"~ ~ ~ ~ ~ ~ ~ sd ~ sd ~ ~ ~ ~ sd ~\").gain(0.2)).bank(\"RolandTR909\")",
+      "tags": [
+        "funk",
+        "breaks"
+      ]
+    },
+    {
+      "id": "snare-roll",
+      "role": "snare",
+      "title": "Snare roll build",
+      "description": "The last hit splits into 2, 4, then 8 over four bars: a roll that builds into the drop.",
+      "code": "s(\"~ sd ~ <sd [sd sd] [sd sd sd sd] sd*8>\").bank(\"RolandTR909\").gain(0.65)",
+      "tags": [
+        "build",
+        "edm"
+      ]
+    },
+    {
+      "id": "snare-rim-clave",
+      "role": "snare",
+      "title": "Rimshot pattern",
+      "description": "A 3-3-2 rimshot figure (euclid 3 of 8) that adds latin lift without a snare.",
+      "code": "s(\"rim(3,8)\").bank(\"RolandTR808\").gain(0.55)",
+      "tags": [
+        "latin",
+        "minimal"
+      ]
+    },
+    {
+      "id": "hats-eighths",
+      "role": "hats",
+      "title": "Straight 8ths",
+      "description": "Closed hats on every 8th, the on-beats louder than the off-beats.",
+      "code": "s(\"hh*8\").bank(\"RolandTR909\").gain(\"[0.5 0.3]*4\")",
+      "tags": [
+        "house",
+        "rock"
+      ]
+    },
+    {
+      "id": "hats-swung-16ths",
+      "role": "hats",
+      "title": "Swung 16ths",
+      "description": "16th hats with accents, every second one pushed late by swingBy for a human shuffle.",
+      "code": "s(\"hh*16\").bank(\"RolandTR808\").gain(\"[0.45 0.2 0.3 0.2]*4\").swingBy(0.15, 8)",
+      "tags": [
+        "garage",
+        "hip-hop"
+      ]
+    },
+    {
+      "id": "hats-offbeat-open",
+      "role": "hats",
+      "title": "Off-beat open hat",
+      "description": "An open hat between the kicks: the 'tss' of disco and house (cut stops each one at the next).",
+      "code": "s(\"[~ oh]*4\").bank(\"RolandTR909\").gain(0.45).cut(1)",
+      "tags": [
+        "house",
+        "disco"
+      ]
+    },
+    {
+      "id": "hats-shaker",
+      "role": "hats",
+      "title": "Shaker",
+      "description": "A 16th-note shaker with a soft accent pattern, quieter than you think.",
+      "code": "s(\"sh*16\").bank(\"RolandTR808\").gain(\"[0.35 0.15 0.25 0.15]*4\").hpf(4000)",
+      "tags": [
+        "latin",
+        "house"
+      ]
+    },
+    {
+      "id": "hats-trap-rolls",
+      "role": "hats",
+      "title": "Trap hat rolls",
+      "description": "8th hats that sometimes ratchet into triplets and 32nds (ply) for the trap flutter.",
+      "code": "s(\"hh*8\").bank(\"RolandTR808\").gain(0.4).ply(\"<1 [1 1 3 1] 1 [1 1 1 4]>\")",
+      "tags": [
+        "trap"
+      ],
+      "bpm": 140
+    },
+    {
+      "id": "perc-congas",
+      "role": "perc",
+      "title": "Conga groove",
+      "description": "Picks different conga hits with n() so a plain 8th line sounds played.",
+      "code": "s(\"conga*8\").n(\"0 3 1 4 2 5 1 3\").gain(0.5).pan(\"0.4 0.6\")",
+      "tags": [
+        "latin",
+        "house"
+      ]
+    },
+    {
+      "id": "perc-cowbell",
+      "role": "perc",
+      "title": "808 cowbell",
+      "description": "A syncopated cowbell, sparse and quiet: a little goes a long way.",
+      "code": "s(\"~ cb ~ ~ cb ~ cb ~\").bank(\"RolandTR808\").gain(0.3)",
+      "tags": [
+        "electro",
+        "latin"
+      ]
+    },
+    {
+      "id": "perc-tom-fill",
+      "role": "perc",
+      "title": "Tom fill every 4 bars",
+      "description": "Three bars rest, then toms walk down high-mid-low: <...> picks one step per bar.",
+      "code": "s(\"<~ ~ ~ [~ ~ ~ ~ ~ ~ ~ ~ ht ht mt mt lt lt lt lt]>\").bank(\"RolandTR909\").gain(0.6)",
+      "tags": [
+        "fill"
+      ]
+    },
+    {
+      "id": "perc-chopped-break",
+      "role": "perc",
+      "title": "Chopped break",
+      "description": "A breakbeat stretched over 2 bars (loopAt) and cut into 16 slices you can rearrange.",
+      "code": "s(\"brk\").loopAt(2).chop(16).cut(1).gain(0.6)",
+      "tags": [
+        "jungle",
+        "breaks"
+      ],
+      "bpm": 170
+    },
+    {
+      "id": "perc-mridangam",
+      "role": "perc",
+      "title": "Mridangam phrase",
+      "description": "Strokes of the South Indian mridangam, named by their syllables.",
+      "code": "s(\"mridangam_ta [~ mridangam_ki] mridangam_dhin [mridangam_na mridangam_na]\").gain(0.55)",
+      "tags": [
+        "world"
+      ]
+    },
+    {
+      "id": "bass-root-eighths",
+      "role": "bass",
+      "title": "Root 8ths",
+      "description": "The chord root on every 8th, one root per bar: the simplest bass that always works.",
+      "code": "note(\"<a1 f1 c2 g1>*8\").s(\"sawtooth\").lpf(500).decay(0.15).sustain(0.3).gain(0.55)",
+      "tags": [
+        "rock",
+        "pop"
+      ]
+    },
+    {
+      "id": "bass-offbeat-house",
+      "role": "bass",
+      "title": "Off-beat house bass",
+      "description": "Bass only between the kicks, so the two never fight for the low end.",
+      "code": "note(\"[~ <a1 f1 c2 g1>]*4\").s(\"sawtooth\").lpf(700).decay(0.12).sustain(0).gain(0.6)",
+      "tags": [
+        "house"
+      ],
+      "bpm": 124
+    },
+    {
+      "id": "bass-rolling-techno",
+      "role": "bass",
+      "title": "Rolling techno bass",
+      "description": "Three 16ths after every kick with a slowly opening filter: the rolling bass of techno.",
+      "code": "note(\"[~ a1 a1 a1]*4\").s(\"sawtooth\").lpf(sine.range(300, 900).slow(8)).decay(0.08).sustain(0).gain(0.55)",
+      "tags": [
+        "techno"
+      ],
+      "bpm": 132
+    },
+    {
+      "id": "bass-reese",
+      "role": "bass",
+      "title": "Reese",
+      "description": "Detuned stacked saws (supersaw) under a low filter: the growling bass of jungle and dnb.",
+      "code": "note(\"<a1 a1 f1 g1>\").s(\"supersaw\").unison(4).detune(0.3).lpf(600).attack(0.02).release(0.3).gain(0.4)",
+      "tags": [
+        "dnb",
+        "jungle"
+      ],
+      "bpm": 174
+    },
+    {
+      "id": "bass-sub",
+      "role": "bass",
+      "title": "Sub bass",
+      "description": "A pure sine an octave down: felt more than heard, so keep it simple and steady.",
+      "code": "note(\"<a1 f1 c2 g1>\").s(\"sine\").attack(0.01).release(0.2).gain(0.7)",
+      "tags": [
+        "dnb",
+        "dubstep",
+        "trap"
+      ]
+    },
+    {
+      "id": "bass-pluck",
+      "role": "bass",
+      "title": "Plucky synth bass",
+      "description": "A square-wave line with a fast filter envelope (lpenv) for a pluck on every note.",
+      "code": "n(\"0 ~ 0 7 ~ 5 ~ 3\").scale(\"A1:minor\").s(\"square\").lpf(300).lpenv(3).lpdecay(0.12).decay(0.2).sustain(0).gain(0.45)",
+      "tags": [
+        "electro",
+        "synthwave"
+      ]
+    },
+    {
+      "id": "acid-303-line",
+      "role": "acid",
+      "title": "303 line",
+      "description": "A resonant saw (high lpq) whose cutoff sweeps with a slow sine: the classic acid squelch.",
+      "code": "note(\"a1 [a1 a2] a1 c2 a1 [g1 a1] e2 a1\").s(\"sawtooth\").lpf(sine.range(300, 2500).slow(8)).lpq(14).decay(0.15).sustain(0).gain(0.45)",
+      "tags": [
+        "acid",
+        "techno"
+      ],
+      "bpm": 128
+    },
+    {
+      "id": "acid-envelope-squelch",
+      "role": "acid",
+      "title": "Envelope squelch",
+      "description": "Each note opens the filter with its own envelope; accents (louder gain) bite harder.",
+      "code": "note(\"a1*16\").add(note(\"<0 0 3 -2>\")).s(\"sawtooth\").lpf(400).lpq(12).lpenv(4).lpdecay(0.1).decay(0.12).sustain(0).gain(\"[0.5 0.3 0.3 0.4]*4\")",
+      "tags": [
+        "acid"
+      ],
+      "bpm": 130
+    },
+    {
+      "id": "acid-distorted",
+      "role": "acid",
+      "title": "Distorted acid",
+      "description": "Acid through distortion and a dotted delay for the rave version; distort adds level, so gain stays low.",
+      "code": "note(\"a1 a1 a2 a1 c2 a1 e2 g2\").s(\"sawtooth\").lpf(perlin.range(400, 2000)).lpq(16).decay(0.12).sustain(0).distort(0.4).delay(0.25).delaytime(0.1875).gain(0.3)",
+      "tags": [
+        "acid",
+        "rave"
+      ],
+      "bpm": 135
+    },
+    {
+      "id": "pads-house-stabs",
+      "role": "pads",
+      "title": "House stabs",
+      "description": "Short chord hits on the off-beats: chord() names the harmony, struct() places the stabs.",
+      "code": "chord(\"<Am7 Dm7 F^7 Em7>\").struct(\"~ x ~ ~ ~ x ~ x\").voicing().s(\"sawtooth\").lpf(1800).decay(0.18).sustain(0).room(0.3).gain(0.3)",
+      "tags": [
+        "house"
+      ],
+      "bpm": 124
+    },
+    {
+      "id": "pads-lofi-jazz",
+      "role": "pads",
+      "title": "Lo-fi jazz chords",
+      "description": "Extended chords (9ths, 13ths) on a piano, voiced smoothly with voicing(), softened with a low-pass.",
+      "code": "chord(\"<Dm9 G13 C^9 A7b13>\").voicing().s(\"piano\").lpf(2500).room(0.4).gain(0.45)",
+      "tags": [
+        "lofi",
+        "jazz"
+      ],
+      "bpm": 80
+    },
+    {
+      "id": "pads-ambient",
+      "role": "pads",
+      "title": "Ambient pad",
+      "description": "Slow attack and release turn a saw chord into a pad; a big room glues it.",
+      "code": "chord(\"<C^9 Am9 F^9 G6>/2\").voicing().s(\"sawtooth\").attack(1.5).release(2).lpf(1200).room(0.8).roomsize(6).gain(0.2)",
+      "tags": [
+        "ambient"
+      ],
+      "bpm": 70
+    },
+    {
+      "id": "pads-organ",
+      "role": "pads",
+      "title": "Church organ",
+      "description": "A pipe-organ sample playing whole-bar chords: sampled instruments take note() like synths.",
+      "code": "chord(\"<Am F C G>\").voicing().s(\"organ_8inch\").room(0.5).gain(0.35)",
+      "tags": [
+        "gospel",
+        "ambient"
+      ]
+    },
+    {
+      "id": "pads-supersaw",
+      "role": "pads",
+      "title": "Supersaw chords",
+      "description": "Wide detuned chords with a filter that breathes: the trance and synthwave wall of sound.",
+      "code": "chord(\"<Am F C G>\").voicing().s(\"supersaw\").lpf(sine.range(800, 3000).slow(16)).attack(0.05).release(0.4).gain(0.25)",
+      "tags": [
+        "trance",
+        "synthwave"
+      ]
+    },
+    {
+      "id": "arp-scale-up-down",
+      "role": "arp",
+      "title": "Up-down arp",
+      "description": "Scale degrees with n() and scale(): change the scale and the arp follows.",
+      "code": "n(\"0 2 4 7 9 7 4 2\").scale(\"<A3:minor F3:major>\").s(\"triangle\").decay(0.15).sustain(0).delay(0.3).gain(0.4)",
+      "tags": [
+        "trance",
+        "pop"
+      ]
+    },
+    {
+      "id": "arp-chord-arp",
+      "role": "arp",
+      "title": "Chord arpeggio",
+      "description": "arp() steps through the notes of each voiced chord in the order you write.",
+      "code": "chord(\"<Am7 F^7 C^7 G7>\").voicing().arp(\"0 1 2 3 2 1 2 3\").s(\"sawtooth\").lpf(2000).decay(0.12).sustain(0).gain(0.35)",
+      "tags": [
+        "synthwave"
+      ]
+    },
+    {
+      "id": "arp-kalimba",
+      "role": "arp",
+      "title": "Kalimba pentatonic",
+      "description": "A pentatonic scale has no wrong notes: let a line of 8ths and 16ths ripple on a kalimba.",
+      "code": "n(\"0 2 4 [5 7] 4 2 [1 3] 0\").scale(\"C4:major:pentatonic\").s(\"kalimba\").room(0.3).gain(0.5)",
+      "tags": [
+        "ambient",
+        "lofi"
+      ]
+    },
+    {
+      "id": "arp-random-bells",
+      "role": "arp",
+      "title": "Generative bells",
+      "description": "irand picks a new scale degree each step, degradeBy drops some: never the same twice.",
+      "code": "s(\"vibraphone*8\").n(irand(8)).scale(\"D4:dorian\").degradeBy(0.3).room(0.5).gain(0.45)",
+      "tags": [
+        "generative",
+        "ambient"
+      ]
+    },
+    {
+      "id": "lead-square-melody",
+      "role": "lead",
+      "title": "Square-wave melody",
+      "description": "A four-bar tune, one bar per <...> step, on a chiptune-ish square wave.",
+      "code": "note(\"<[e5 ~ d5 c5] [d5 ~ ~ ~] [c5 a4 ~ g4] [a4 ~ ~ ~]>\").s(\"square\").lpf(3000).release(0.1).gain(0.3)",
+      "tags": [
+        "chiptune",
+        "pop"
+      ]
+    },
+    {
+      "id": "lead-supersaw-hook",
+      "role": "lead",
+      "title": "Supersaw hook",
+      "description": "A short hook on a detuned supersaw with delay: the festival lead.",
+      "code": "n(\"<[0 ~ 2 4] [7 ~ 4 ~] [5 4 2 0] [2 ~ ~ ~]>\").scale(\"A4:minor\").s(\"supersaw\").lpf(4000).delay(0.3).room(0.3).gain(0.3)",
+      "tags": [
+        "edm",
+        "trance"
+      ]
+    },
+    {
+      "id": "lead-sax",
+      "role": "lead",
+      "title": "Sax phrase",
+      "description": "A sampled sax playing a blues phrase; the vcsl instruments respond to note() like synths.",
+      "code": "note(\"<[a4 c5 d5 eb5] [e5 ~ ~ ~] [g5 e5 d5 c5] [a4 ~ ~ ~]>\").s(\"sax\").room(0.3).gain(0.5)",
+      "tags": [
+        "jazz",
+        "lofi"
+      ]
+    },
+    {
+      "id": "lead-vibrato",
+      "role": "lead",
+      "title": "Singing vibrato lead",
+      "description": "Long notes with vibrato (vib = rate, vibmod = depth in semitones) so they sing.",
+      "code": "note(\"<e5 [d5 c5] a4 [b4 g4]>\").s(\"triangle\").vib(5).vibmod(0.3).attack(0.05).release(0.3).gain(0.4)",
+      "tags": [
+        "ambient",
+        "pop"
+      ]
+    },
+    {
+      "id": "fx-noise-riser",
+      "role": "fx",
+      "title": "Noise riser",
+      "description": "Noise in 16ths whose high-pass and level climb with a 4-bar saw: the tension before a drop.",
+      "code": "s(\"white*16\").legato(1).hpf(saw.range(300, 8000).slow(4)).gain(saw.range(0.03, 0.3).slow(4))",
+      "tags": [
+        "build",
+        "edm"
+      ]
+    },
+    {
+      "id": "fx-vinyl-crackle",
+      "role": "fx",
+      "title": "Vinyl crackle",
+      "description": "Random clicks (crackle, density = clicks per sample) band-limited like an old record.",
+      "code": "s(\"crackle\").density(0.03).hpf(700).lpf(6000).gain(0.25)",
+      "tags": [
+        "lofi"
+      ]
+    },
+    {
+      "id": "fx-crash-on-one",
+      "role": "fx",
+      "title": "Crash every 4 bars",
+      "description": "A crash on the downbeat of each 4-bar phrase marks the sections.",
+      "code": "s(\"<cr ~ ~ ~>\").bank(\"RolandTR909\").gain(0.4)",
+      "tags": [
+        "arrangement"
+      ]
+    },
+    {
+      "id": "fx-tape-hiss",
+      "role": "fx",
+      "title": "Tape hiss",
+      "description": "Faint filtered pink noise under the mix: texture you notice only when it stops.",
+      "code": "s(\"pink\").hpf(2500).lpf(9000).gain(0.05)",
+      "tags": [
+        "lofi",
+        "ambient"
+      ]
+    }
+  ]
+}

@@ -68,11 +68,11 @@ export const KIND_LABEL: Record<PaletteKind, string> = {
 
 /** Short tags shown on each row */
 export const KIND_TAG: Record<PaletteKind, string> = {
-  action: "do",
+  action: "action",
   song: "song",
   sound: "sound",
   bank: "bank",
-  function: "fn",
+  function: "function",
   snippet: "snippet",
 };
 
@@ -246,10 +246,11 @@ export function functionItems(catalog: FunctionsCatalog, previewable: (code: str
       kind: "function",
       id: fn.name,
       name: fn.name,
-      ...(fn.synonyms.length ? { alts: fn.synonyms } : {}),
+      // an alias's synonyms are its target's: let the target answer to them
+      ...(fn.synonyms.length && !fn.aliasOf ? { alts: fn.synonyms } : {}),
       suffix: fn.kind === "value" ? "" : compactSignature(fn.signatures[0] ?? ""),
       detail: [...notes, summary].join(" · "),
-      weight: KIND_WEIGHT.function,
+      weight: KIND_WEIGHT.function + (fn.aliasOf ? 1 : 0),
       run: { type: "insert", item: { type: "function", name: fn.name, kind: fn.kind, params: fn.params.length } },
       ...(example && previewable(example) ? { play: { type: "code" as const, code: example } } : {}),
     };

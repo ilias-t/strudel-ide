@@ -167,6 +167,20 @@ describe("functions", () => {
     assert.equal(byId(items, "osc").play, undefined);
   });
 
+  test("an alias isn't found by its target's synonyms, and ranks after its target on ties", () => {
+    const withAlias: FunctionsCatalog = {
+      ...functions,
+      functions: [
+        ...functions.functions,
+        { ...functions.functions[0], name: "lp", aliasOf: "lpf", synonyms: ["cutoff", "lpf"] },
+      ],
+    };
+    const items = functionItems(withAlias, () => true);
+    assert.equal(byId(items, "lp").alts, undefined);
+    assert.ok((byId(items, "lp").weight ?? 0) > (byId(items, "lpf").weight ?? 0));
+    assert.match(byId(items, "lp").detail, /^same as lpf/);
+  });
+
   test("with no summary the detail falls back to the category", () => {
     assert.equal(byId(functionItems(functions, () => true), "osc").detail, "Effects & filters");
   });

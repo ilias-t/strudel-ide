@@ -964,6 +964,11 @@ export interface EvalSourceOptions {
   intent: "typing" | "commit";
   /** Who evaluated the text (reported back in currentSource().origin) */
   origin: "browser" | "editor";
+  /**
+   * Cancels this one call: aborted before its compile finishes, nothing is
+   * applied (a superseded result). Other evals of the song are unaffected.
+   */
+  signal?: AbortSignal;
 }
 
 export interface EvalSourceError {
@@ -1041,7 +1046,7 @@ export function evalSource(songId: string, text: string, opts: EvalSourceOptions
   return trackPending(songId, evalSourceNow(songId, text, opts));
 }
 
-async function evalSourceNow(songId: string, text: string, { intent, origin }: EvalSourceOptions): Promise<EvalSourceResult> {
+async function evalSourceNow(songId: string, text: string, { intent, origin, signal }: EvalSourceOptions): Promise<EvalSourceResult> {
   const quiet = intent !== "commit";
   const file = baseSource(songId)?.file ?? songFileOf(songId);
   const fail = (e: EvalSourceError): EvalSourceResult => {
@@ -1056,7 +1061,8 @@ async function evalSourceNow(songId: string, text: string, { intent, origin }: E
 
   const seq = nextSeq(songId);
   const compiled = await compileSource(text, file);
-  if (evalSeq.get(songId) !== seq) return superseded();
+  // a newer eval of this song came first, or the caller gave this one up (no await from here to the swap)
+  if (evalSeq.get(songId) !== seq || signal?.aborted) return superseded();
   if (!hasSong(songId)) return { ok: false, error: { message: `"${songId}" was removed` } };
   if (!compiled.ok) return fail(compiled.error);
 

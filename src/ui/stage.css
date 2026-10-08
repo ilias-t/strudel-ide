@@ -982,8 +982,10 @@ code {
   border-radius: 2px;
   background: linear-gradient(180deg, #efe9dc, #e4ddcd);
   color: #232220;
+  font-family: var(--ui);
   font-size: 12.5px;
   font-stretch: 85%;
+  white-space: nowrap;
   transform: rotate(-1.2deg);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 10px 20px -6px rgba(0, 0, 0, 0.7);
 }

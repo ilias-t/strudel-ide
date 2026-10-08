@@ -1,0 +1,412 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   The command palette (⌘/Ctrl+K): a slim graphite unit lowered over the rig
+   One black-glass screen in a thin powder-coat bezel: the search line, then
+   the results like a sampler's browse list (kind tag, name in mono with the
+   matched letters lit in the room's LED colour, a dim detail, the stage key).
+   The legend is silkscreened on the bezel below. Tokens from stage.css
+   (:root). Flat dim behind, no backdrop-filter. Never sets display on
+   [hidden] elements (stage.css: [hidden] wins).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.palette-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 25; /* above .help-overlay (20), below ask() (30) */
+  display: grid;
+  justify-items: center;
+  align-items: start;
+  padding: max(9vh, 40px) 16px 16px;
+  background: rgba(4, 4, 8, 0.55);
+}
+
+.pal {
+  --pal-lit: var(--led-on);
+  position: relative;
+  width: min(700px, 100%);
+  padding: 7px 7px 0;
+  border-radius: 11px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, var(--coat-hi), var(--coat) 30%, var(--coat-lo));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(0, 0, 0, 0.6),
+    0 34px 70px -20px rgba(0, 0, 0, 0.9),
+    0 8px 18px -6px rgba(0, 0, 0, 0.6);
+  color: var(--silk);
+  font-family: var(--ui);
+  font-stretch: 80%;
+  animation: pal-lower 0.12s ease-out;
+}
+
+/* two screws, in the legend strip's corners */
+.pal > .screw.pal-screw {
+  top: auto;
+  bottom: 11px;
+  left: 9px;
+  right: auto;
+}
+
+.pal > .screw.pal-screw + .screw.pal-screw {
+  left: auto;
+  right: 9px;
+  --r: -40deg;
+}
+
+/* ── the screen ───────────────────────────────────────────────────────────── */
+
+.pal-screen {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.pal-search {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: 50px;
+  padding: 0 14px 0 16px;
+  border-bottom: 1px solid #19191b;
+}
+
+/* the power LED: the screen is live */
+.pal-led {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pal-lit);
+  box-shadow: 0 0 6px var(--pal-lit), 0 0 14px color-mix(in srgb, var(--pal-lit) 45%, transparent);
+}
+
+.pal-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: none;
+  color: var(--px);
+  caret-color: var(--pal-lit);
+  font-family: var(--mono);
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  outline: none;
+}
+
+.pal-input::placeholder {
+  color: var(--px-faint);
+  opacity: 1;
+}
+
+.pal-esc {
+  flex: none;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  background: #141416;
+  color: var(--px-dim);
+  box-shadow: inset 0 0 0 1px #232325;
+}
+
+.pal-scroll {
+  max-height: min(58vh, 470px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 0 6px;
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a2d transparent;
+}
+
+/* ── groups and rows ──────────────────────────────────────────────────────── */
+
+.pal-group + .pal-group {
+  margin-top: 4px;
+}
+
+.pal-group-head {
+  padding: 9px 16px 4px 16px;
+  font-family: var(--ui);
+  font-stretch: 85%;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--px-dim);
+}
+
+.pal-opt {
+  --kind: var(--px-dim);
+  position: relative;
+  display: grid;
+  grid-template-columns: 62px auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  min-height: 30px;
+  padding: 0 14px 0 16px;
+  cursor: pointer;
+  color: var(--px);
+}
+
+.pal-opt[data-kind="action"] { --kind: var(--cream); }
+.pal-opt[data-kind="song"] { --kind: var(--amber); }
+.pal-opt[data-kind="sound"] { --kind: var(--ember-px); }
+.pal-opt[data-kind="bank"] { --kind: var(--rose); }
+.pal-opt[data-kind="function"] { --kind: var(--cobalt-px); }
+.pal-opt[data-kind="snippet"] { --kind: var(--teal); }
+
+/* the kind: a tiny lamp in its colour, and the word */
+.pal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--px-dim);
+  white-space: nowrap;
+}
+
+.pal-tag::before {
+  content: "";
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--kind);
+  opacity: 0.55;
+}
+
+.pal-name {
+  min-width: 0;
+  max-width: 34ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--px);
+}
+
+/* actions, songs and snippet titles are words; sounds, banks and functions are code */
+.pal-opt[data-kind="action"] .pal-name,
+.pal-opt[data-kind="song"] .pal-name,
+.pal-opt[data-kind="snippet"] .pal-name {
+  font-family: var(--ui);
+  font-stretch: 90%;
+  font-size: 13.5px;
+  font-weight: 500;
+  word-spacing: 0.12em;
+}
+
+.pal-name mark {
+  background: none;
+  color: var(--pal-lit);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--pal-lit) 45%, transparent);
+}
+
+.pal-suffix {
+  color: var(--px-dim);
+  font-size: 12px;
+}
+
+.pal-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--ui);
+  font-stretch: 92%;
+  font-size: 12.5px;
+  word-spacing: 0.05em;
+  color: var(--px-dim);
+}
+
+/* the song you're on: a lit amber pip */
+.pal-current {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: var(--amber);
+  box-shadow: 0 0 6px var(--amber);
+}
+
+.pal-hint {
+  justify-self: end;
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 16px;
+  text-align: center;
+  background: #141416;
+  color: var(--px-dim);
+  box-shadow: inset 0 0 0 1px #232325;
+}
+
+/* the active row: a lit edge in the LED colour, the name brighter */
+.pal-opt[aria-selected="true"] {
+  background: #111113;
+  box-shadow: inset 2px 0 0 var(--pal-lit), inset 0 1px 0 #19191b, inset 0 -1px 0 #19191b;
+}
+
+.pal-opt[aria-selected="true"] .pal-tag::before {
+  opacity: 1;
+  box-shadow: 0 0 6px var(--kind);
+}
+
+.pal-opt[aria-selected="true"] .pal-detail {
+  color: #b3aea4;
+}
+
+.pal-opt[aria-selected="true"] .pal-hint {
+  color: var(--px);
+}
+
+/* ── notes: loading, the empty hint, nothing found ────────────────────────── */
+
+.pal-note {
+  display: grid;
+  gap: 3px;
+  padding: 10px 16px 6px 90px;
+  font-family: var(--ui);
+  font-stretch: 88%;
+  font-size: 12px;
+  color: var(--px-dim);
+}
+
+.pal-note-sub {
+  color: var(--px-faint);
+}
+
+.pal-note[data-testid="palette-loading"] .pal-note-main::after {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-left: 8px;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: var(--amber);
+  animation: pal-blink 0.9s steps(2, jump-none) infinite;
+}
+
+.pal-note[data-testid="palette-empty"] {
+  padding-top: 16px;
+  padding-bottom: 14px;
+}
+
+.pal-note[data-testid="palette-empty"] .pal-note-main {
+  color: var(--px);
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+/* ── the legend on the bezel ──────────────────────────────────────────────── */
+
+.pal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 38px;
+  padding: 0 24px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--silk-soft);
+}
+
+.pal-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  min-width: 0;
+}
+
+.pal-key {
+  white-space: nowrap;
+}
+
+.pal-key kbd {
+  padding: 0 5px;
+  margin-right: 2px;
+  font-size: 10.5px;
+  line-height: 15px;
+  background: #19191b;
+  color: var(--silk);
+  box-shadow: 0 1px 0 #0d0d0e;
+}
+
+.pal-key[data-off="true"] {
+  color: var(--silk-faint);
+}
+
+.pal-key[data-off="true"] kbd {
+  color: var(--silk-faint);
+}
+
+.pal-status {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--silk-faint);
+  white-space: nowrap;
+}
+
+@keyframes pal-lower {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pal-blink {
+  to {
+    opacity: 0.15;
+  }
+}
+
+@media (max-width: 640px) {
+  .palette-overlay {
+    padding-top: 16px;
+  }
+  .pal-opt {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "tag name hint" "tag detail hint";
+    padding-top: 5px;
+    padding-bottom: 5px;
+    row-gap: 1px;
+  }
+  .pal-tag {
+    grid-area: tag;
+    font-size: 0;
+    gap: 0;
+  }
+  .pal-name {
+    grid-area: name;
+    max-width: none;
+  }
+  .pal-detail {
+    grid-area: detail;
+  }
+  .pal-hint {
+    grid-area: hint;
+  }
+  .pal-note {
+    padding-left: 16px;
+  }
+  .pal-keys .pal-key:nth-child(n + 4) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pal {
+    animation: none;
+  }
+  .pal-note[data-testid="palette-loading"] .pal-note-main::after {
+    animation: none;
+  }
+}

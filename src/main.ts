@@ -71,7 +71,7 @@ function play() {
   cpm((song.bpm ?? 120) / 4);
 
   // Get pattern and apply visualization (Strudel renders to its own full-page canvas)
-  let pattern = song.createPattern();
+  let pattern = songsModule.toPattern(song.createPattern());
   pattern = applyVisualization(pattern, song.visualization);
   pattern.play();
 

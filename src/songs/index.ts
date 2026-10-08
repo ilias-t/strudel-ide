@@ -32,11 +32,24 @@ export const defaultVisualization: VisualizationConfig = {
 // Song Interface
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Named tracks, e.g. `{ kick, snare, bass }` — the player stacks them (and can mute/solo by name) */
+export type Tracks = Record<string, Pattern>;
+
 export interface Song {
   name: string;
   bpm?: number; // Tempo in beats per minute (default: 120)
   visualization?: VisualizationType | VisualizationConfig; // Visualization config
-  createPattern(): Pattern;
+  /** Return a single Pattern, or named tracks that get stacked together */
+  createPattern(): Pattern | Tracks;
+}
+
+export function isPattern(value: unknown): value is Pattern {
+  return typeof (value as Pattern)?.queryArc === "function";
+}
+
+/** Normalize createPattern()'s result into a single Pattern */
+export function toPattern(result: Pattern | Tracks): Pattern {
+  return isPattern(result) ? result : stack(...Object.values(result));
 }
 
 // Auto-import all song modules (excluding index.ts and _template.ts)

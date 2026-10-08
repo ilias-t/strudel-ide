@@ -121,8 +121,13 @@ for (const file of files) {
     const song = mod.default;
     if (!song || typeof song.createPattern !== "function") throw new Error("default export is not a Song");
     if (!song.name) problems.push("missing name");
-    const pattern = song.createPattern();
-    if (!(pattern instanceof core.Pattern)) throw new Error("createPattern() did not return a Pattern");
+    const result = song.createPattern();
+    const isPattern = (v) => typeof v?.queryArc === "function";
+    let pattern;
+    if (isPattern(result)) pattern = result;
+    else if (result && typeof result === "object" && Object.values(result).length && Object.values(result).every(isPattern))
+      pattern = core.stack(...Object.values(result));
+    else throw new Error("createPattern() must return a Pattern or a record of named Patterns");
 
     const unknown = new Map();
     for (let c = 0; c < cycles; c++) {

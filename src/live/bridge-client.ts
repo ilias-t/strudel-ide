@@ -32,6 +32,14 @@
 //   bridge.sendSongs(songs.map(({ id, song }) => ({ id, name: song.name, file: `src/songs/${id}.ts` })));
 //   // From the highlight collector (≤ 30 Hz, only on change):
 //   bridge.sendHighlight(file, ranges, version);
+//   // Tokens hit since the last frame (≤ 30 Hz, only when non-empty):
+//   bridge.sendOnsets(file, ranges, version);
+//   // Open a file position in the editor (when bridge.editors > 0):
+//   bridge.sendReveal(file, line, column);
+//
+// The server tells the page how many editors are attached (onEditors) and the
+// project root + editor URI scheme (onServerInfo), for vscode://file links
+// when none is.
 //
 // Notes: `file` is relative to the Vite root with "/" separators. Error
 // line/column are 1-based. Commands arrive without a user gesture, so audio can
@@ -40,9 +48,15 @@
 import {
   BRIDGE_PATH,
   isCommand,
+  isEditors,
+  isServerInfo,
   parseMessage,
   type CommandMsg,
+  type EditorsMsg,
   type HighlightMsg,
+  type OnsetsMsg,
+  type RevealMsg,
+  type ServerInfoMsg,
   type SongInfo,
   type SongsMsg,
   type StateMsg,
@@ -52,6 +66,10 @@ export interface BridgeClientOptions {
   onCommand: (cmd: CommandMsg) => void;
   /** Called with true/false whenever the socket opens/closes. */
   onConnectionChange?: (connected: boolean) => void;
+  /** Editors attached to the relay (count 0 while disconnected). */
+  onEditors?: (editors: Omit<EditorsMsg, "type">) => void;
+  /** Project root and fallback editor scheme, on every (re)connect. */
+  onServerInfo?: (info: Omit<ServerInfoMsg, "type">) => void;
   /** Override the bridge URL (default: same host as the page, /__strudel). */
   url?: string;
   /** Force-enable/disable (default: only in Vite dev with WebSocket available). */
@@ -67,7 +85,15 @@ export interface BridgeClient {
   sendState(state: Omit<StateMsg, "type">): void;
   sendSongs(songs: SongInfo[]): void;
   sendHighlight(file: string, ranges: [number, number][], version?: string): void;
+  /** Tokens hit since the last frame. Dropped while disconnected or backed up. */
+  sendOnsets(file: string, ranges: [number, number][], version?: string): void;
+  /** Ask the editor(s) to open file:line:column (1-based). False when not sent. */
+  sendReveal(file: string, line: number, column?: number): boolean;
   readonly connected: boolean;
+  /** Editors attached right now (0 while disconnected) */
+  readonly editors: number;
+  /** Latest server info (kept across disconnects), null before the first */
+  readonly serverInfo: Omit<ServerInfoMsg, "type"> | null;
   close(): void;
 }
 
@@ -78,7 +104,11 @@ const noop: BridgeClient = {
   sendState() {},
   sendSongs() {},
   sendHighlight() {},
+  sendOnsets() {},
+  sendReveal: () => false,
   connected: false,
+  editors: 0,
+  serverInfo: null,
   close() {},
 };
 
@@ -108,6 +138,8 @@ export function connectBridge(options: BridgeClientOptions): BridgeClient {
   let lastState: string | null = null;
   let lastSongs: string | null = null;
   let lastHighlight: string | null = null;
+  let editors = 0;
+  let serverInfo: Omit<ServerInfoMsg, "type"> | null = null;
 
   const isOpen = () => ws !== null && ws.readyState === WebSocket.OPEN;
 
@@ -137,16 +169,26 @@ export function connectBridge(options: BridgeClientOptions): BridgeClient {
     };
     socket.onmessage = (ev) => {
       const msg = parseMessage(ev.data);
-      if (!isCommand(msg)) return;
       try {
-        options.onCommand(msg);
+        if (isCommand(msg)) options.onCommand(msg);
+        else if (isEditors(msg)) {
+          editors = msg.count;
+          options.onEditors?.({ count: msg.count, clients: Array.isArray(msg.clients) ? msg.clients : [] });
+        } else if (isServerInfo(msg)) {
+          serverInfo = { root: msg.root, editorScheme: msg.editorScheme };
+          options.onServerInfo?.(serverInfo);
+        }
       } catch (e) {
-        console.error("[strudel-bridge] command handler failed", e);
+        console.error("[strudel-bridge] message handler failed", e);
       }
     };
     socket.onclose = () => {
       const wasOpen = ws === socket;
       if (wasOpen) ws = null;
+      if (editors !== 0) {
+        editors = 0;
+        options.onEditors?.({ count: 0, clients: [] });
+      }
       if (opened) options.onConnectionChange?.(false);
       if (wasOpen) scheduleReconnect();
     };
@@ -185,8 +227,28 @@ export function connectBridge(options: BridgeClientOptions): BridgeClient {
       lastHighlight = data;
       ws!.send(data);
     },
+    sendOnsets(file, ranges, version) {
+      if (!isOpen() || ranges.length === 0) return;
+      if (ws!.bufferedAmount > HIGHLIGHT_BACKPRESSURE_BYTES) return;
+      const msg: OnsetsMsg = { type: "onsets", file, ranges };
+      if (version !== undefined) msg.version = version;
+      ws!.send(JSON.stringify(msg));
+    },
+    sendReveal(file, line, column) {
+      if (!isOpen()) return false;
+      const msg: RevealMsg = { type: "reveal", file, line };
+      if (column !== undefined) msg.column = column;
+      ws!.send(JSON.stringify(msg));
+      return true;
+    },
     get connected() {
       return isOpen();
+    },
+    get editors() {
+      return editors;
+    },
+    get serverInfo() {
+      return serverInfo;
     },
     close() {
       closed = true;

@@ -13,6 +13,9 @@
 //   setRanges()  the tokens sounding now (createHighlighter, ≤ 30 Hz): outlined
 //   flash()      a hap just started on that token: a short pulse, so "bd*4"
 //                visibly hits four times while staying outlined
+//
+// Clicking a token or line reports its position (onPick), which the stage
+// uses to open that spot in the editor.
 
 import { tokenize, type TokenKind } from "./tokenize";
 import type { Range } from "../live/highlights";
@@ -45,6 +48,8 @@ export interface CodeViewOptions {
   overlay: HTMLElement;
   /** Shown when the user scrolled away; clicking it resumes following */
   followChip: HTMLElement;
+  /** A click on the code (not a text selection): offset into the text, 1-based line/column */
+  onPick?: (pos: { offset: number; line: number; column: number }) => void;
 }
 
 export class CodeView {
@@ -84,6 +89,7 @@ export class CodeView {
       if (/^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End)$/.test(e.key)) stopFollowing();
     });
     o.followChip.addEventListener("click", () => this.setFollowing(true));
+    o.lines.addEventListener("click", (e) => this.pick(e));
 
     new ResizeObserver(() => {
       this.viewportH = o.scroller.clientHeight;
@@ -248,7 +254,41 @@ export class CodeView {
     }
   }
 
+  /** Offset → 1-based line/column (UTF-16 columns, like VS Code) */
+  lineColumnAt(offset: number): { line: number; column: number } {
+    const o = Math.max(0, Math.min(this.text.length, offset));
+    let line = 1;
+    for (let i = this.text.indexOf("\n"); i >= 0 && i < o; i = this.text.indexOf("\n", i + 1)) line++;
+    return { line, column: o - (this.text.lastIndexOf("\n", o - 1) + 1) + 1 };
+  }
+
   // ───────────────────────────────────────────────────────────────────────────
+
+  private pick(e: MouseEvent) {
+    if (!this.o.onPick || e.button !== 0) return;
+    const selection = getSelection();
+    if (selection && !selection.isCollapsed && selection.toString()) return; // selecting text
+    const lineEl = (e.target as Element | null)?.closest?.<HTMLElement>(".ln");
+    if (!lineEl) return;
+    const lineNo = Number(lineEl.dataset.line);
+    // the character under the pointer, else the start of the clicked line
+    let offset = -1;
+    const doc = document as Document & {
+      caretPositionFromPoint?(x: number, y: number): { offsetNode: Node; offset: number } | null;
+    };
+    const caret = doc.caretPositionFromPoint?.(e.clientX, e.clientY);
+    const range = caret ? null : document.caretRangeFromPoint?.(e.clientX, e.clientY);
+    const node = caret?.offsetNode ?? range?.startContainer;
+    const at = caret?.offset ?? range?.startOffset ?? 0;
+    const i = node instanceof Text && lineEl.contains(node) ? this.nodes.indexOf(node) : -1;
+    if (i >= 0) offset = this.nodeStarts[i] + at;
+    else {
+      offset = 0;
+      for (let n = 1; n < lineNo && offset >= 0; n++) offset = this.text.indexOf("\n", offset) + 1;
+      if (offset < 0) return;
+    }
+    this.o.onPick({ offset, ...this.lineColumnAt(offset) });
+  }
 
   private render() {
     const text = this.text;

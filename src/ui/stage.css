@@ -404,6 +404,12 @@ code {
   box-shadow: 0 0 8px #3dffc4;
 }
 
+/* dev server bridge up, no editor attached */
+.editor-link[data-state="bridge"] .link-led {
+  background: #ffb347;
+  box-shadow: 0 0 6px rgba(255, 179, 71, 0.6);
+}
+
 .icon-button {
   width: 30px;
   height: 30px;
@@ -520,6 +526,14 @@ code {
   overflow-wrap: anywhere;
   min-height: calc(var(--code-size) * var(--code-line));
   color: #d9d1f2;
+}
+
+.ln .lt {
+  cursor: pointer; /* click → open this spot in the editor */
+}
+
+.ln:hover::before {
+  color: #8a7bb8;
 }
 
 .ln::before {

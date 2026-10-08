@@ -281,6 +281,7 @@ for (const r of results) {
     let t = 0;
     let pattern = r.pattern;
     const calls = [];
+    const onsetCalls = [];
     const hl = createHighlighter({
       getPattern: () => pattern,
       getTime: () => t,
@@ -288,6 +289,7 @@ for (const r of results) {
       latency: 0,
       stripImplicitLocations: false,
       onRanges: (ranges) => calls.push(ranges),
+      onOnsets: (ranges) => onsetCalls.push(ranges),
     });
     let frames = 0;
     for (t = 0; t < 8; t += 1 / 60) {
@@ -295,6 +297,16 @@ for (const r of results) {
       frames++;
     }
     assert.ok(calls.length > 0, "never emitted");
+    // onsets: never empty, sorted/deduped leaves, and every onset is (also) lit
+    assert.ok(onsetCalls.length > 0, "no onsets");
+    for (const ranges of onsetCalls) {
+      assert.ok(ranges.length > 0, "empty onset frame");
+      for (let i = 0; i < ranges.length; i++) {
+        const [a, b] = ranges[i];
+        assert.ok(r.leaves.has(`${a}:${b}`), `onset ${a}:${b} is not a leaf`);
+        if (i) assert.ok(ranges[i - 1][0] < a || (ranges[i - 1][0] === a && ranges[i - 1][1] < b), "onsets not sorted/deduped");
+      }
+    }
     assert.ok(calls.length < frames, "emitted on every frame (no change detection)");
     for (const ranges of calls) {
       for (let i = 0; i < ranges.length; i++) {
@@ -324,6 +336,40 @@ for (const r of results) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Onsets: a retriggered token is reported on every hit
+// ─────────────────────────────────────────────────────────────────────────────
+
+console.log("onsets");
+check("bd*4 hits four times per cycle", () => {
+  const src = 'export default { createPattern() { return s("bd*4 [~ cp]"); } };';
+  const offset = src.indexOf('"bd*4');
+  const pattern = globalThis.m("bd*4 [~ cp]", offset);
+  const bd = [offset + 1, offset + 3];
+  const cp = [src.indexOf("cp"), src.indexOf("cp") + 2];
+  let t = 0;
+  const onsets = [];
+  const hl = createHighlighter({
+    getPattern: () => pattern,
+    getTime: () => t,
+    latency: 0,
+    stripImplicitLocations: false,
+    onRanges: () => {},
+    onOnsets: (ranges) => onsets.push({ t, ranges }),
+  });
+  for (t = 0; t <= 2 + 1e-9; t += 1 / 60) hl.tick();
+  const bdHits = onsets.filter((o) => o.ranges.some(([a, b]) => a === bd[0] && b === bd[1]));
+  const cpHits = onsets.filter((o) => o.ranges.some(([a, b]) => a === cp[0] && b === cp[1]));
+  // two cycles: 4 + 4 hits, each reported by exactly one tick
+  assert.equal(bdHits.length, 8, `bd hits: ${bdHits.map((o) => o.t.toFixed(3))}`);
+  assert.equal(cpHits.length, 2);
+  // a pause longer than half a cycle doesn't flash a backlog
+  t = 10;
+  const before = onsets.length;
+  hl.tick();
+  assert.equal(onsets.length, before);
+});
 
 console.log(failures ? `\n❌ ${failures} failure(s)` : "\n✅ locations OK");
 process.exit(failures ? 1 : 0);

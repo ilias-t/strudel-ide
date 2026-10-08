@@ -6,30 +6,45 @@
 // server (only that path; Vite's HMR socket and other upgrades are left
 // alone). Protocol: src/live/protocol.ts.
 //
-//   browser ──state/songs/highlight──▶ server ──▶ every editor
-//   editor  ──command───────────────▶ server ──▶ every browser
-//   server  ──player {connected}────▶ editors (on join + whenever the set of
-//                                      browsers goes empty/non-empty)
+//   browser ──state/songs/highlight/onsets/reveal──▶ server ──▶ every editor
+//   editor  ──command──────────────────────────────▶ server ──▶ every browser
+//   server  ──player {connected}──▶ editors  (on join + whenever the set of
+//                                             browsers goes empty/non-empty)
+//   server  ──server {root, editorScheme}──▶ browsers (on join + when the
+//                                             scheme changes)
+//   server  ──editors {count, clients}─────▶ browsers (on join + whenever an
+//                                             editor comes or goes)
+//
+// editorScheme is the URI scheme the browser falls back to for opening files
+// (`cursor://file/…`) when no editor is attached. First match wins:
+//   1. the plugin's `editorScheme` option or the STRUDEL_EDITOR env variable
+//   2. the scheme of the editor that attached most recently
+//   3. Cursor, when detectable (launched from Cursor's terminal, or installed)
+//   4. "vscode"
 //
 // The latest `state`/`songs` per browser are cached and replayed to editors
 // that connect later. The dev server URL is written to DISCOVERY_FILE so the
 // VS Code extension can find it when the port isn't 3000.
 
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import type { IncomingMessage, Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import { dirname, resolve } from "node:path";
+import { homedir } from "node:os";
+import { delimiter, dirname, join, resolve } from "node:path";
 import type { Duplex } from "node:stream";
 import type { Plugin, ViteDevServer } from "vite";
 import { WebSocketServer, type WebSocket } from "ws";
 import {
   BRIDGE_PATH,
   DISCOVERY_FILE,
+  SERVER_ONLY_TYPES,
   isHello,
   parseMessage,
   type DiscoveryInfo,
+  type EditorsMsg,
   type PlayerMsg,
   type Role,
+  type ServerInfoMsg,
 } from "../src/live/protocol.ts";
 
 export interface StrudelBridgeOptions {
@@ -37,6 +52,46 @@ export interface StrudelBridgeOptions {
   discovery?: boolean;
   /** Log connects/disconnects (default true). */
   log?: boolean;
+  /**
+   * URI scheme for the browser's `<scheme>://file/…` fallback links, e.g.
+   * "cursor" or "vscode". Default: STRUDEL_EDITOR, else auto (see above).
+   */
+  editorScheme?: string;
+}
+
+export interface RelayInfo {
+  /** Absolute project root sent to browsers (default: process.cwd()) */
+  root?: string;
+  /** Configured scheme: beats the attached editors' schemes */
+  editorScheme?: string;
+  /** Detected scheme: used when no editor has attached yet (default "vscode") */
+  detectedScheme?: string;
+}
+
+const SCHEME_RE = /^[a-z][a-z0-9+.-]{0,31}$/;
+
+/**
+ * Best guess at the user's editor: Cursor when the dev server was started from
+ * Cursor's terminal or Cursor is installed, else VS Code.
+ */
+export function detectEditorScheme(
+  env: NodeJS.ProcessEnv = process.env,
+  exists: (path: string) => boolean = existsSync,
+  platform: NodeJS.Platform = process.platform,
+): string {
+  const launchedFrom = [env.__CFBundleIdentifier, env.VSCODE_GIT_ASKPASS_MAIN, env.VSCODE_IPC_HOOK_CLI, env.TERM_PROGRAM_VERSION]
+    .filter(Boolean)
+    .join(" ");
+  if (env.CURSOR_TRACE_ID || /cursor|todesktop/i.test(launchedFrom)) return "cursor";
+  if (/com\.microsoft\.VSCodeInsiders|insiders/i.test(launchedFrom)) return "vscode-insiders";
+  if (/com\.microsoft\.VSCode|visual studio code/i.test(launchedFrom)) return "vscode";
+  const candidates =
+    platform === "darwin"
+      ? ["/Applications/Cursor.app", join(homedir(), "Applications", "Cursor.app")]
+      : platform === "win32"
+        ? [join(env.LOCALAPPDATA ?? "", "Programs", "cursor", "Cursor.exe")]
+        : (env.PATH ?? "").split(delimiter).filter(Boolean).map((dir) => join(dir, "cursor"));
+  return candidates.some((p) => exists(p)) ? "cursor" : "vscode";
 }
 
 interface BrowserCache {
@@ -70,11 +125,15 @@ function originAllowed(req: IncomingMessage): boolean {
   }
 }
 
-export function createBridgeRelay(log: (msg: string) => void = () => {}): BridgeRelay {
+export function createBridgeRelay(log: (msg: string) => void = () => {}, info: RelayInfo = {}): BridgeRelay {
   const wss = new WebSocketServer({ noServer: true, maxPayload: MAX_PAYLOAD });
   const roles = new Map<WebSocket, Role>();
   const caches = new Map<WebSocket, BrowserCache>();
+  /** editors' hello client names */
+  const clients = new Map<WebSocket, string>();
   let touch = 0;
+  let lastEditorScheme: string | undefined;
+  const root = info.root ?? process.cwd();
 
   const browsers = () => [...roles].filter(([, r]) => r === "browser").map(([ws]) => ws);
   const editors = () => [...roles].filter(([, r]) => r === "editor").map(([ws]) => ws);
@@ -84,6 +143,19 @@ export function createBridgeRelay(log: (msg: string) => void = () => {}): Bridge
   };
   const playerMsg = () =>
     JSON.stringify({ type: "player", connected: browsers().length > 0 } satisfies PlayerMsg);
+  const editorScheme = () => info.editorScheme ?? lastEditorScheme ?? info.detectedScheme ?? "vscode";
+  const serverMsg = () => JSON.stringify({ type: "server", root, editorScheme: editorScheme() } satisfies ServerInfoMsg);
+  const editorsMsg = () => {
+    const list = editors();
+    return JSON.stringify({
+      type: "editors",
+      count: list.length,
+      clients: list.map((ws) => clients.get(ws) ?? "editor"),
+    } satisfies EditorsMsg);
+  };
+  const toBrowsers = (data: string) => {
+    for (const b of browsers()) send(b, data);
+  };
 
   function latestCache(): BrowserCache | undefined {
     let best: BrowserCache | undefined;
@@ -94,18 +166,25 @@ export function createBridgeRelay(log: (msg: string) => void = () => {}): Bridge
     return best;
   }
 
-  function onHello(ws: WebSocket, role: Role, client?: string) {
+  function onHello(ws: WebSocket, role: Role, client?: string, scheme?: string) {
     const hadBrowsers = browsers().length > 0;
     roles.set(ws, role);
     log(`${role} connected${client ? ` (${client})` : ""}`);
     if (role === "browser") {
       caches.set(ws, { touched: ++touch });
       if (!hadBrowsers) for (const e of editors()) send(e, playerMsg());
+      send(ws, serverMsg());
+      send(ws, editorsMsg());
     } else {
+      clients.set(ws, typeof client === "string" ? client.slice(0, 64) : "editor");
       send(ws, playerMsg());
       const cache = latestCache();
       if (cache?.songs) send(ws, cache.songs);
       if (cache?.state) send(ws, cache.state);
+      const before = editorScheme();
+      if (typeof scheme === "string" && SCHEME_RE.test(scheme)) lastEditorScheme = scheme;
+      if (editorScheme() !== before) toBrowsers(serverMsg());
+      toBrowsers(editorsMsg());
     }
   }
 
@@ -114,10 +193,10 @@ export function createBridgeRelay(log: (msg: string) => void = () => {}): Bridge
     const msg = parseMessage(raw);
     if (!msg) return;
     if (!role) {
-      if (isHello(msg)) onHello(ws, msg.role, msg.client);
+      if (isHello(msg)) onHello(ws, msg.role, msg.client, msg.scheme);
       return; // anything before hello is dropped
     }
-    if (msg.type === "hello" || msg.type === "player") return;
+    if (msg.type === "hello" || SERVER_ONLY_TYPES.includes(msg.type)) return;
 
     if (role === "browser") {
       const cache = caches.get(ws);
@@ -127,7 +206,7 @@ export function createBridgeRelay(log: (msg: string) => void = () => {}): Bridge
       }
       for (const e of editors()) send(e, raw);
     } else {
-      for (const b of browsers()) send(b, raw);
+      toBrowsers(raw);
     }
   }
 
@@ -135,11 +214,13 @@ export function createBridgeRelay(log: (msg: string) => void = () => {}): Bridge
     const role = roles.get(ws);
     roles.delete(ws);
     caches.delete(ws);
+    clients.delete(ws);
     if (!role) return;
     log(`${role} disconnected`);
     if (role === "browser" && browsers().length === 0) {
       for (const e of editors()) send(e, playerMsg());
     }
+    if (role === "editor") toBrowsers(editorsMsg());
   }
 
   wss.on("connection", (ws: WebSocket) => {
@@ -212,6 +293,9 @@ function discoveryInfo(server: ViteDevServer, address: AddressInfo): DiscoveryIn
 
 export default function strudelBridge(options: StrudelBridgeOptions = {}): Plugin {
   const { discovery = true, log: shouldLog = true } = options;
+  const configuredScheme = [options.editorScheme, process.env.STRUDEL_EDITOR]
+    .map((s) => s?.trim().toLowerCase())
+    .find((s) => !!s && SCHEME_RE.test(s));
   return {
     name: "strudel-bridge",
     apply: "serve",
@@ -221,7 +305,11 @@ export default function strudelBridge(options: StrudelBridgeOptions = {}): Plugi
       const log = (msg: string) => {
         if (shouldLog) server.config.logger.info(`[strudel-bridge] ${msg}`, { timestamp: true });
       };
-      const relay = createBridgeRelay(log);
+      const relay = createBridgeRelay(log, {
+        root: server.config.root,
+        editorScheme: configuredScheme,
+        detectedScheme: configuredScheme ? undefined : detectEditorScheme(),
+      });
       const detach = relay.attach(httpServer);
       const discoveryPath = resolve(server.config.root, DISCOVERY_FILE);
       let wrotePort: number | null = null;

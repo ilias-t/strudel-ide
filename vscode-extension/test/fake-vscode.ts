@@ -47,7 +47,10 @@ export class ThemeColor {
   }
 }
 
+export class Selection extends Range {}
+
 export const DiagnosticSeverity = { Error: 0, Warning: 1, Information: 2, Hint: 3 };
+export const TextEditorRevealType = { Default: 0, InCenter: 1, InCenterIfOutsideViewport: 2, AtTop: 3 };
 export const StatusBarAlignment = { Left: 1, Right: 2 };
 export const DecorationRangeBehavior = { OpenOpen: 0, ClosedClosed: 1, OpenClosed: 2, ClosedOpen: 3 };
 
@@ -124,10 +127,18 @@ export class FakeDocument {
   }
 }
 
+export interface FakeDecorationType {
+  key: string;
+  opts: Record<string, unknown>;
+  dispose(): void;
+}
+
 export class FakeEditor {
   document: FakeDocument;
+  viewColumn = 1;
   decorations = new Map<unknown, Range[]>();
   setDecorationsCalls = 0;
+  revealed: Range[] = [];
   constructor(document: FakeDocument) {
     this.document = document;
   }
@@ -135,7 +146,21 @@ export class FakeEditor {
     this.setDecorationsCalls++;
     this.decorations.set(type, ranges);
   }
+  revealRange(range: Range) {
+    this.revealed.push(range);
+  }
+  /** Ranges of the decoration type whose options match `pick` ([] when never set) */
+  decorationsOf(pick: (opts: Record<string, unknown>) => boolean): Range[] {
+    const type = decorationTypes.find((t) => pick(t.opts));
+    return (type && this.decorations.get(type)) ?? [];
+  }
 }
+
+/** Every decoration type the extension created, in order */
+export const decorationTypes: FakeDecorationType[] = [];
+export const isHighlight = (o: Record<string, unknown>) => o.outlineStyle === "solid";
+export const isPulse = (o: Record<string, unknown>) => (o.backgroundColor as ThemeColor)?.id === "strudel.pulseBackground";
+export const isDim = (o: Record<string, unknown>) => o.opacity !== undefined;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Namespaces
@@ -145,6 +170,7 @@ export const recorded = {
   log: [] as string[],
   messages: [] as { level: string; text: string }[],
   opened: [] as string[],
+  shown: [] as { path: string; selection?: Range; preserveFocus?: boolean }[],
   context: new Map<string, unknown>(),
   terminals: [] as { name: string; sent: string[] }[],
 };
@@ -169,14 +195,23 @@ export const window = {
   quickPickAnswer: undefined as ((items: any[]) => any) | undefined,
   createOutputChannel: () => ({ appendLine: (s: string) => recorded.log.push(s), dispose() {} }),
   createStatusBarItem: () => statusItem,
-  createTextEditorDecorationType: (opts: unknown) => ({ key: "strudel-highlight", opts, dispose() {} }),
+  createTextEditorDecorationType: (opts: Record<string, unknown>) => {
+    const type: FakeDecorationType = { key: `strudel-deco-${decorationTypes.length}`, opts, dispose() {} };
+    decorationTypes.push(type);
+    return type;
+  },
   onDidChangeActiveTextEditor: activeEditorChanged.event,
   onDidChangeVisibleTextEditors: visibleEditorsChanged.event,
   showWarningMessage: async (text: string) => void recorded.messages.push({ level: "warning", text }),
   showInformationMessage: async (text: string) => void recorded.messages.push({ level: "info", text }),
   showErrorMessage: async (text: string) => void recorded.messages.push({ level: "error", text }),
   showQuickPick: async (items: any[]) => window.quickPickAnswer?.(items),
-  showTextDocument: async () => undefined,
+  showTextDocument: async (doc: FakeDocument, opts: { selection?: Range; preserveFocus?: boolean } = {}) => {
+    recorded.shown.push({ path: doc.uri.fsPath, selection: opts.selection, preserveFocus: opts.preserveFocus });
+    const ed = window.visibleTextEditors.find((e) => e.document === doc) ?? new FakeEditor(doc);
+    window.activeTextEditor = ed;
+    return ed;
+  },
   createTerminal: (o: { name: string }) => {
     const t = { name: o.name, sent: [] as string[], show() {}, sendText: (s: string) => t.sent.push(s) };
     recorded.terminals.push(t);
@@ -252,6 +287,9 @@ export const commands = {
 };
 
 export const env = {
+  appName: "Cursor",
+  uriScheme: "cursor",
+  appRoot: undefined as string | undefined,
   openExternal: async (uri: { toString(): string }) => {
     recorded.opened.push(uri.toString());
     return true;

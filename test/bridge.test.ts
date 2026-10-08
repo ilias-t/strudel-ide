@@ -13,9 +13,9 @@ import { join, resolve } from "node:path";
 import { after, before, describe, test } from "node:test";
 import { createServer, loadConfigFromFile, type ViteDevServer } from "vite";
 import WebSocket from "ws";
-import strudelBridge, { createBridgeRelay } from "../vite-plugins/strudel-bridge.ts";
-import { connectBridge, type BridgeClient } from "../src/live/bridge-client.ts";
-import { DISCOVERY_FILE, type CommandMsg, type DiscoveryInfo } from "../src/live/protocol.ts";
+import strudelBridge, { createBridgeRelay, detectEditorScheme } from "../vite-plugins/strudel-bridge.ts";
+import { connectBridge, type BridgeClient, type BridgeClientOptions } from "../src/live/bridge-client.ts";
+import { DISCOVERY_FILE, editorFileUrl, type CommandMsg, type DiscoveryInfo } from "../src/live/protocol.ts";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 
@@ -46,10 +46,10 @@ class Peer {
     });
   }
 
-  static async editor(url: string): Promise<Peer> {
+  static async editor(url: string, hello: object = {}): Promise<Peer> {
     const p = new Peer(url);
     await p.opened;
-    p.send({ type: "hello", role: "editor", client: "test" });
+    p.send({ type: "hello", role: "editor", client: "test", ...hello });
     return p;
   }
 
@@ -125,18 +125,20 @@ describe("strudel-bridge on a Vite dev server", () => {
   const browsers: BridgeClient[] = [];
   const peers: Peer[] = [];
 
-  const editor = async () => {
-    const p = await Peer.editor(bridgeUrl);
+  const editor = async (hello: object = {}) => {
+    const p = await Peer.editor(bridgeUrl, hello);
     peers.push(p);
     return p;
   };
-  const browser = (onCommand: (c: CommandMsg) => void = () => {}) => {
-    const b = connectBridge({ url: bridgeUrl, enabled: true, onCommand, minDelay: 50 });
+  const browser = (onCommand: (c: CommandMsg) => void = () => {}, more: Partial<BridgeClientOptions> = {}) => {
+    const b = connectBridge({ url: bridgeUrl, enabled: true, onCommand, minDelay: 50, ...more });
     browsers.push(b);
     return b;
   };
 
   before(async () => {
+    // the shared server's scheme comes from the editors / detection, not the env
+    delete process.env.STRUDEL_EDITOR;
     root = mkdtempSync(join(tmpdir(), "strudel-bridge-"));
     writeFileSync(join(root, "index.html"), `<script type="module" src="/main.js"></script>`);
     writeFileSync(join(root, "main.js"), `console.log("hi")`);
@@ -238,10 +240,76 @@ describe("strudel-bridge on a Vite dev server", () => {
     rogue.send({ type: "hello", role: "browser" });
     assert.deepEqual(await ed.next(), { type: "player", connected: true });
     rogue.ws.send("{broken");
-    rogue.send({ type: "player", connected: false }); // browsers can't spoof server messages
+    // browsers can't spoof server messages
+    rogue.send({ type: "player", connected: false });
+    rogue.send({ type: "editors", count: 7, clients: [] });
+    rogue.send({ type: "server", root: "/evil", editorScheme: "evil" });
     assert.ok(await ed.silent());
+    // …and neither can editors
+    const rogueSaw: string[] = [];
+    rogue.ws.on("message", (d) => rogueSaw.push(JSON.parse(d.toString()).type));
+    ed.send({ type: "editors", count: 7, clients: [] });
+    ed.send({ type: "server", root: "/evil", editorScheme: "evil" });
+    ed.send({ type: "player", connected: false });
+    await new Promise((r) => setTimeout(r, 100));
+    assert.deepEqual(rogueSaw, []);
     rogue.close();
     assert.deepEqual(await ed.next(), { type: "player", connected: false });
+  });
+
+  test("tells browsers about attached editors and the project root; relays onsets and reveal", async () => {
+    for (const p of peers.splice(0)) p.close(); // earlier tests' editors
+    await new Promise((r) => setTimeout(r, 100));
+    const seen: { count: number; clients: string[] }[] = [];
+    const infos: { root: string; editorScheme: string }[] = [];
+    const player = browser(() => {}, {
+      onEditors: (e) => seen.push(e),
+      onServerInfo: (i) => infos.push(i),
+    });
+    // on hello: server info, then the editor count (none yet)
+    await until(() => seen.length === 1 && infos.length === 1);
+    assert.deepEqual(seen[0], { count: 0, clients: [] });
+    assert.equal(infos[0].root, server.config.root);
+    assert.match(infos[0].editorScheme, /^(vscode|cursor|vscode-insiders)$/);
+    assert.equal(player.editors, 0);
+
+    // an editor attaches with its URI scheme: new count + new fallback scheme
+    const cursor = await editor({ client: "strudel-live (Cursor)", scheme: "cursor" });
+    await until(() => seen.length === 2);
+    assert.deepEqual(seen[1], { count: 1, clients: ["strudel-live (Cursor)"] });
+    assert.equal(player.editors, 1);
+    await until(() => player.serverInfo?.editorScheme === "cursor");
+    // a second editor with a junk scheme doesn't change it
+    const second = await editor({ scheme: "not a scheme!" });
+    await until(() => seen.at(-1)!.count === 2);
+    assert.deepEqual(seen.at(-1)!.clients, ["strudel-live (Cursor)", "test"]);
+    assert.equal(player.serverInfo?.editorScheme, "cursor");
+
+    for (const ed of [cursor, second]) {
+      await until(() => ed.queue.length > 0);
+      ed.queue.length = 0; // player presence (+ cached state)
+    }
+    // onsets + reveal reach every editor; empty onset frames are not sent
+    player.sendOnsets("src/songs/jynx.ts", [[3, 5]], "v1");
+    player.sendOnsets("src/songs/jynx.ts", []);
+    assert.equal(player.sendReveal("src/songs/jynx.ts", 12, 7), true);
+    for (const ed of [cursor, second]) {
+      assert.deepEqual(await ed.next(), { type: "onsets", file: "src/songs/jynx.ts", ranges: [[3, 5]], version: "v1" });
+      assert.deepEqual(await ed.next(), { type: "reveal", file: "src/songs/jynx.ts", line: 12, column: 7 });
+      assert.ok(await ed.silent(50));
+    }
+
+    // editors leave → browsers are told
+    second.close();
+    await until(() => seen.at(-1)!.count === 1);
+    cursor.close();
+    await until(() => seen.at(-1)!.count === 0 && player.editors === 0);
+    // the scheme sticks after the editor left (it's the user's editor)
+    const late = browser();
+    await until(() => late.serverInfo !== null);
+    assert.equal(late.serverInfo!.editorScheme, "cursor");
+    player.close();
+    late.close();
   });
 
   test("rejects cross-site browser origins", async () => {
@@ -388,4 +456,54 @@ test("vite.config.ts registers strudel-bridge", async () => {
   );
   const names = (loaded?.config.plugins ?? []).flat().map((p) => (p as { name?: string })?.name);
   assert.ok(names.includes("strudel-bridge"), `plugins: ${names.join(", ")}`);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Editor scheme + file links
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("editor scheme", () => {
+  const none = () => false;
+  test("detects Cursor from its terminal or installation, else VS Code", () => {
+    assert.equal(detectEditorScheme({ CURSOR_TRACE_ID: "x" }, none, "darwin"), "cursor");
+    assert.equal(
+      detectEditorScheme(
+        { VSCODE_GIT_ASKPASS_MAIN: "/Applications/Cursor.app/Contents/Resources/app/extensions/git/dist/askpass-main.js" },
+        none,
+        "darwin",
+      ),
+      "cursor",
+    );
+    assert.equal(detectEditorScheme({ __CFBundleIdentifier: "com.microsoft.VSCode" }, none, "darwin"), "vscode");
+    assert.equal(detectEditorScheme({ __CFBundleIdentifier: "com.microsoft.VSCodeInsiders" }, none, "darwin"), "vscode-insiders");
+    assert.equal(detectEditorScheme({}, (p) => p === "/Applications/Cursor.app", "darwin"), "cursor");
+    assert.equal(detectEditorScheme({ PATH: "/usr/bin:/opt/cursor/bin" }, (p) => p === "/opt/cursor/bin/cursor", "linux"), "cursor");
+    assert.equal(detectEditorScheme({ PATH: "/usr/bin" }, none, "linux"), "vscode");
+  });
+
+  test("a configured scheme beats the editors' schemes", async () => {
+    const http: Server = createHttpServer();
+    await new Promise<void>((res) => http.listen(0, "127.0.0.1", res));
+    const url = `ws://127.0.0.1:${(http.address() as AddressInfo).port}/__strudel`;
+    const relay = createBridgeRelay(() => {}, { root: "/proj", editorScheme: "vscode-insiders", detectedScheme: "cursor" });
+    const detach = relay.attach(http);
+    const ed = await Peer.editor(url, { scheme: "cursor" });
+    const b = connectBridge({ url, enabled: true, onCommand: () => {} });
+    await until(() => b.serverInfo !== null && b.editors === 1);
+    assert.deepEqual(b.serverInfo, { root: "/proj", editorScheme: "vscode-insiders" });
+    b.close();
+    ed.close();
+    detach();
+    relay.close();
+    await new Promise<void>((res) => http.close(() => res()));
+  });
+
+  test("editorFileUrl", () => {
+    assert.equal(
+      editorFileUrl("cursor", "/Users/me/strudel", "src/songs/jynx.ts", 12, 7),
+      "cursor://file/Users/me/strudel/src/songs/jynx.ts:12:7",
+    );
+    assert.equal(editorFileUrl("vscode", "/a b/c/", "src/x.ts", 3), "vscode://file/a%20b/c/src/x.ts:3");
+    assert.equal(editorFileUrl("vscode", "C:\\dev\\strudel", "src/x.ts", 1, 2), "vscode://file/C:/dev/strudel/src/x.ts:1:2");
+  });
 });

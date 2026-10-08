@@ -1,15 +1,18 @@
 // Editor-side live state, driven by bridge messages (pure, no vscode).
 // `handle()` returns what changed so the UI layer only redraws what it must.
 
-import type {
-  BridgeMessage,
-  CommandMsg,
-  HighlightMsg,
-  PlayerError,
-  SongInfo,
-  StateMsg,
+import {
+  isReveal,
+  type BridgeMessage,
+  type CommandMsg,
+  type HighlightMsg,
+  type PlayerError,
+  type RevealMsg,
+  type SongInfo,
+  type StateMsg,
 } from "../../src/live/protocol.ts";
 import { songIdFromPath } from "./paths.ts";
+import { Pulses } from "./pulses.ts";
 
 export type BridgeStatus = "connecting" | "connected" | "offline";
 
@@ -18,14 +21,31 @@ export interface Changes {
   status: boolean;
   /** error diagnostics */
   error: boolean;
-  /** CodeLens (playing song changed) */
+  /** CodeLens (playing song or mix changed) */
   lens: boolean;
+  /** mixer state (tracks / mute / solo / current song): lenses + dimming */
+  mix: boolean;
   /** files whose highlights changed */
   highlights: Set<string>;
+  /** files whose hit pulses changed */
+  pulses: Set<string>;
+  /** the player asked to open a file position */
+  reveal: RevealMsg | null;
 }
 
-const none = (): Changes => ({ status: false, error: false, lens: false, highlights: new Set() });
+const none = (): Changes => ({
+  status: false,
+  error: false,
+  lens: false,
+  mix: false,
+  highlights: new Set(),
+  pulses: new Set(),
+  reveal: null,
+});
 
+function mixKey(s: StateMsg | null): string {
+  return s ? JSON.stringify([s.file, s.songId, s.tracks ?? null, s.muted ?? [], s.soloed ?? []]) : "";
+}
 function errorKey(e: PlayerError | null | undefined): string {
   return e ? JSON.stringify([e.message, e.file, e.line, e.column]) : "";
 }
@@ -38,6 +58,7 @@ export class LiveModel {
   stateAt = 0;
   songs: SongInfo[] = [];
   readonly highlights = new Map<string, HighlightMsg>();
+  readonly pulses = new Pulses();
 
   setBridge(status: BridgeStatus): Changes {
     if (status === this.bridge) return none();
@@ -64,7 +85,8 @@ export class LiveModel {
         const ch = none();
         ch.status = true;
         ch.error = errorKey(prev?.error) !== errorKey(msg.error);
-        ch.lens = prev?.playing !== msg.playing || prev?.file !== msg.file;
+        ch.mix = mixKey(prev) !== mixKey(msg);
+        ch.lens = prev?.playing !== msg.playing || prev?.file !== msg.file || ch.mix;
         if (!msg.playing) this.clearHighlights(ch);
         return ch;
       }
@@ -84,6 +106,16 @@ export class LiveModel {
           this.highlights.set(msg.file, msg);
           ch.highlights.add(msg.file);
         }
+        return ch;
+      }
+      case "onsets": {
+        const ch = none();
+        if (this.playing && this.pulses.add(msg.file, msg.ranges, msg.version, now)) ch.pulses.add(msg.file);
+        return ch;
+      }
+      case "reveal": {
+        const ch = none();
+        if (isReveal(msg) && msg.line >= 1) ch.reveal = msg;
         return ch;
       }
       default:
@@ -107,9 +139,17 @@ export class LiveModel {
     return s.file === file || (s.file === null && s.songId === this.songIdFor(file));
   }
 
+  /** Tracks of the current song when it's `file` (mixer lenses/dimming), else null */
+  tracksOf(file: string): { tracks: string[]; muted: string[]; soloed: string[] } | null {
+    const s = this.state;
+    if (!s || !this.player || !Array.isArray(s.tracks) || !this.isCurrent(file)) return null;
+    return { tracks: s.tracks, muted: s.muted ?? [], soloed: s.soloed ?? [] };
+  }
+
   private clearHighlights(ch: Changes) {
     for (const f of this.highlights.keys()) ch.highlights.add(f);
     this.highlights.clear();
+    for (const f of this.pulses.clear()) ch.pulses.add(f);
   }
 
   private reset(): Changes {
@@ -117,6 +157,7 @@ export class LiveModel {
     this.player = false;
     ch.error = !!this.state?.error;
     ch.lens = !!this.state;
+    ch.mix = !!this.state;
     this.state = null;
     this.clearHighlights(ch);
     return ch;

@@ -7,6 +7,7 @@
 //   const hl = createHighlighter({
 //     ...fromScheduler(repl.scheduler),
 //     onRanges: (ranges) => send({ type: "highlight", file, version, ranges }),
+//     onOnsets: (ranges) => send({ type: "onsets", file, version, ranges }),
 //   });
 //   hl.start();            // once; it emits [] whenever nothing is playing
 //
@@ -32,6 +33,13 @@ export interface HighlighterOptions {
   latency?: number | (() => number);
   /** Called with sorted, deduped [start, end) offsets — only when they change */
   onRanges(ranges: Range[]): void;
+  /**
+   * Optional: called once per tick with the (sorted, deduped) ranges of the
+   * notes that *started* since the previous tick, only when there are any.
+   * "bd*4" stays in onRanges across its hits but shows up here on every hit.
+   * Muted haps and backlogs after a pause (> half a cycle) are skipped.
+   */
+  onOnsets?(ranges: Range[]): void;
   /** Max update rate, default 30 */
   maxFps?: number;
   /**
@@ -124,7 +132,7 @@ const NO_HAPS: readonly any[] = [];
 const num = (x: any): number => (typeof x === "number" ? x : x.valueOf());
 
 export function createHighlighter(options: HighlighterOptions): Highlighter {
-  const { getPattern, getTime, getCps, onRanges, latency = audioOutputLatency } = options;
+  const { getPattern, getTime, getCps, onRanges, onOnsets, latency = audioOutputLatency } = options;
   const interval = 1000 / (options.maxFps ?? 30);
   if (options.stripImplicitLocations !== false && !stripImplicitLocations()) {
     console.warn("[highlights] strudel globals missing — create the highlighter after initStrudel()");
@@ -138,6 +146,8 @@ export function createHighlighter(options: HighlighterOptions): Highlighter {
   // the new file/version even when the offsets happen to be identical
   let lastPattern: Pattern | null | undefined = null;
   let timer: ReturnType<typeof setInterval> | undefined;
+  /** audible time of the previous tick (onsets are read from there on), -1 = none */
+  let onsetFrom = -1;
 
   const emit = (len: number) => {
     const ranges: Range[] = new Array(len);
@@ -154,11 +164,13 @@ export function createHighlighter(options: HighlighterOptions): Highlighter {
     let len = 0;
     const pattern = getPattern();
     if (pattern && pattern !== lastPattern) lastLen = -1;
+    if (!pattern) onsetFrom = -1;
     lastPattern = pattern;
     if (pattern) {
       const cps = getCps?.() ?? 0.5;
       const lat = typeof latency === "function" ? latency() : latency;
       const t = getTime() - lat * cps;
+      if (onOnsets) onsets(pattern, t);
       let haps: readonly any[] = NO_HAPS;
       if (t >= 0) {
         try {
@@ -206,6 +218,34 @@ export function createHighlighter(options: HighlighterOptions): Highlighter {
       if (same) return;
     }
     emit(len);
+  };
+
+  /** Ranges of the haps that started in [onsetFrom, t) */
+  const onsets = (pattern: Pattern, t: number) => {
+    const from = onsetFrom;
+    onsetFrom = t;
+    // first tick, time went backwards, or a long gap (tab was hidden): no backlog
+    if (from < 0 || t <= from || t - from > 0.5) return;
+    let haps: readonly any[];
+    try {
+      haps = pattern.queryArc(from, t);
+    } catch {
+      return;
+    }
+    let packed: number[] | null = null;
+    for (const hap of haps) {
+      const locs = hap.context?.locations;
+      if (!locs?.length || !hap.whole || hap.context.muted || !hap.hasOnset?.()) continue;
+      for (const loc of locs) (packed ??= []).push(loc.start * PACK + loc.end);
+    }
+    if (!packed) return;
+    packed.sort((a, b) => a - b);
+    const ranges: Range[] = [];
+    for (let i = 0; i < packed.length; i++) {
+      if (i && packed[i] === packed[i - 1]) continue;
+      ranges.push([Math.floor(packed[i] / PACK), packed[i] % PACK]);
+    }
+    onOnsets!(ranges);
   };
 
   return {

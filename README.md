@@ -15,6 +15,15 @@ npm run dev
 2. Click **Play**
 3. Edit songs in `src/songs/` — changes hot reload automatically
 
+## Editor integration (VS Code / Cursor)
+
+`vscode-extension/` contains an extension that connects your editor to the
+running player. It outlines the tokens that are playing, shows the song and bar
+in the status bar, plays and stops with Ctrl/Cmd+Enter and Ctrl+., and shows
+player errors as diagnostics. To build it, run `npm run ext:package` and
+install `vscode-extension/strudel-live.vsix`. See
+[vscode-extension/README.md](vscode-extension/README.md).
+
 ## Adding Songs
 
 1. Copy `src/songs/_template.ts` to a new file (e.g., `my-song.ts`)

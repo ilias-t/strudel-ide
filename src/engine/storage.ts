@@ -1,6 +1,7 @@
 // localStorage that never throws (private mode, blocked storage, …)
 
-const PREFIX = "strudel-ide:";
+/** Every key this app stores starts with this */
+export const PREFIX = "strudel-ide:";
 
 export const KEYS = {
   song: "song",
@@ -8,6 +9,8 @@ export const KEYS = {
   codeView: "code-view",
   mix: (songId: string) => `mix:${songId}`,
   knobs: (songId: string) => `knobs:${songId}`,
+  /** A song saved in the browser: a user song, or an override of a built-in (src/songs-store) */
+  mySong: (songId: string) => `my-song:${songId}`,
 };
 
 export function readStorage(key: string): string | null {

@@ -61,6 +61,8 @@ const VIZ = {
   fscope: null, _fscope: null, wordfall: null,
 };
 const MUTED_RE = /^_|_$/;
+/** Source links longer than this go at the end of the file, not in the header */
+const LONG_SOURCE = 120;
 
 /** Does the app have knob()? (declared in some src/*.d.ts) */
 export function knobAvailable() {
@@ -200,20 +202,20 @@ export function importCode(code, opts = {}) {
     return ts.isIdentifier(callee) && FUNCTION_KEEP.has(callee.text);
   };
 
-  const sliderName = (call, valueText) => {
-    // `/* cutoff */ slider(…)` (as `npm run export` writes knobs) names it
+  // A knob name for a slider: the comment right before it (export writes
+  // `/* name */ slider(…)`), the const it initialises, or the method it feeds
+  const sliderName = (call) => {
     const before = code.slice(0, call.getStart(sf));
     const m = before.match(/\/\*\s*([^*]+?)\s*\*\/\s*$/);
     let base = m?.[1];
-    if (!base) {
-      const parent = call.parent;
-      if (ts.isCallExpression(parent)) {
-        const callee = parent.expression;
-        base = ts.isPropertyAccessExpression(callee) ? callee.name.text : ts.isIdentifier(callee) ? callee.text : undefined;
-      }
+    if (m) ms.remove(before.length - m[0].length, call.getStart(sf)); // the name moves into knob()
+    const parent = call.parent;
+    if (!base && ts.isVariableDeclaration(parent) && ts.isIdentifier(parent.name)) base = parent.name.text;
+    if (!base && ts.isCallExpression(parent)) {
+      const callee = parent.expression;
+      base = ts.isPropertyAccessExpression(callee) ? callee.name.text : ts.isIdentifier(callee) ? callee.text : undefined;
     }
     base ??= "slider";
-    void valueText;
     let n = base;
     for (let i = 2; knobNames.has(n); i++) n = `${base} ${i}`;
     knobNames.add(n);
@@ -508,7 +510,7 @@ export function importCode(code, opts = {}) {
     const bar = "// " + "═".repeat(75);
     const lines = [bar, `// 🎵 ${name.toUpperCase()} — imported from strudel.cc`, bar, "//"];
     const src = opts.source ?? "(pasted code)";
-    lines.push(`// Source: ${src}`);
+    lines.push(src.length > LONG_SOURCE ? `// Source: ${src.slice(0, 48)}… (the full link is at the end of this file)` : `// Source: ${src}`);
     if (meta.by) lines.push(`// By: ${meta.by}`);
     if (meta.license) lines.push(`// License: ${meta.license}`);
     lines.push("//", "// Converted by `npm run import` (scripts/strudel-cc/import.mjs). Notes:");
@@ -600,10 +602,54 @@ export function importCode(code, opts = {}) {
   // 3. anything else gets `// @ts-expect-error TODO(…)`
   const virtual = join(root, "src/songs", `__strudel_cc_import_${id.replace(/[^\w]/g, "_")}.ts`);
   const disabled = new Map();
-  const UNKNOWN = new Set([2304, 2552, 2339, 2551, 2349]);
+  // unknown names (2304/2552), and methods missing on patterns or strings
+  // (2339/2551): what strudel.cc has and Strudel IDE doesn't
+  const isUnknownApi = (d) =>
+    d.code === 2304 || d.code === 2552 || ((d.code === 2339 || d.code === 2551) && /on type '(Pattern|string|")/.test(d.message));
+  // what each code item declares and mentions, so commenting one out also
+  // comments out its users (else `m(74)` would quietly hit the global m)
+  const declaredBy = (s) => {
+    const out = new Set();
+    const add = (b) => (ts.isIdentifier(b) ? out.add(b.text) : b.elements?.forEach((e) => !ts.isOmittedExpression(e) && add(e.name)));
+    if (ts.isVariableStatement(s)) s.declarationList.declarations.forEach((d) => add(d.name));
+    else if ((ts.isFunctionDeclaration(s) || ts.isClassDeclaration(s)) && s.name) out.add(s.name.text);
+    return out;
+  };
+  const mentions = (s) => {
+    const out = new Set();
+    const v = (n) => {
+      const p = n.parent;
+      if (ts.isIdentifier(n) && !(ts.isPropertyAccessExpression(p) && p.name === n) && !(ts.isPropertyAssignment(p) && p.name === n) && !(ts.isLabeledStatement(p) && p.label === n)) out.add(n.text);
+      ts.forEachChild(n, v);
+    };
+    v(s);
+    return out;
+  };
+  const itemDecls = items.map((it) => (it.kind === "code" && it.stmt ? declaredBy(it.stmt) : new Set()));
+  const itemUses = items.map((it) => (it.stmt && it.kind !== "comment" ? mentions(it.stmt) : new Set()));
+  const propagate = () => {
+    let changed = false;
+    for (let again = true; again; ) {
+      again = false;
+      items.forEach((it, i) => {
+        if (it.kind === "comment" || it.disabled || disabled.has(i)) return;
+        for (const [j, other] of items.entries()) {
+          if (!(other.disabled || disabled.has(j))) continue;
+          const name = [...itemDecls[j]].find((n) => itemUses[i].has(n) && !itemDecls[i].has(n));
+          if (name) {
+            disabled.set(i, `uses \`${name}\`, which is commented out above`);
+            again = changed = true;
+            return;
+          }
+        }
+      });
+    }
+    return changed;
+  };
+  propagate();
   let rendered = render(disabled);
   for (let round = 0; round < 25; round++) {
-    const diags = songDiagnostics(virtual, rendered.text).filter((d) => UNKNOWN.has(d.code));
+    const diags = songDiagnostics(virtual, rendered.text).filter(isUnknownApi);
     if (!diags.length) break;
     let changed = false;
     for (const d of diags) {
@@ -611,10 +657,11 @@ export function importCode(code, opts = {}) {
       if (!r) continue;
       const idx = r[2];
       if (items[idx].kind === "comment" || disabled.has(idx)) continue;
-      disabled.set(idx, d.message.replace(/\.$/, "") + (d.code === 2304 || d.code === 2339 || d.code === 2551 || d.code === 2552 ? " in Strudel IDE (a strudel.cc-only function?)" : ""));
+      disabled.set(idx, d.message.replace(/\.$/, "") + " in Strudel IDE (a strudel.cc-only function?)");
       changed = true;
     }
     if (!changed) break;
+    propagate();
     rendered = render(disabled);
   }
   for (const [idx, why] of disabled) {
@@ -627,6 +674,8 @@ export function importCode(code, opts = {}) {
   out = expectErrors(out, virtual, note);
   // the notes may have grown: re-render the header
   out = out.replace(/^[\s\S]*?\n\/\/ ═+\n(?=\n)/, header([]) + "\n");
+
+  if (opts.source && opts.source.length > LONG_SOURCE) out += `\n// Source (strudel.cc share link):\n// ${opts.source}\n`;
 
   return { ts: out, id, name, warnings };
 }
@@ -731,7 +780,8 @@ async function main(argv) {
   if (only.length) console.error(`⚠️  strudel.cc-only sounds (not loaded by Strudel IDE): ${only.join(", ")}`);
   console.error(`✅ ${result.name} → src/songs/${result.id}.ts`);
   const check = spawnSync(process.execPath, [join(root, "scripts/check-songs.mjs"), result.id], { encoding: "utf8" });
-  process.stderr.write(check.stdout + check.stderr);
+  process.stderr.write((check.stdout + check.stderr).split("\n").filter((l) => !/@strudel\/core loaded|cannot use window/.test(l)).join("\n"));
+  console.log(`src/songs/${result.id}.ts`); // stdout: the file, for tools
   if (check.status !== 0) {
     console.error("⚠️  check-songs reported problems (above). The file is written; fix the TODOs by hand.");
     process.exit(2);

@@ -26,6 +26,7 @@ const DRAW_METHODS = [
 ];
 
 let ready;
+let installKnobs = () => {};
 
 /**
  * Drawing methods are no-ops in Node. Re-applied before every use: importing
@@ -63,10 +64,14 @@ function setupOnce() {
     for (const fn of ["samples", "initStrudel", "aliasBank", "soundAlias"]) {
       globalThis[fn] ??= async () => {};
     }
-    // knob(name, value, min, max, step?): the app's live control. In Node it is
-    // the constant it starts at (one event per cycle), like src/engine/knobs.ts
-    // installs for check-songs. Only defined here if nothing else did.
-    globalThis.knob ??= (_name, value) => core.pure(value);
+    // knob(name, value, min, max, step?): the app's live control. In Node it
+    // plays its default, installed exactly as scripts/check-songs.mjs does
+    try {
+      const { KnobRegistry, installKnobGlobals } = await import("../../src/engine/knobs.ts");
+      installKnobs = () => installKnobGlobals(new KnobRegistry(), core.pure);
+    } catch {
+      installKnobs = () => (globalThis.knob = (_name, value) => core.pure(value));
+    }
   })();
   return ready;
 }
@@ -141,6 +146,9 @@ let importCounter = 0;
 /** Import a song module (a .ts file; Node strips the types) fresh, not cached. */
 export async function loadSong(file) {
   await setupGlobals();
+  // a fresh knob registry per song: knobs are per song, and a registry hands an
+  // existing name its current value (another song's "swing" would leak in)
+  installKnobs();
   const mod = await import(`${pathToFileURL(file).href}?v=${++importCounter}`);
   const song = mod.default;
   if (!song || typeof song.createPattern !== "function") throw new Error(`${file}: default export is not a Song`);

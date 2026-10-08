@@ -122,6 +122,32 @@ for (const fx of fixtures) {
   report(`import ${fx}`, problems, detail);
 }
 
+// ─── what can't be converted still makes a song that loads ───────────────
+if (only.length === 0) {
+  const problems = [];
+  const snippet = [
+    "setcpm(30)",
+    "await initHydra() // hydra visuals: strudel.cc only",
+    "$: s(\"bd*4\").midi() // MIDI out: strudel.cc only",
+    "$: s(\"hh*8\").gain(.4)",
+    "const m = midin('IAC Driver')",
+    "keys: note(\"c3\").s(\"piano\").lpf(m(74).range(200, 2000))",
+  ].join("\n");
+  try {
+    const { ts } = importCode(snippet, { id: "unconvertible" });
+    const song = await checkImported("unconvertible", ts, problems);
+    const tracks = Object.keys(song.createPattern());
+    if (tracks.join() !== "hh") problems.push(`expected only the hh track to survive, got ${tracks.join(", ")}`);
+    const todos = ts.match(/TODO\(strudel\.cc import\)/g)?.length ?? 0;
+    if (todos < 4) problems.push(`expected a TODO per unconvertible statement, found ${todos}`);
+    if (song.bpm !== 120) problems.push(`bpm ${song.bpm}, expected 120`);
+    if (verbose) console.log(ts.replace(/^/gm, "   | "));
+  } catch (e) {
+    problems.push(`threw: ${e?.stack ?? e}`);
+  }
+  report("import of strudel.cc-only APIs: commented out with TODOs, still loads", problems);
+}
+
 // check-songs on the imported fixtures, run as is on a scratch copy of the
 // project layout (scripts/check-songs.mjs + src/songs/<id>.ts + node_modules),
 // so nothing appears in src/songs (where a running dev server would see it)
@@ -132,6 +158,7 @@ if (fixtures.length) {
   mkdirSync(join(scratch, "src/songs"), { recursive: true });
   copyFileSync(join(root, "scripts/check-songs.mjs"), join(scratch, "scripts/check-songs.mjs"));
   symlinkSync(join(root, "node_modules"), join(scratch, "node_modules"), "dir");
+  symlinkSync(join(root, "src/engine"), join(scratch, "src/engine"), "dir"); // check-songs imports knobs.ts
   try {
     for (const fx of fixtures) {
       const code = readFileSync(join(fixturesDir, `${fx}.js`), "utf8");

@@ -231,6 +231,7 @@ export async function exportSong(songArg) {
   let tracks = [];
   let fallback = false;
   let singlePattern = null;
+  let tracksExpr = null;
   if (simpleReturn && returnExpr) {
     const ret = skipOuter(returnExpr);
     if (ts.isObjectLiteralExpression(ret) && ret.properties.every((p) => (ts.isShorthandPropertyAssignment(p) || ts.isPropertyAssignment(p)) && !ts.isComputedPropertyName(p.name))) {
@@ -242,7 +243,9 @@ export async function exportSong(songArg) {
     } else if (!runtimeTracks) {
       singlePattern = ret;
     } else {
-      fallback = true;
+      // e.g. `return mixdown({ kick, … })` or `return tracks`: keep the
+      // expression, then one label per track it produced
+      tracksExpr = ret;
     }
   } else {
     fallback = true;
@@ -500,18 +503,27 @@ export async function exportSong(songArg) {
   const bodyIndent = bodyStatements.length ? lineIndent(text, bodyStatements[0].getStart(sf)) : "";
   const labelLines = [];
   const labelFor = (t, exprText) => `${t.label}: ${exprText}`;
+  const freshName = (base) => {
+    let n = base;
+    for (let i = 2; bodyNames.has(n) || topSymbols.has(n); i++) n = `${base}${i}`;
+    return n;
+  };
+  /** one label per runtime track name: `kick: tracks.kick` */
+  const labelsFrom = (obj) => {
+    for (const name of runtimeTracks) {
+      const ok = isPlainLabel(name);
+      if (!ok) warn(`track "${name}" can't be a strudel.cc label: exported as "$:"`);
+      labelLines.push(`${ok ? name : "$"}: ${obj}${/^[A-Za-z_$][\w$]*$/.test(name) ? `.${name}` : `[${singleQuote(name)}]`}`);
+    }
+  };
 
   if (fallback) {
-    warn("createPattern() doesn't end in `return { …tracks }`: wrapped it in a function");
+    warn("createPattern() returns from more than one place: wrapped it in a function");
+    const obj = freshName("tracks");
     const fnText = isBlockBody ? ms.slice(cpFn.body.getStart(sf), cpFn.body.end) : `{ return ${ms.slice(cpFn.body.getStart(sf), cpFn.body.end)} }`;
-    out.push("", `const tracks = (() => ${dedent(fnText, bodyIndent.slice(2))})()`, "");
-    if (runtimeTracks) {
-      for (const name of runtimeTracks) {
-        const ok = isPlainLabel(name);
-        if (!ok) warn(`track "${name}" can't be a strudel.cc label: exported as "$:"`);
-        labelLines.push(`${ok ? name : "$"}: tracks${/^[A-Za-z_$][\w$]*$/.test(name) ? `.${name}` : `[${singleQuote(name)}]`}`);
-      }
-    } else labelLines.push(`$: tracks`);
+    out.push("", `const ${obj} = (() => ${dedent(fnText, bodyIndent.slice(2))})()`, "");
+    if (runtimeTracks) labelsFrom(obj);
+    else labelLines.push(`$: ${obj}`);
   } else {
     const bodyChunks = [];
     for (const s of bodyStatements) {
@@ -532,6 +544,14 @@ export async function exportSong(songArg) {
     }
     if (singlePattern) {
       labelLines.push(`$: ${dedent(ms.slice(singlePattern.getStart(sf), singlePattern.end), bodyIndent)}`);
+    }
+    if (tracksExpr) {
+      let obj = ts.isIdentifier(tracksExpr) ? tracksExpr.text : null;
+      if (!obj) {
+        obj = freshName("tracks");
+        labelLines.push(`const ${obj} = ${dedent(ms.slice(tracksExpr.getStart(sf), tracksExpr.end), bodyIndent)}`, "");
+      }
+      labelsFrom(obj);
     }
     for (const t of tracks) {
       if (t.inline) continue;
@@ -627,10 +647,17 @@ async function main(argv) {
   };
   const positional = args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--out");
   if (!positional.length || flag("--help")) {
-    console.error("Usage: npm run export -- <song-id | file.ts> [--url] [--out file.js]");
+    console.error("Usage: npm run export -- <song-id | file.ts> [--url] [--out file.js] [--json]");
     process.exit(positional.length ? 0 : 1);
   }
   const { code, warnings, name } = await exportSong(positional[0]);
+  if (flag("--json")) {
+    // for tools (a stage button, an editor command): everything in one object
+    const url = codeToUrl(code);
+    if (urlToCode(url) !== code) throw new Error("share link doesn't round-trip (bug)");
+    console.log(JSON.stringify({ name, code, url, warnings }));
+    return;
+  }
   for (const w of warnings) console.error(`⚠️  ${w}`);
   const outFile = value("--out");
   if (outFile) {

@@ -29,18 +29,32 @@ export function ambientFiles() {
  * @param {string} file absolute path of the song (it need not exist when `text` is given)
  * @param {string} [text] in-memory contents for `file`
  */
+// Parsed declaration/lib files, shared by every program this process makes
+// (the Strudel declarations alone are ~12k lines; parsing them once matters
+// when an import type-checks a song several times over)
+const parsed = new Map();
+let previous;
+
 export function createSongProgram(file, text) {
   file = resolve(file);
   const opts = compilerOptions();
   const host = ts.createCompilerHost(opts, true);
+  const { getSourceFile, fileExists, readFile } = host;
+  host.getSourceFile = (name, lang, ...rest) => {
+    if (resolve(name) === file) {
+      return text !== undefined ? ts.createSourceFile(name, text, lang, true) : getSourceFile.call(host, name, lang, ...rest);
+    }
+    if (!name.endsWith(".d.ts")) return getSourceFile.call(host, name, lang, ...rest);
+    let sf = parsed.get(name);
+    if (!sf) parsed.set(name, (sf = getSourceFile.call(host, name, lang, ...rest)));
+    return sf;
+  };
   if (text !== undefined) {
-    const { getSourceFile, fileExists, readFile } = host;
-    host.getSourceFile = (name, lang, ...rest) =>
-      resolve(name) === file ? ts.createSourceFile(name, text, lang, true) : getSourceFile.call(host, name, lang, ...rest);
     host.fileExists = (name) => resolve(name) === file || fileExists.call(host, name);
     host.readFile = (name) => (resolve(name) === file ? text : readFile.call(host, name));
   }
-  const program = ts.createProgram({ rootNames: [file, ...ambientFiles()], options: opts, host });
+  const program = ts.createProgram({ rootNames: [file, ...ambientFiles()], options: opts, host, oldProgram: previous });
+  previous = program;
   return { program, checker: program.getTypeChecker(), sourceFile: program.getSourceFile(file) };
 }
 

@@ -3,6 +3,8 @@ import strudelBridge from "./vite-plugins/strudel-bridge";
 
 export default defineConfig({
   plugins: [strudelBridge()],
+  // main.ts uses top-level await (audio engine + samples load before the UI)
+  build: { target: "es2022", chunkSizeWarningLimit: 1500 },
   server: {
     port: 3000,
     open: !process.env.CI && !process.env.NO_OPEN,

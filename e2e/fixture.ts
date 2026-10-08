@@ -16,7 +16,7 @@
 //
 // No dependencies on Playwright: serve.ts runs this under plain Node.
 
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -125,6 +125,31 @@ export default song;
 `;
 }
 
+/**
+ * Minimum time between two writes of the fixture. Vite's file watcher
+ * (chokidar 3, bundled with Vite 5) throttles `change` events per path: a
+ * change within 50 ms of the previous one is dropped, not delayed, so Vite
+ * never sends an HMR update for it and the page keeps the previous version
+ * for good. The 50 ms start when the watcher emits the previous change, a
+ * little after that write, hence the margin. Nobody saves a file twice that
+ * fast by hand, but a test that writes, waits for a quick round trip (a
+ * build error is reported without a swap) and writes again easily does.
+ */
+const MIN_WRITE_INTERVAL_MS = 100;
+
+/** Block until the fixture's last write (by anyone: tests, serve.ts, knob write-back) is MIN_WRITE_INTERVAL_MS old. */
+function waitForWatcher() {
+  let mtimeMs: number;
+  try {
+    mtimeMs = statSync(FIXTURE_PATH).mtimeMs;
+  } catch {
+    return; // not there yet
+  }
+  const wait = Math.ceil(mtimeMs + MIN_WRITE_INTERVAL_MS - Date.now());
+  // Synchronous on purpose: writeFixture() is sync at every call site.
+  if (wait > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, wait);
+}
+
 /** Write the fixture and return its source. */
 export function writeFixture(options: FixtureOptions = {}): string {
   const source = fixtureSource(options);
@@ -136,7 +161,10 @@ export function writeFixture(options: FixtureOptions = {}): string {
   } catch {
     // not there yet
   }
-  if (current !== source) writeFileSync(FIXTURE_PATH, source);
+  if (current !== source) {
+    waitForWatcher();
+    writeFileSync(FIXTURE_PATH, source);
+  }
   return source;
 }
 

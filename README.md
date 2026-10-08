@@ -116,9 +116,16 @@ First time on a new machine: `npx playwright install chromium`.
 
 ## Adding Songs
 
-1. Copy `src/songs/_template.ts` to a new file (e.g., `my-song.ts`)
+1. Copy `src/songs/_template.ts` to a new file (e.g., `my-song.ts`), or start from a
+   genre starter in `src/starters/` (house, techno, lofi, ambient, dnb): copy it into
+   `src/songs/` as is
 2. Edit the song
 3. Done! Songs are auto-discovered.
+
+`src/catalog/` holds generated data for discovery (`npm run gen:catalog`): every
+sound by bank and kind (`sounds.json`), Strudel's functions by category with their
+docs and examples (`functions.json`), and short working snippets by track role
+(`snippets.json`). `npm run check` fails when they're stale.
 
 ## Song Structure
 

@@ -13,10 +13,16 @@ npm run render  -- jynx --mute kick --out /tmp/no-kick.wav
 npm run analyze -- jynx                      # mix + every track soloed → tables + JSON
 npm run analyze -- jynx --no-tracks          # mix only (fast)
 npm run test:render                          # proves the renderer and meters are right
+npm run analyze -- starters/house            # a genre starter (src/starters/house.ts)
 ```
 
+Song ids are file names in `src/songs/`. The genre starters in `src/starters/` take a
+`starters/` prefix (a bare id works too when no song has that name). The app's song
+registry doesn't list starters, so the renderer imports their module through Vite.
+
 Both start their own Vite server (`NO_OPEN=1 vite --port 5330 --strictPort`, or a free
-port if 5330 is taken) unless you pass `--url http://localhost:3000`. They need Playwright
+port if 5330 is taken) unless you pass `--url http://localhost:3000`. `--port N` picks
+the port, and fails if it's taken instead of falling back. They need Playwright
 with Chromium: the global install is used if the project has none
 (`npm i -g playwright && npx playwright install chromium`). Remote sample files are cached
 in `node_modules/.cache/strudel-render/`, so only the first render downloads them.

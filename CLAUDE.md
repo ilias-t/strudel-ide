@@ -14,6 +14,11 @@ Songs are TypeScript files in `src/songs/`, played live by a browser stage that 
 - Mixing: songs keep levels in a `MASTER_DB` / `FADERS_DB` block applied with `postgain` (see any song). There's no master limiter, so the house target is about −17.5 LUFS with peaks ≤ −1 dBFS. Measure, don't guess: `npm run analyze -- <id>` (docs/audio-tools.md).
 - Only sounds from the loaded sample maps exist. `check-songs` names any unknown sound.
 
+## Starters and the catalog
+
+- `src/starters/` holds one simple, editable song per genre (house, techno, lofi, ambient, dnb) for the "new song" flow, which copies one into `src/songs/`. Same `Song` format plus `export const meta = { id, genre, blurb }`, and the same house rules (`test/starters.test.ts` enforces them). The app's song picker doesn't list them. The audio tools and `check-songs` take them as `starters/<id>`.
+- `src/catalog/` is generated discovery data: `sounds.json` (every sound by bank and kind), `functions.json` (Strudel functions by category, with docs and IDE-form examples), `snippets.json` (working snippets by track role). Never edit it by hand. Edit `scripts/lib/catalog/` (category table, snippets) and run `npm run gen:catalog`. `gen:types` reruns it, and `check` fails when it's stale.
+
 ## Verifying
 
 - `npm run check` must pass before a change is done: types, type audit, songs, locations, bridge, knobs, extension, strudel.cc round-trip. `node scripts/check-songs.mjs <id> --cycles 128` covers a full arrangement.

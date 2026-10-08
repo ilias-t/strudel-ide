@@ -197,6 +197,224 @@
       }
 
       /* ─────────────────────────────────────────────────────────────────────── */
+      /* Player options (follow edits)                                           */
+      /* ─────────────────────────────────────────────────────────────────────── */
+
+      .player-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        font-size: 0.62rem;
+        color: var(--text-dim);
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+      }
+
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .toggle input {
+        appearance: none;
+        width: 28px;
+        height: 14px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        background: rgba(0, 0, 0, 0.3);
+        position: relative;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .toggle input::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-dim);
+        transition: all 0.15s ease;
+      }
+
+      .toggle input:checked {
+        border-color: var(--neon-cyan);
+        box-shadow: 0 0 10px rgba(5, 217, 232, 0.3);
+      }
+
+      .toggle input:checked::after {
+        left: 16px;
+        background: var(--neon-cyan);
+      }
+
+      .toggle input:focus-visible {
+        outline: 1px solid var(--neon-cyan);
+        outline-offset: 2px;
+      }
+
+      .toggle:hover {
+        color: var(--text-primary);
+      }
+
+      .keys kbd {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.6rem;
+        padding: 0.05rem 0.35rem;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        color: var(--neon-cyan);
+      }
+
+      .player button:disabled {
+        opacity: 0.5;
+        cursor: wait;
+        background: transparent;
+        color: var(--neon-pink);
+        box-shadow: none;
+      }
+
+      /* ─────────────────────────────────────────────────────────────────────── */
+      /* Loading / audio hint                                                    */
+      /* ─────────────────────────────────────────────────────────────────────── */
+
+      .notice {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.65rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--neon-cyan);
+      }
+
+      .notice[hidden] {
+        display: none;
+      }
+
+      .spinner {
+        width: 10px;
+        height: 10px;
+        border: 2px solid rgba(5, 217, 232, 0.25);
+        border-top-color: var(--neon-cyan);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .audio-hint {
+        width: fit-content;
+        margin-inline: auto;
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--neon-purple);
+        border-radius: 4px;
+        background: rgba(13, 2, 33, 0.9);
+        color: var(--neon-purple);
+        cursor: pointer;
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        50% { opacity: 0.45; }
+      }
+
+      /* ─────────────────────────────────────────────────────────────────────── */
+      /* Error panel                                                             */
+      /* ─────────────────────────────────────────────────────────────────────── */
+
+      .error-panel {
+        position: relative;
+        margin-bottom: 1.5rem;
+        padding: 1rem 2.25rem 1rem 1rem;
+        background:
+          linear-gradient(rgba(255, 42, 109, 0.08), rgba(255, 42, 109, 0.08)),
+          rgba(13, 2, 33, 0.94);
+        border: 1px solid var(--neon-pink);
+        border-left-width: 3px;
+        border-radius: 4px;
+        box-shadow: 0 0 25px rgba(255, 42, 109, 0.15);
+        font-size: 0.7rem;
+        line-height: 1.5;
+      }
+
+      .error-panel[hidden] {
+        display: none;
+      }
+
+      .error-panel[data-kind="trigger"],
+      .error-panel[data-kind="load"] {
+        border-color: var(--neon-purple);
+        background:
+          linear-gradient(rgba(211, 0, 197, 0.08), rgba(211, 0, 197, 0.08)),
+          rgba(13, 2, 33, 0.94);
+        box-shadow: 0 0 25px rgba(211, 0, 197, 0.12);
+      }
+
+      .error-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--neon-pink);
+        margin-bottom: 0.5rem;
+      }
+
+      .error-panel[data-kind="trigger"] .error-title,
+      .error-panel[data-kind="load"] .error-title {
+        color: var(--neon-purple);
+      }
+
+      .error-message {
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: var(--text-primary);
+      }
+
+      .error-location {
+        margin-top: 0.4rem;
+        color: var(--neon-cyan);
+      }
+
+      .error-location[hidden],
+      .error-note[hidden] {
+        display: none;
+      }
+
+      .error-note {
+        margin-top: 0.5rem;
+        color: var(--text-dim);
+      }
+
+      .error-dismiss {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        border: none;
+        background: transparent;
+        color: var(--text-dim);
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .error-dismiss:hover {
+        color: var(--text-primary);
+      }
+
+      /* ─────────────────────────────────────────────────────────────────────── */
       /* Footer                                                                  */
       /* ─────────────────────────────────────────────────────────────────────── */
 
@@ -224,13 +442,34 @@
           <select id="song-select" aria-label="Select track">
             <!-- Populated by JavaScript -->
           </select>
-          <button id="play">▶ Play</button>
+          <button id="play" disabled>Loading…</button>
+        </div>
+        <div class="player-options">
+          <label class="toggle" title="Switch to the song you save in your editor">
+            <input type="checkbox" id="follow-edits" checked />
+            Follow edits
+          </label>
+          <span class="keys"><kbd>Space</kbd> play <kbd>←</kbd><kbd>→</kbd> song</span>
         </div>
       </div>
+
+      <div class="notice" id="loading">
+        <span class="spinner"></span><span class="loading-text">Starting audio engine…</span>
+      </div>
+
+      <div class="notice audio-hint" id="audio-hint" hidden>Click anywhere to enable audio</div>
 
       <div class="now-playing">
         <div class="now-playing-label">Now Playing</div>
         <div class="now-playing-value idle" id="current-pattern">Select a track</div>
+      </div>
+
+      <div class="error-panel" id="error-panel" role="alert" hidden>
+        <button class="error-dismiss" id="error-dismiss" aria-label="Dismiss error">×</button>
+        <div class="error-title" id="error-title"></div>
+        <div class="error-message" id="error-message"></div>
+        <div class="error-location" id="error-location" hidden></div>
+        <div class="error-note" id="error-note" hidden></div>
       </div>
 
       <div class="footer">

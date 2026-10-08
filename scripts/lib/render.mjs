@@ -78,9 +78,15 @@ function freePort() {
   });
 }
 
-/** Start `vite --port 5330 --strictPort` (or a free port if 5330 is taken). Returns { url, close }. */
-export async function startVite({ port = 5330, quiet = true } = {}) {
-  if (!(await portFree(port))) port = await freePort();
+/**
+ * Start `vite --port 5330 --strictPort` (or a free port if 5330 is taken). Returns { url, close }.
+ * `fallback: false` fails instead of picking another port (for an explicit --port).
+ */
+export async function startVite({ port = 5330, quiet = true, fallback = true } = {}) {
+  if (!(await portFree(port))) {
+    if (!fallback) throw new Error(`port ${port} is in use`);
+    port = await freePort();
+  }
   const vite = join(ROOT, "node_modules/.bin/vite");
   const child = spawn(vite, ["--port", String(port), "--strictPort"], {
     cwd: ROOT,
@@ -167,6 +173,8 @@ export async function launchBrowser() {
  * @param {object} env  { context, url } from launchBrowser()/startVite()
  * @param {object} opts
  *   songId    song id (src/songs/<id>.ts)        — or —  code: a Strudel expression (string)
+ *   module    optional: import the song from this dev-server path instead of the app's
+ *             registry (starters: "/src/starters/<id>.ts", which the app doesn't list)
  *   bpm       tempo (1 bar = 1 cycle = 4 beats)
  *   from      first bar to render (0-based, default 0)
  *   bars      number of bars
@@ -185,6 +193,7 @@ export async function render(env, opts) {
   const length = Math.ceil(seconds * sampleRate);
   const cfg = {
     songId: opts.songId ?? null,
+    module: opts.module ?? null,
     code: opts.code ?? null,
     cps,
     from: opts.from ?? 0,
@@ -290,7 +299,8 @@ async function renderInPage(cfg) {
   if (cfg.code) {
     pattern = new Function(`return (${cfg.code});`)();
   } else {
-    const song = window.__strudel.songs()[cfg.songId];
+    // Starters aren't in the app's song registry: import the module through Vite instead
+    const song = cfg.module ? (await import(cfg.module)).default : window.__strudel.songs()[cfg.songId];
     if (!song) throw new Error(`song "${cfg.songId}" not found in the page`);
     const result = song.createPattern();
     if (typeof result?.queryArc === "function") {

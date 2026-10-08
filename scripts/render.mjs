@@ -24,6 +24,7 @@ const USAGE = `Usage: npm run render -- <song-id> [options]
   --rate hz         sample rate (default ${DEFAULT_SAMPLE_RATE})
   --float           32-bit float WAV (keeps overs) instead of 16-bit PCM
   --url URL         use a running dev server instead of starting one
+  --port N          port for the dev server it starts (default 5330, or a free one)
   --code EXPR       render a Strudel expression instead of a song (needs --bpm)
   --bpm N           tempo for --code (default 120)
   --max-polyphony N voice limit (default 128, as live: older voices are cut beyond it)
@@ -50,6 +51,7 @@ export function parseArgs(argv, { flags = [] } = {}) {
       case "--tail": opts.tail = Number(val()); break;
       case "--rate": opts.sampleRate = Number(val()); break;
       case "--url": opts.url = val().replace(/\/$/, ""); break;
+      case "--port": opts.port = Number(val()); break;
       case "--code": opts.code = val(); break;
       case "--bpm": opts.bpm = Number(val()); break;
       case "--float": opts.float = true; break;
@@ -86,7 +88,7 @@ export function resolveRange(info, opts) {
 
 /** Start (or reuse via --url) the dev server and a browser. */
 export async function openEnv(opts) {
-  const server = opts.url ? { url: opts.url, close() {} } : await startVite();
+  const server = opts.url ? { url: opts.url, close() {} } : await startVite(opts.port ? { port: opts.port, fallback: false } : {});
   const browser = await launchBrowser();
   return {
     url: server.url,
@@ -110,14 +112,15 @@ async function main() {
     : await songInfo(id);
   const { from, bars } = resolveRange(info, opts);
   const tail = opts.tail ?? 2;
-  const out = opts.out ?? join(ROOT, "renders", `${info.id}${opts.section ? "-" + opts.section.replace("#", "") : ""}.wav`);
+  const out = opts.out ?? join(ROOT, "renders", `${info.id.replace("/", "-")}${opts.section ? "-" + opts.section.replace("#", "") : ""}.wav`);
 
   const env = await openEnv(opts);
   try {
     console.error(`Rendering ${info.name}: bars ${from + 1}–${from + bars} at ${info.bpm} BPM` +
       (opts.solo.length ? `, solo ${opts.solo.join(",")}` : "") + (opts.mute.length ? `, mute ${opts.mute.join(",")}` : "") + " …");
     const result = await render(env, {
-      songId: opts.code ? null : id,
+      songId: opts.code ? null : info.id,
+      module: info.starter ? info.module : undefined,
       code: opts.code,
       bpm: info.bpm,
       from,

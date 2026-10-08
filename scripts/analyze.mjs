@@ -37,6 +37,7 @@ const USAGE = `Usage: npm run analyze -- <song-id> [options]
   --json          print JSON instead of tables
   --out file.wav  also save the full-mix render (16-bit)
   --url URL       use a running dev server
+  --port N        port for the dev server it starts (default 5330, or a free one)
   --wav file.wav  analyze an existing WAV (pass a song id too for its sections)
 Songs: ${listSongIds().join(", ")}`;
 
@@ -250,7 +251,7 @@ async function main() {
     log(`Rendering ${info.name}: mix${withTracks ? ` + ${info.tracks.length} soloed tracks` : ""}, bars ${from + 1}–${from + bars}, ${jobs} at a time …`);
     let done = 0;
     const measured = await pool(renders, jobs, async (job) => {
-      const res = await render(env, { songId: id, bpm: info.bpm, from, bars, tail: 0, solo: job.solo, mute: opts.mute, maxPolyphony: opts.maxPolyphony });
+      const res = await render(env, { songId: info.id, module: info.starter ? info.module : undefined, bpm: info.bpm, from, bars, tail: 0, solo: job.solo, mute: opts.mute, maxPolyphony: opts.maxPolyphony });
       if (job.name === null) {
         for (const w of res.warnings) warnings.add(w);
         if (opts.out) {
@@ -274,7 +275,7 @@ async function main() {
   const renderInfo = `${audioSecs.toFixed(0)} s of audio rendered in ${secs.toFixed(0)} s`;
 
   mkdirSync(join(ROOT, "renders"), { recursive: true });
-  const jsonFile = join(ROOT, "renders", `${id}.analysis.json`);
+  const jsonFile = join(ROOT, "renders", `${info.id.replace("/", "-")}.analysis.json`);
   writeFileSync(jsonFile, JSON.stringify(r, null, 2));
   if (opts.json) console.log(JSON.stringify(r, null, 2));
   else {

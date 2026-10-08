@@ -12,6 +12,8 @@ import * as tonal from "@strudel/tonal";
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 export const SONGS_DIR = join(ROOT, "src/songs");
+/** Genre starter songs (same Song format; copied into src/songs by the "new song" flow) */
+export const STARTERS_DIR = join(ROOT, "src/starters");
 
 let scopeReady = null;
 function strudelScope() {
@@ -22,14 +24,46 @@ function strudelScope() {
     for (const m of ["pianoroll", "punchcard", "scope", "tscope", "fscope", "spectrum", "spiral", "wordfall", "color", "markcss"]) {
       if (!core.Pattern.prototype[m]) core.Pattern.prototype[m] = function () { return this; };
     }
+    // The app's knob() (as in check-songs.mjs): songs with top-level knobs need it to import
+    const { KnobRegistry, installKnobGlobals } = await import("../../src/engine/knobs.ts");
+    installKnobGlobals(new KnobRegistry(), core.pure);
   })();
   return scopeReady;
 }
 
+const songFilesIn = (dir) =>
+  existsSync(dir)
+    ? readdirSync(dir)
+        .filter((f) => f.endsWith(".ts") && f !== "index.ts" && !f.startsWith("_"))
+        .map((f) => f.replace(/\.ts$/, ""))
+    : [];
+
+/** Song ids (src/songs) followed by starter ids ("starters/<id>", src/starters) */
 export function listSongIds() {
-  return readdirSync(SONGS_DIR)
-    .filter((f) => f.endsWith(".ts") && f !== "index.ts" && !f.startsWith("_"))
-    .map((f) => f.replace(/\.ts$/, ""));
+  return [...songFilesIn(SONGS_DIR), ...listStarterIds().map((id) => `starters/${id}`)];
+}
+
+/** Ids of the genre starters in src/starters */
+export function listStarterIds() {
+  return songFilesIn(STARTERS_DIR);
+}
+
+/**
+ * Where a song id lives: "jynx" → src/songs/jynx.ts; "starters/house" (or plain "house"
+ * when no song has that id) → src/starters/house.ts.
+ * @returns {{ id: string, file: string, starter: boolean, module: string } | null}
+ *   id = the canonical id ("starters/house" for a starter), module = the URL path Vite serves it at
+ */
+export function resolveSong(id) {
+  const name = id.replace(/^starters\//, "");
+  const candidates = id.startsWith("starters/") ? [[STARTERS_DIR, true]] : [[SONGS_DIR, false], [STARTERS_DIR, true]];
+  for (const [dir, starter] of candidates) {
+    const file = join(dir, `${name}.ts`);
+    if (existsSync(file)) {
+      return { id: starter ? `starters/${name}` : name, file, starter, module: `/src/${starter ? "starters" : "songs"}/${name}.ts` };
+    }
+  }
+  return null;
 }
 
 /**
@@ -69,12 +103,16 @@ function normalizeSections(list) {
   });
 }
 
-/** @returns {Promise<{id, name, bpm, tracks: string[] | null, sections, totalBars: number | null}>} */
-export async function songInfo(id) {
-  const file = join(SONGS_DIR, `${id}.ts`);
-  if (!existsSync(file)) {
-    throw new Error(`Unknown song "${id}". Songs: ${listSongIds().join(", ")}`);
+/**
+ * @returns {Promise<{id, name, bpm, tracks: string[] | null, sections, totalBars: number | null, starter: boolean, module: string}>}
+ *   id is canonical ("starters/house" for a starter); module is the path the dev server serves the file at
+ */
+export async function songInfo(requested) {
+  const where = resolveSong(requested);
+  if (!where) {
+    throw new Error(`Unknown song "${requested}". Songs: ${listSongIds().join(", ")}`);
   }
+  const { id, file, starter, module } = where;
   await strudelScope();
   const mod = await import(pathToFileURL(file).href);
   const song = mod.default;
@@ -88,5 +126,7 @@ export async function songInfo(id) {
     tracks: isPattern ? null : Object.keys(result),
     sections,
     totalBars: sections ? sections.reduce((n, s) => n + s.bars, 0) : null,
+    starter,
+    module,
   };
 }

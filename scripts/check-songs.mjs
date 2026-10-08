@@ -1,9 +1,10 @@
-// Smoke-test every song in src/songs/ without a browser:
+// Smoke-test every song in src/songs/ and every genre starter in src/starters/ without a browser:
 //   1. createPattern() must not throw
 //   2. querying the first N cycles must not throw and must produce events
 //   3. every sound (s + bank) must exist in the sample maps main.ts loads
+//   4. starters also export a `meta` ({ id, genre, blurb }) whose id matches the file
 //
-// Usage: node scripts/check-songs.mjs [song-id ...] [--cycles 16] [--offline]
+// Usage: node scripts/check-songs.mjs [song-id | starters/<id> ...] [--cycles 16] [--offline]
 
 import { readdirSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -15,6 +16,7 @@ import { KnobRegistry, installKnobGlobals } from "../src/engine/knobs.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const songsDir = join(root, "src/songs");
+const startersDir = join(root, "src/starters");
 const cacheDir = join(root, "node_modules/.cache/strudel-samples");
 
 const args = process.argv.slice(2);
@@ -109,21 +111,42 @@ function soundKey(value) {
 // Run
 // ─────────────────────────────────────────────────────────────────────────────
 
-const files = readdirSync(songsDir)
-  .filter((f) => f.endsWith(".ts") && f !== "index.ts" && !f.startsWith("_"))
-  .filter((f) => only.length === 0 || only.includes(f.replace(/\.ts$/, "")));
+const songFiles = (dir, prefix) =>
+  (existsSync(dir) ? readdirSync(dir) : [])
+    .filter((f) => f.endsWith(".ts") && f !== "index.ts" && !f.startsWith("_"))
+    .map((f) => ({ path: join(dir, f), name: f.replace(/\.ts$/, ""), id: prefix + f.replace(/\.ts$/, ""), starter: !!prefix }));
+
+// Songs by id ("jynx"), starters as "starters/<id>" (a plain "<id>" also selects a starter)
+const files = [...songFiles(songsDir, ""), ...songFiles(startersDir, "starters/")].filter(
+  (f) => only.length === 0 || only.includes(f.id) || (f.starter && only.includes(f.name)),
+);
+if (only.length && files.length === 0) {
+  console.log(`❌ no song or starter matches ${only.join(", ")}`);
+  process.exit(1);
+}
+
+/** What the "new song" flow needs from a starter's `export const meta` */
+function metaProblems(meta, name) {
+  if (!meta || typeof meta !== "object") return ["starter has no `export const meta = { id, genre, blurb }`"];
+  const out = [];
+  if (meta.id !== name) out.push(`meta.id should be "${name}" (the file name), got ${JSON.stringify(meta.id)}`);
+  for (const key of ["genre", "blurb"]) {
+    if (typeof meta[key] !== "string" || !meta[key].trim()) out.push(`meta.${key} must be a non-empty string`);
+  }
+  return out;
+}
 
 let failed = 0;
 
-for (const file of files) {
-  const id = file.replace(/\.ts$/, "");
+for (const { path, id, name, starter } of files) {
   const problems = [];
   let events = 0;
   try {
-    const mod = await import(pathToFileURL(join(songsDir, file)).href);
+    const mod = await import(pathToFileURL(path).href);
     const song = mod.default;
     if (!song || typeof song.createPattern !== "function") throw new Error("default export is not a Song");
     if (!song.name) problems.push("missing name");
+    if (starter) problems.push(...metaProblems(mod.meta, name));
     const result = song.createPattern();
     const isPattern = (v) => typeof v?.queryArc === "function";
     let pattern;

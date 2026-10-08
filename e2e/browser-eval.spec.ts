@@ -96,6 +96,44 @@ test("evalSource hot-swaps browser-compiled text while playing; highlights land 
   expect((await player.state()).live).toBeNull();
 });
 
+/** The fixture knob as window.__strudel.knobs() reports it */
+function fixtureKnob(player: Player) {
+  return player.page.evaluate((name) => window.__strudel!.knobs().find((k) => k.name === name) ?? null, KNOB_NAME);
+}
+
+test("revertSource brings back the file's top-level knob values (registry and playing pattern)", async ({ player, page }) => {
+  test.setTimeout(60_000);
+  await playFixture(player, { fixture: { topKnob: 0.5 } });
+  const disk = readFileSync(FIXTURE_PATH, "utf8");
+  await expect.poll(() => fixtureKnob(player)).toMatchObject({ def: 0.5, value: 0.5 });
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.5 });
+
+  // the knob's literal changed in the evaluated text
+  const text = fixtureSource({ topKnob: 0.8 });
+  expect(await evalSource(player, FIXTURE_ID, text, { intent: "commit", origin: "browser" })).toEqual({ ok: true, version: contentVersion(text) });
+  await expect.poll(() => fixtureKnob(player)).toMatchObject({ def: 0.8, value: 0.8 });
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.8 });
+
+  // revert: the file's module plays again, with the file's knob
+  expect(await page.evaluate((id) => window.__strudel!.revertSource(id), FIXTURE_ID)).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__strudel!.currentSource()?.text)).toBe(disk);
+  await expect.poll(() => fixtureKnob(player), { message: "the file's knob default and value" }).toMatchObject({ def: 0.5, value: 0.5, dirty: false });
+  await expect.poll(() => player.probe(), { message: "the playing pattern reads the file's value" }).toMatchObject({ gain: 0.5 });
+});
+
+test("an evaluated top-level knob edit that fails to build leaves the playing song's knob alone", async ({ player }) => {
+  test.setTimeout(60_000);
+  await playFixture(player, { fixture: { topKnob: 0.5 } });
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.5 });
+
+  // its top level runs (knob literal 0.8), then createPattern() throws: the file's song keeps playing
+  const broken = fixtureSource({ topKnob: 0.8, buildError: true });
+  const result = await evalSource(player, FIXTURE_ID, broken, { intent: "typing", origin: "browser" });
+  expect(result.ok).toBe(false);
+  expect(await fixtureKnob(player), "the playing song's knob").toMatchObject({ def: 0.5, value: 0.5, dirty: false });
+  expect(await player.probe()).toMatchObject({ gain: 0.5 });
+});
+
 test("a typing-intent error is only returned; a commit-intent error shows in the player", async ({ player, page }) => {
   await playFixture(player);
   const good = fixtureSource({ gain: 0.3 });

@@ -144,6 +144,7 @@
 .lib-list {
   overflow-y: auto;
   overscroll-behavior: contain;
+  scroll-padding-top: 36px; /* rows scrolled into view clear the sticky heading */
   padding: 0 0 8px;
   scrollbar-width: thin;
   scrollbar-color: #2a2a2d transparent;
@@ -240,7 +241,10 @@
 }
 
 .lib-meta > span {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .lib-meta > span:first-child {

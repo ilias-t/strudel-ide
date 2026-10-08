@@ -49,6 +49,8 @@ export interface Stage {
 
 export function mountStage(): Stage {
   const stage = $("stage");
+  // editor linking needs the dev server (src/live/bridge-client.ts)
+  stage.dataset.build = import.meta.env.DEV ? "dev" : "prod";
   const playBtn = $<HTMLButtonElement>("play");
   const playLabel = playBtn.querySelector(".transport-label")!;
   const songSelect = $<HTMLSelectElement>("song-select");

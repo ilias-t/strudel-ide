@@ -722,6 +722,26 @@ code {
   padding: 0;
 }
 
+/* a production build has no dev server to link an editor to: point at the source instead */
+.source-link {
+  display: none;
+  text-decoration: none;
+}
+
+.source-link:hover b {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.stage[data-build="prod"] .source-link {
+  display: inline;
+}
+
+.stage[data-build="prod"] .toggle,
+.stage[data-build="prod"] .editor-link {
+  display: none;
+}
+
 /* a small glass tag inside the code screen */
 .chip {
   height: 20px;

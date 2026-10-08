@@ -629,6 +629,39 @@ describe("results (rule 5)", () => {
     assert.equal(v.marker?.message, "bad");
   });
 
+  test("a result the engine marks superseded changes nothing: no marker, the last status stays", async () => {
+    const { session, timers, calls } = setup(disk("A"));
+    session.edit("A1");
+    timers.advance(400);
+    calls[0].resolve(OK);
+    await flush();
+    // the engine ran a newer eval (or a revert) of this song first
+    session.edit("A12");
+    timers.advance(400);
+    calls[1].resolve({ ok: false, error: { message: "superseded by a newer eval", superseded: true } });
+    await flush();
+    const v = session.view();
+    assert.equal(v.marker, null, "no inline error for a superseded eval");
+    assert.equal(v.status.kind, "ok");
+    assert.equal(v.status.text, "live");
+  });
+
+  test("a superseded result keeps an earlier marker as it was", async () => {
+    const { session, timers, calls } = setup(disk("A"));
+    session.edit("A1");
+    timers.advance(400);
+    calls[0].resolve(fail("bad", 1));
+    await flush();
+    session.edit("A12");
+    timers.advance(400);
+    calls[1].resolve({ ok: false, error: { message: "superseded", superseded: true } });
+    await flush();
+    const v = session.view();
+    assert.equal(v.marker?.message, "bad");
+    assert.equal(v.markerText, "A1");
+    assert.equal(v.status.kind, "error");
+  });
+
   test("a rejected evaluate becomes an error, never an unhandled rejection", async () => {
     const { session, calls } = setup(disk("A"));
     const p = session.commit();

@@ -11,6 +11,8 @@ export interface EvalError {
   /** 1-based, into the evaluated text */
   line?: number;
   column?: number;
+  /** A newer eval (or a revert) of the same song came first: nothing changed, show nothing */
+  superseded?: true;
 }
 
 export type EvalResult = { ok: true; version: string } | { ok: false; error: EvalError };

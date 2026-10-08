@@ -6,7 +6,8 @@
 // test/discover-library.test.ts runs them on the real catalog in Node.
 //
 //   sounds by kind   every term must match the sound's name, kind, group,
-//                    source or alias target; catalog order is kept
+//                    source, alias target, or a drum machine that has it
+//                    (name or alias: "909" finds bd, sd…); catalog order kept
 //   banks            every term must match the bank's name or an alias
 //                    (substring) or one of its parts (whole: "cb", not "c")
 //   functions        every term must match the name, a synonym, the alias
@@ -35,7 +36,9 @@ export function filterSoundGroups(cat: SoundsCatalog, query: string): SoundGroup
       const sounds = k.sounds.filter((name) => {
         const info = cat.sounds[name];
         const fields = [name, k.id, k.label, g.id, g.label, info?.source, info?.aliasOf];
-        return words.every((w) => fields.some((f) => has(f, w)));
+        const banks = Object.keys(info?.banks ?? {});
+        const inBank = (w: string) => banks.some((b) => has(b, w) || cat.banks[b]?.aliases.some((a) => has(a, w)));
+        return words.every((w) => fields.some((f) => has(f, w)) || inBank(w));
       });
       if (sounds.length) kinds.push({ ...k, sounds });
     }

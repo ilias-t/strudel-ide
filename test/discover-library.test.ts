@@ -60,6 +60,14 @@ describe("sounds by kind", () => {
     assert.ok(soundNames("sawtooth").includes("saw"));
   });
 
+  test("a drum machine's name or alias finds the parts it has (909 → bd, sd…, not piano)", () => {
+    const names = soundNames("909");
+    for (const part of ["bd", "sd", "hh", "oh", "cp"]) assert.ok(names.includes(part), part);
+    assert.ok(!names.includes("piano"));
+    assert.ok(names.every((n) => Object.keys(sounds.sounds[n].banks ?? {}).some((b) => /909/.test(b))));
+    assert.ok(soundNames("tr909").includes("bd"), "by alias");
+  });
+
   test("nothing matches nonsense", () => {
     assert.deepEqual(filterSoundGroups(sounds, "zzqqxx"), []);
   });

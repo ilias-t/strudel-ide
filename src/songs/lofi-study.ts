@@ -64,12 +64,10 @@ const song: Song = {
 
     // The lazy part: swingBy delays every 2nd 8th-note within each beat (4 per bar)
     const groove = (p: Pattern): Pattern =>
-      // @ts-expect-error swingBy missing from strudel.d.ts
       p.swingBy(SWING, 4);
 
     // Jazz voicings from chord symbols (rootless, voice-led around C5)
     const voiced = (prog: string, rhythm: string): Pattern =>
-      // @ts-expect-error chord() / voicing() missing from strudel.d.ts
       chord(prog).struct(rhythm).voicing();
 
     // ─── 📀 VINYL ─────────────────────────────────────────────────────────────
@@ -77,7 +75,6 @@ const song: Song = {
     // pink-noise tape hiss. One long note per bar, gain wanders a little with perlin.
 
     const crackleBed = s("crackle")
-      // @ts-expect-error density (crackle amount) missing from strudel.d.ts
       .density(0.025)
       .attack(0.02)
       .sustain(1)
@@ -112,7 +109,6 @@ const song: Song = {
       .gain(0.9)
       .lpf(3000)
       // Sidechain: every kick dips the piano's orbit (2) a little → gentle pump
-      // @ts-expect-error duckorbit/duckdepth/duckattack missing from strudel.d.ts
       .duckorbit(2)
       .duckdepth(0.35)
       .duckattack(0.18);
@@ -196,13 +192,11 @@ const song: Song = {
         .velocity(perlin.range(0.8, 1))
         .release(0.6)
         .lpf(cutoff)
-        // @ts-expect-error vib missing from strudel.d.ts
         .vib("0.6:0.08")
         .room(0.35)
         .orbit(2);
 
     // Break: the A changes as a slow broken-chord arpeggio — n() picks voicing notes
-    // @ts-expect-error chord() / voicing() missing from strudel.d.ts
     const arpeggio = n("0 1 2 3 4 3 2 1").chord(PROG_A).voicing();
 
     const keys = groove(
@@ -299,7 +293,6 @@ const song: Song = {
         .decay(0.2)
         .sustain(0.7)
         .release(0.35)
-        // @ts-expect-error vib missing from strudel.d.ts
         .vib("5:0.12")
         .lpf(1800)
         .gain(0.32)

@@ -81,7 +81,6 @@ const song: Song = {
     const onChord = (degrees: string) => n(degrees).add(n(PROG));
     /** Same swing on every 16th-note part, so drums, bass and lead groove together */
     const swing = (pat: Pattern): Pattern =>
-      // @ts-expect-error swingBy missing from strudel.d.ts
       pat.swingBy(SWING, 8);
 
     const BAR = 240 / BPM; // seconds per bar
@@ -100,7 +99,6 @@ const song: Song = {
     // over `duckattack` seconds. That breathing IS the filter-house groove.
     // (Only used once orbit 2 has already played something, or superdough complains.)
     const pumpingKick: Pattern = kick
-      // @ts-expect-error duckorbit / duckattack / duckdepth missing from strudel.d.ts
       .duckorbit(2)
       .duckattack(0.25)
       .duckdepth(PUMP);

@@ -36,7 +36,6 @@ const song: Song = {
     const hats = s("hh*8").bank("RolandTR808").gain(0.35);
 
     // ─── 🎸 BASS — the root of each chord, in octave 2 ───────────────────────
-    // @ts-expect-error missing from strudel.d.ts (chord/rootNotes)
     const bass = chord(progression).rootNotes(2)
       .struct("x ~ x ~ x ~ x x")
       .s("sawtooth")
@@ -46,7 +45,6 @@ const song: Song = {
       .gain(0.5);
 
     // ─── 🎹 CHORDS — chord symbols turned into piano voicings ────────────────
-    // @ts-expect-error missing from strudel.d.ts (chord/voicing)
     const chords = chord(progression).voicing()
       .s("piano")
       .lpf(cutoff * 2)

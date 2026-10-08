@@ -153,7 +153,6 @@ const song: Song = {
   createPattern() {
     // Song-long timelines everything else hangs off
     const progression = bySection(PROGRESSION); // "F#m", "D", … one per bar
-    // @ts-expect-error chord() is missing from strudel.d.ts
     const chords: Pattern = chord(progression); // as {chord} values, ready for voicing()
     const keyShift = bySection(KEY_SHIFT, 0).add(TRANSPOSE);
     // Outro fade: velocity multiplies gain, ramping 1 → 0 over the last 8 bars
@@ -177,7 +176,6 @@ const song: Song = {
     })
       .bank(DRUMS)
       .gain(0.95)
-      // @ts-expect-error duckorbit/duckattack/duckdepth are missing from strudel.d.ts
       .duckorbit(3)
       .duckattack(0.22)
       .duckdepth(0.55);
@@ -262,7 +260,6 @@ const song: Song = {
     // struct() gives it a rhythm per section; transpose("[0 12]*4") makes
     // every other 8th jump up an octave (in the pre's 16ths: root-root-oct-oct).
     const bass = chords
-      // @ts-expect-error rootNotes() is missing from strudel.d.ts
       .rootNotes(1)
       .struct(
         bySection({
@@ -295,7 +292,6 @@ const song: Song = {
     // sits at or below the anchor (C#5) — smooth voice-leading for free.
     // supersaw: `unison` = number of detuned voices, `detune` = how far apart.
     const pads = chords
-      // @ts-expect-error anchor()/voicing()/unison()/detune()/spread() are missing from strudel.d.ts
       .anchor("C#5")
       .voicing()
       .transpose(keyShift)
@@ -345,7 +341,6 @@ const song: Song = {
       lift: n(UP_DOWN),
       outro: n(UP_DOWN),
     })
-      // @ts-expect-error chord()/anchor()/mode()/voicing() are missing from strudel.d.ts
       .chord(progression)
       .anchor("E4")
       .mode("above")
@@ -387,7 +382,6 @@ const song: Song = {
     const leadSound = (p: Pattern) =>
       p
         .s("supersaw")
-        // @ts-expect-error unison()/detune()/vib()/vibmod() are missing from strudel.d.ts
         .unison(3)
         .detune(0.12)
         .vib(5.5) // vibrato: 5.5 wobbles per second…

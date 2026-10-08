@@ -48,7 +48,6 @@ const tide = (bars: number) => sine.slow(bars).late(bars / 4);
 const breathe = (pat: Pattern, bars: number, fullness = 0.85) =>
   pat
     // segment(4) samples the tide once per beat, so the thinning is the same however Strudel slices time
-    // @ts-expect-error degradeBy accepts a pattern (here a signal) — missing from strudel.d.ts
     .degradeBy(tide(bars).range(1, 1 - fullness).segment(4))
     .velocity(tide(bars).range(0.5, 1)); // and play softer as it ebbs
 
@@ -140,7 +139,6 @@ const song: Song = {
     // ─────────────────────────────────────────────────────────────────────────
 
     const bells = breathe(
-      // @ts-expect-error n() accepts a pattern (here irand) — missing from strudel.d.ts
       n(irand(10).late(0.31)) // a scale degree 0–9, with its own dice
         .struct("{x ~ ~ x ~ x ~ ~ ~ x ~}%8")
         .off(3 / 16, (x) => x.add(n(4)).degradeBy(0.5))
@@ -148,7 +146,6 @@ const song: Song = {
       TIDES.bells,
       0.7
     )
-      // @ts-expect-error wchoose is missing from strudel.d.ts
       .s(wchoose(["vibraphone_soft", 4], ["glockenspiel", 1], ["handchimes", 2]).late(0.47))
       .gain(0.32)
       .pan(dice(0.73).range(0.15, 0.85)) // each bell rings somewhere new
@@ -166,7 +163,6 @@ const song: Song = {
     // ─────────────────────────────────────────────────────────────────────────
 
     const harp = breathe(
-      // @ts-expect-error n() accepts a pattern (here a perlin signal) — missing from strudel.d.ts
       n(perlin.slow(3).range(-2, 10).segment(8).floor())
         .scale(inKey(4))
         .sometimesBy(0.25, (x) => x.ply(2)), // the odd quick flutter
@@ -190,7 +186,6 @@ const song: Song = {
     // ─────────────────────────────────────────────────────────────────────────
 
     const pebbles = breathe(
-      // @ts-expect-error chooseCycles is missing from strudel.d.ts (and n() of a pattern)
       n(chooseCycles("0 ~ 4 ~ ~ 2 ~ ~", "~ 4 ~ 7 ~ ~ ~ ~", "[0 4] ~ ~ ~ 2 ~ -1 ~", "~"))
         .slow(2)
         .juxBy(0.5, (x) => x.rev())

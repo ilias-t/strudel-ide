@@ -57,6 +57,13 @@ type PatternLookup = PatternInput[] | Record<string, PatternInput>;
 /** Signals (sine, saw, rand, perlin, ...) are ordinary continuous Patterns. Kept as an alias for readability. */
 type Signal = Pattern;
 
+/** @deprecated Use `BankName` (generated from the loaded sample maps). */
+type DrumMachineBank = BankName;
+/** @deprecated Use `DrumPartName`. */
+type DrumPart = DrumPartName;
+/** @deprecated Use `SoundName` (or `SoundInput` for arguments). */
+type Sample = SoundInput;
+
 /**
  * The value operators (`add`, `sub`, `mul`, `set`, ...) are callable and also expose
  * structure variants: `.add(2)` = `.add.in(2)`, `.add.out("0 7")`, `.add.squeeze("0 12")`, ...

@@ -216,7 +216,7 @@ const song: Song = {
     // Breakdown pad: same chords with the root doubled an octave down, slow
     // attack, big reverb, and a `vowel` formant filter for an "ooh" choir feel
     const pad = (cutoff: number | Pattern) =>
-      onChord(`[-7,${CHORD_SHAPE.slice(1, -1)}]`)
+      stack(onChord(CHORD_SHAPE), onChord("-7"))
         .scale(scaleIn(3))
         .s("supersaw")
         .vowel("o")
@@ -331,7 +331,7 @@ const song: Song = {
         build: pumpingKick.mask(LAST_BAR_OUT),
         drop: pumpingKick,
         // half-time → four-to-the-floor → 8ths, then one beat of silence
-        rise: s("<~ ~ ~ ~ [bd ~ bd ~] [bd ~ bd ~] bd*4 [bd*6 ~ ~]>").bank(DRUMS).gain(0.95),
+        rise: s("<~ ~ ~ ~ [bd ~ bd ~] [bd ~ bd ~] bd*4 [bd bd bd bd bd bd ~ ~]>").bank(DRUMS).gain(0.95),
         drop2: pumpingKick,
         outro: pumpingKick.mask("<1!6 0 0>"),
       }),
@@ -416,8 +416,8 @@ const song: Song = {
       }),
 
       pad: track({
-        breakdown: pad(saw.rangex(400, 1400).slow(8)),
-        rise: pad(saw.rangex(1400, 5000).slow(8)),
+        breakdown: pad(saw.rangex(800, 2000).slow(8)),
+        rise: pad(saw.rangex(2000, 5000).slow(8)),
       }),
 
       vox: track({

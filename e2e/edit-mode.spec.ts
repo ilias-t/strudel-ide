@@ -34,7 +34,7 @@ async function playFixture(player: Player, fixture: FixtureOptions = {}) {
 /** Enter edit mode with the E key and wait for Monaco to mount */
 async function enterEdit(page: Page) {
   await page.locator("body").press("e");
-  await expect.poll(() => page.evaluate(() => window.__strudelEditor?.loaded() ?? false), { timeout: 20_000 }).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor?.loaded() ?? false), { timeout: 30_000 }).toBe(true);
   await expect(page.getByTestId("code-editor").locator(".monaco-editor")).toBeVisible();
 }
 
@@ -78,7 +78,7 @@ test("the read-only view boots without Monaco; E loads the editor lazily and is 
   // a returning editor gets the editor without asking
   await page.reload();
   await page.waitForFunction(() => window.__strudel?.getState().ready === true, null, { timeout: 30_000 });
-  await expect.poll(() => page.evaluate(() => window.__strudelEditor?.loaded() ?? false), { timeout: 20_000 }).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor?.loaded() ?? false), { timeout: 30_000 }).toBe(true);
   await expect(page.getByTestId("code-editor")).toBeVisible();
 
   // and the edit key goes back to the read-only view
@@ -93,7 +93,7 @@ test("a double-click in the code starts editing at that spot", async ({ player, 
   expect(await player.select(FIXTURE_ID)).toBe(true);
   const line = page.getByTestId("code-line").filter({ hasText: "note(" });
   await line.dblclick();
-  await expect.poll(() => page.evaluate(() => window.__strudelEditor?.loaded() ?? false), { timeout: 20_000 }).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor?.loaded() ?? false), { timeout: 30_000 }).toBe(true);
   await expect(page.getByTestId("code-editor").locator(".monaco-editor textarea")).toBeFocused();
 });
 

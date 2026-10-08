@@ -61,6 +61,7 @@ const song: Song = {
   name: "Jynx",
   bpm: BPM,
   visualization: { type: "pianoroll", options: { cycles: 8, labels: false } },
+  sections: SECTIONS, // the player's timeline (jump / loop)
 
   createPattern() {
     // ─────────────────────────────────────────────────────────────────────────

@@ -139,6 +139,7 @@ const song: Song = {
   name: "Jungle Pressure",
   bpm: BPM,
   visualization: "scope",
+  sections: Object.entries(BARS), // the player's timeline (jump / loop)
 
   createPattern() {
     // ─────────────────────────────────────────────────────────────────────────

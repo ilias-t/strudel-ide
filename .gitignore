@@ -4,3 +4,9 @@ dist
 .DS_Store
 .claude/worktrees/
 .playwright-mcp/
+
+# Playwright e2e (npm run test:e2e)
+test-results/
+playwright-report/
+# App snapshot (with a fixture song) the e2e server serves; deleted after the run
+.e2e-app/

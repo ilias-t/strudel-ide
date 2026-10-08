@@ -1,7 +1,7 @@
 // Song metadata for the render/analyze tools, read in Node (no browser):
 //   - name, bpm and track names, by importing the song module (like check-songs.mjs)
-//   - the arrangement (section names + bars), parsed from the song's source, since
-//     songs keep it in a private constant (ARRANGEMENT / SECTIONS / FORM / BARS)
+//   - the arrangement (section names + bars): the song's `sections`, or else parsed from
+//     its source (an ARRANGEMENT / SECTIONS / FORM / BARS constant)
 
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -57,6 +57,18 @@ export function parseSections(source) {
   });
 }
 
+/** A song's own `sections` ([name, bars] tuples or { name, bars } objects) → with start bars */
+function normalizeSections(list) {
+  if (!Array.isArray(list) || !list.length) return null;
+  let start = 0;
+  return list.map((s) => {
+    const [name, bars] = Array.isArray(s) ? s : [s.name, s.bars];
+    const out = { name: String(name), bars: Number(bars), start };
+    start += out.bars;
+    return out;
+  });
+}
+
 /** @returns {Promise<{id, name, bpm, tracks: string[] | null, sections, totalBars: number | null}>} */
 export async function songInfo(id) {
   const file = join(SONGS_DIR, `${id}.ts`);
@@ -68,7 +80,7 @@ export async function songInfo(id) {
   const song = mod.default;
   const result = song.createPattern();
   const isPattern = typeof result?.queryArc === "function";
-  const sections = parseSections(readFileSync(file, "utf8"));
+  const sections = normalizeSections(song.sections) ?? parseSections(readFileSync(file, "utf8"));
   return {
     id,
     name: song.name ?? id,

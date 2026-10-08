@@ -280,6 +280,9 @@ async function renderInPage(cfg) {
   }
   await g.initAudio(); // loads the AudioWorklets into our context
   if (cfg.maxPolyphony) g.setMaxPolyphony(cfg.maxPolyphony);
+  // Like the app's warmOrbits(): create orbit busses 1-16 up front, so a duckorbit that
+  // fires before its target orbit has played anything still ducks.
+  for (let orbit = 1; orbit <= 16; orbit++) await g.superdough({ s: "~", orbit }, 0, 0.01);
 
   // ── the pattern ──
   let pattern;

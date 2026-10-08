@@ -50,8 +50,8 @@ its output graph to the first context it sees.
 
 ## What analyze reports
 
-For the whole render, each section (from the song's `ARRANGEMENT`/`SECTIONS`/`FORM`/`BARS`
-constant; 8-bar blocks when it has none), and each track soloed:
+For the whole render, each section (the song's `sections`, or an `ARRANGEMENT`/`SECTIONS`/`FORM`/`BARS`
+constant in its source; 8-bar blocks when it has neither), and each track soloed:
 
 | column | meaning |
 | --- | --- |

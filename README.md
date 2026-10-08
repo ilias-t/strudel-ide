@@ -44,6 +44,9 @@ session running at the same time (and the VS Code extension linked to it)
 doesn't see any of it. `.e2e-app/` is deleted when the run ends. Tests drive
 the player through `window.__strudel`, not the DOM.
 
+The copy is made when the test server starts, so in `test:e2e:ui` changes to
+`src/` don't reach the tests until you restart it.
+
 First time on a new machine: `npx playwright install chromium`.
 
 ## Adding Songs

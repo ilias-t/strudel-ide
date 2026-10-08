@@ -828,6 +828,68 @@ code {
   flex: 1;
 }
 
+/* edit mode: what happened to the last edit (code-editor.ts / edit-session.ts) */
+.code-status {
+  flex: 0 1 auto !important;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--px-dim);
+}
+.code-status[data-kind="error"] {
+  color: #ffb2a8;
+}
+.code-status[data-kind="ok"] {
+  color: var(--green);
+}
+.code-status[data-kind="pending"],
+.code-status[data-kind="evaluating"] {
+  color: var(--px-dim);
+}
+.code-status[data-kind="readonly"],
+.code-status[data-kind="conflict"],
+.code-status[data-kind="offline"] {
+  color: var(--amber);
+}
+
+.code-takeover,
+.code-load {
+  height: 18px;
+  padding: 0 7px;
+  color: var(--amber);
+}
+
+/* the view/edit key at the end of the file bar */
+.code-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px 0 9px;
+}
+.code-mode kbd {
+  padding: 0 4px;
+  font-size: 9.5px;
+  line-height: 14px;
+  background: #232325;
+  color: var(--px-dim);
+}
+.code-mode[aria-pressed="true"] {
+  color: var(--glass);
+  background: var(--px);
+  box-shadow: none;
+}
+.code-mode[aria-pressed="true"] kbd {
+  background: rgba(0, 0, 0, 0.12);
+  color: #3a3936;
+}
+
+/* the read-only view and the editor share the screen's second row */
+.code-scroll,
+.code-editor {
+  grid-row: 2;
+  grid-column: 1;
+}
+
 /* hot-swap LED: green after a swap, red while a broken save is held back */
 .code-swap {
   display: flex;

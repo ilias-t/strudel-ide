@@ -38,7 +38,7 @@ Offline, faster than real time, through the real engine:
 5. The float samples come back to Node. 16-bit WAVs are clipped at 0 dBFS like a sound
    card would; `--float` writes 32-bit float WAVs that keep the overs.
 
-Speed: about 3–5× real time per render for a full song, ~15× for light patterns. The
+Speed: about 2.5–5× real time per render for a full song, ~15× for light patterns. The
 analyzer runs several renders at once (`--jobs`).
 
 There's no app hook: everything goes through `window.__strudel` and the Strudel globals

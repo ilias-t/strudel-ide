@@ -1,0 +1,19 @@
+{
+  // Node-side code: the bridge Vite plugin and its tests (run with Node's
+  // built-in TS type stripping, hence explicit .ts import extensions).
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["vite-plugins/strudel-bridge.ts", "test/**/*.ts", "src/vite-env.d.ts"]
+}

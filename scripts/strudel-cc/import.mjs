@@ -26,6 +26,7 @@
 import "./quiet.mjs";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, basename } from "node:path";
+import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import MagicString from "magic-string";
 import { root, core, mini as miniNotation } from "./runtime.mjs";
@@ -788,7 +789,7 @@ async function main(argv) {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main(process.argv).catch((e) => {
     console.error(`❌ ${e.message}`);
     process.exit(1);

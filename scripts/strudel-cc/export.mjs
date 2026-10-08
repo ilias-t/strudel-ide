@@ -22,6 +22,7 @@
 import "./quiet.mjs";
 import { writeFileSync, existsSync } from "node:fs";
 import { join, resolve, basename } from "node:path";
+import { pathToFileURL } from "node:url";
 import MagicString from "magic-string";
 import { parse as acornParse } from "acorn";
 import { root, loadSong, isPattern } from "./runtime.mjs";
@@ -675,7 +676,7 @@ async function main(argv) {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main(process.argv).catch((e) => {
     console.error(`❌ ${e.message}`);
     process.exit(1);

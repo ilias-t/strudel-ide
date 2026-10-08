@@ -1,0 +1,235 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ask(): a small graphite unit set down over the rig
+   Same powder coat, screws and black glass as the gear on the stage; the
+   facts sit on a readout, the answer is two rubber keys. Tone "warn" lights an
+   amber LED in the head. Uses tokens from stage.css (:root). No backdrop-filter.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ask-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30; /* above .help-overlay (20) */
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow-y: auto;
+  background: rgba(4, 4, 8, 0.55);
+}
+
+.ask-overlay:focus {
+  outline: none;
+}
+
+.ask-card {
+  position: relative;
+  width: min(420px, calc(100vw - 32px));
+  max-width: 100%;
+  padding: 15px 20px 16px;
+  border-radius: 11px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, var(--coat-hi), var(--coat) 30%, var(--coat-lo));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(0, 0, 0, 0.6),
+    0 30px 60px -18px rgba(0, 0, 0, 0.85),
+    0 8px 16px -6px rgba(0, 0, 0, 0.55);
+  color: var(--silk);
+  font-family: var(--ui);
+  font-stretch: 80%;
+  animation: ask-set-down 0.14s ease-out;
+}
+
+.ask-card:focus {
+  outline: none;
+}
+
+/* two screws, in the head's corners */
+.ask-card > .screw.ask-screw {
+  top: 20px;
+  left: 8px;
+  right: auto;
+}
+
+.ask-card > .screw.ask-screw + .screw.ask-screw {
+  left: auto;
+  right: 8px;
+  --r: -40deg;
+}
+
+/* ── head: LED + silkscreened title ───────────────────────────────────────── */
+
+.ask-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 24px;
+  padding: 0 8px;
+  margin-bottom: 12px;
+}
+
+.ask-title {
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  font-stretch: 85%;
+  letter-spacing: 0;
+  line-height: 1.2;
+  color: var(--silk);
+  overflow-wrap: anywhere;
+}
+
+.ask-led {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(0, 0, 0, 0.4),
+    0 0 6px var(--amber),
+    0 0 16px color-mix(in srgb, var(--amber) 55%, transparent);
+}
+
+/* ── readout: the facts on black glass ────────────────────────────────────── */
+
+.ask-readout {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 16px;
+  row-gap: 5px;
+  padding: 11px 13px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.ask-fact {
+  display: contents;
+}
+
+.ask-label {
+  color: var(--px-dim);
+}
+
+.ask-value {
+  min-width: 0;
+  color: var(--px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── note + optional content ──────────────────────────────────────────────── */
+
+.ask-note {
+  padding: 0 2px;
+  max-width: 62ch;
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-stretch: 90%;
+  word-spacing: 0.06em;
+  color: var(--silk-soft);
+}
+
+.ask-content {
+  margin-top: 12px;
+}
+
+/* a read-only field (e.g. a share link) reads as a strip of glass */
+.ask-content input:not([type="checkbox"]):not([type="radio"]),
+.ask-content textarea {
+  display: block;
+  width: 100%;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--glass);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 2px 6px rgba(0, 0, 0, 0.8);
+  color: var(--px);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-stretch: normal;
+  text-overflow: ellipsis;
+}
+
+.ask-content textarea {
+  height: auto;
+  min-height: 56px;
+  padding: 7px 10px;
+  resize: vertical;
+}
+
+.ask-content input:focus-visible,
+.ask-content textarea:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 2px;
+}
+
+/* ── keys ─────────────────────────────────────────────────────────────────── */
+
+.ask-keys {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.ask-key {
+  height: 30px;
+  min-width: 72px;
+  padding: 0 14px;
+  font-size: 12px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* the answer key: a cream keycap, the one light-coloured key on the rig */
+.key.ask-key-go {
+  background: linear-gradient(180deg, #f6f2e8, #dcd5c6);
+  color: #1d1c1a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 rgba(0, 0, 0, 0.12), 0 2px 0 #6f6a60, 0 3px 7px rgba(0, 0, 0, 0.55);
+}
+
+.key.ask-key-go:hover:not(:disabled) {
+  background: linear-gradient(180deg, #fffbf2, #e6dfd0);
+}
+
+.key.ask-key-go:active:not(:disabled) {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0.5px 0 #6f6a60, 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.ask-key:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@keyframes ask-set-down {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (max-width: 480px) {
+  .ask-card {
+    padding: 14px 14px 14px;
+  }
+  .ask-keys .ask-key {
+    flex: 1 1 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask-card {
+    animation: none;
+  }
+  .ask-key {
+    transition: none;
+  }
+}

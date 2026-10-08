@@ -13,7 +13,10 @@ npm run dev
 
 1. Select a song from the dropdown
 2. Click **Play**
-3. Edit songs in `src/songs/` — changes hot reload automatically
+3. Edit songs in `src/songs/`. Saving hot-swaps the music without a restart.
+   With the VS Code / Cursor extension you don't even have to save:
+   Ctrl/Cmd+Enter (or a pause in typing) plays your unsaved code, like on
+   strudel.cc (see [Live eval](#live-eval)).
 
 ## Knobs
 
@@ -32,20 +35,48 @@ const cutoff = knob("cutoff", 2200, 200, 8000, { log: true });
   differs from the number in the file, the knob is "dirty", and **Write**
   (or **Write all**) puts the value into the file. The dev server rewrites the
   literal (`POST /__strudel/knob`).
-- Editing the number in your editor resets the knob to it.
+- Editing the number in your editor resets the knob to it (when you save, or
+  when the unsaved buffer is evaluated).
+- While the player plays an unsaved buffer of the song (live eval), **Write**
+  is refused: writing the file would replace your unsaved edits in the player.
+  Save first, or write from the editor, which puts the value into its buffer.
 - In `npm run check`, a knob plays its default.
 
 ## Editor integration (VS Code / Cursor)
 
 `vscode-extension/` contains an extension that connects your editor to the
-running player. It outlines the tokens that are playing and flashes them on
-every hit, shows the song, section and bar in the status bar, plays and stops
-with Ctrl/Cmd+Enter and Ctrl+., jumps between and loops sections, puts a
-mute/solo mixer above each track's definition (dimming silent tracks), and
-shows player errors as diagnostics. Clicking code in the browser player opens
-it in the editor. To build it, run `npm run ext:package` and install
+running player. It plays your unsaved code (live eval, below), outlines the
+tokens that are playing and flashes them on every hit, shows the song, section
+and bar in the status bar, plays and stops with Ctrl/Cmd+Enter and Ctrl+.,
+jumps between and loops sections, puts a mute/solo mixer above each track's
+definition (dimming silent tracks), shows each knob's live value next to its
+`knob(…)` call (with a stepper and write-back), and shows player errors as
+diagnostics. Clicking code in the browser player opens it in the editor. To
+build it, run `npm run ext:package` and install
 `vscode-extension/strudel-live.vsix`. See
 [vscode-extension/README.md](vscode-extension/README.md).
+
+## Live eval
+
+strudel.cc evaluates the code in its editor without saving it, and so does
+this IDE with the extension: Ctrl/Cmd+Enter in a song file with unsaved
+changes sends the buffer to the dev server, which compiles it through Vite's
+normal pipeline as its own module (`/src/songs/<name>.ts?live=<version>`, see
+`vite-plugins/strudel-live-eval.ts`). The player hot-swaps it exactly like a
+save. Nothing is written to disk. By default a short pause in typing does the
+same for the song that's playing (`strudel.liveEval`: `onPause`, `onCommand`
+or `off`).
+
+- A buffer with a syntax error, or whose `createPattern()` throws, never
+  replaces the music: the last good pattern keeps playing and the error shows
+  in the stage and as a squiggle in the editor.
+- The stage shows the evaluated text, marked **unsaved**, and the highlights
+  index into it, so they also stay on in the editor while the document has
+  unsaved changes.
+- Saving afterwards loads the file through HMR as usual. When it says what you
+  last evaluated, nothing is swapped again.
+- Evaluating another song's buffer selects that song when "follow edits" is on.
+- `knob()` calls in a buffer behave like in the file.
 
 ## Tests
 
@@ -61,9 +92,10 @@ The end-to-end suite (`e2e/`, Playwright) copies the app (`index.html`,
 port 5310 (`E2E_PORT` to change it). It plays every song for a few seconds,
 then edits a throwaway fixture song in the copy
 (`.e2e-app/src/songs/zz-e2e-fixture.ts`) while it plays to check
-hot-swapping, error handling, follow-edits, tempo changes, the editor bridge
-and the production build. Your songs are never edited, and a `npm run dev`
-session running at the same time (and the VS Code extension linked to it)
+hot-swapping, error handling, follow-edits, tempo changes, the editor bridge,
+the production build, live eval of unsaved buffers (a Node WebSocket client
+plays the editor) and knobs over the bridge. Your songs are never edited, and a
+`npm run dev` session running at the same time (and the VS Code extension linked to it)
 doesn't see any of it. `.e2e-app/` is deleted when the run ends. Tests drive
 the player through `window.__strudel`, not the DOM.
 

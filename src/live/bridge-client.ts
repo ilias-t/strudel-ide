@@ -36,6 +36,13 @@
 //   bridge.sendOnsets(file, ranges, version);
 //   // Open a file position in the editor (when bridge.editors > 0):
 //   bridge.sendReveal(file, line, column);
+//   // The current song's knobs (cached and re-sent after a reconnect):
+//   bridge.sendKnobs(songId, file, knobs);
+//   // Outcomes of the editor's writeKnobs / eval:
+//   bridge.send({ type: "knobWrite", … }); bridge.send({ type: "evalResult", … });
+//
+// Live eval: the server's `live` message (a compiled editor buffer, or its
+// compile error) arrives at onLive.
 //
 // The server tells the page how many editors are attached (onEditors) and the
 // project root + editor URI scheme (onServerInfo), for vscode://file links
@@ -49,11 +56,17 @@ import {
   BRIDGE_PATH,
   isCommand,
   isEditors,
+  isLive,
   isServerInfo,
   parseMessage,
   type CommandMsg,
   type EditorsMsg,
+  type EvalResultMsg,
   type HighlightMsg,
+  type KnobState,
+  type KnobWriteMsg,
+  type KnobsMsg,
+  type LiveMsg,
   type OnsetsMsg,
   type RevealMsg,
   type ServerInfoMsg,
@@ -70,6 +83,8 @@ export interface BridgeClientOptions {
   onEditors?: (editors: Omit<EditorsMsg, "type">) => void;
   /** Project root and fallback editor scheme, on every (re)connect. */
   onServerInfo?: (info: Omit<ServerInfoMsg, "type">) => void;
+  /** A compiled editor buffer to hot-swap, or its compile error (live eval). */
+  onLive?: (msg: LiveMsg) => void;
   /** Override the bridge URL (default: same host as the page, /__strudel). */
   url?: string;
   /** Force-enable/disable (default: only in Vite dev with WebSocket available). */
@@ -89,6 +104,10 @@ export interface BridgeClient {
   sendOnsets(file: string, ranges: [number, number][], version?: string): void;
   /** Ask the editor(s) to open file:line:column (1-based). False when not sent. */
   sendReveal(file: string, line: number, column?: number): boolean;
+  /** The current song's knobs (the latest is re-sent after a reconnect) */
+  sendKnobs(songId: string, file: string, knobs: KnobState[]): void;
+  /** Outcome of an editor's writeKnobs / eval */
+  send(msg: KnobWriteMsg | EvalResultMsg): void;
   readonly connected: boolean;
   /** Editors attached right now (0 while disconnected) */
   readonly editors: number;
@@ -106,6 +125,8 @@ const noop: BridgeClient = {
   sendHighlight() {},
   sendOnsets() {},
   sendReveal: () => false,
+  sendKnobs() {},
+  send() {},
   connected: false,
   editors: 0,
   serverInfo: null,
@@ -138,6 +159,7 @@ export function connectBridge(options: BridgeClientOptions): BridgeClient {
   let lastState: string | null = null;
   let lastSongs: string | null = null;
   let lastHighlight: string | null = null;
+  let lastKnobs: string | null = null;
   let editors = 0;
   let serverInfo: Omit<ServerInfoMsg, "type"> | null = null;
 
@@ -164,6 +186,7 @@ export function connectBridge(options: BridgeClientOptions): BridgeClient {
       socket.send(JSON.stringify({ type: "hello", role: "browser", client: options.client ?? "player" }));
       if (lastSongs) socket.send(lastSongs);
       if (lastState) socket.send(lastState);
+      if (lastKnobs) socket.send(lastKnobs);
       lastHighlight = null; // editors may have cleared; resend the next frame
       options.onConnectionChange?.(true);
     };
@@ -171,6 +194,7 @@ export function connectBridge(options: BridgeClientOptions): BridgeClient {
       const msg = parseMessage(ev.data);
       try {
         if (isCommand(msg)) options.onCommand(msg);
+        else if (isLive(msg)) options.onLive?.(msg);
         else if (isEditors(msg)) {
           editors = msg.count;
           options.onEditors?.({ count: msg.count, clients: Array.isArray(msg.clients) ? msg.clients : [] });
@@ -240,6 +264,13 @@ export function connectBridge(options: BridgeClientOptions): BridgeClient {
       if (column !== undefined) msg.column = column;
       ws!.send(JSON.stringify(msg));
       return true;
+    },
+    sendKnobs(songId, file, knobs) {
+      lastKnobs = JSON.stringify({ type: "knobs", songId, file, knobs } satisfies KnobsMsg);
+      rawSend(lastKnobs);
+    },
+    send(msg) {
+      rawSend(JSON.stringify(msg));
     },
     get connected() {
       return isOpen();

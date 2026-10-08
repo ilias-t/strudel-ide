@@ -480,7 +480,19 @@ code {
   color: var(--amber);
 }
 
+.code-unsaved {
+  padding: 0 6px;
+  border: 1px solid var(--amber);
+  border-radius: 999px;
+  color: var(--amber);
+  font-size: 11px;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 .code-stale[hidden],
+.code-unsaved[hidden],
 .follow-chip[hidden] {
   display: none;
 }

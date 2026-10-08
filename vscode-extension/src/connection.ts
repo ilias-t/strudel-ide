@@ -3,7 +3,7 @@
 // (so a dev server restarted on another port is picked up).
 
 import WebSocket from "ws";
-import { parseMessage, type BridgeMessage, type CommandMsg, type HelloMsg } from "../../src/live/protocol.ts";
+import { parseMessage, type BridgeMessage, type CommandMsg, type EvalMsg, type HelloMsg } from "../../src/live/protocol.ts";
 import type { BridgeStatus } from "./model.ts";
 
 export interface ConnectionOptions {
@@ -43,7 +43,7 @@ export class BridgeConnection {
     this.open();
   }
 
-  send(msg: CommandMsg): boolean {
+  send(msg: CommandMsg | EvalMsg): boolean {
     if (!this.connected) return false;
     this.ws!.send(JSON.stringify(msg));
     return true;

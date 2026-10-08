@@ -99,6 +99,14 @@ const link = linkEditor(
     jumpToSection: player.jumpToSection,
     stepSection: player.stepSection,
     setLoop: player.setLoop,
+    knobs: player.knobs,
+    onKnobsChange: player.onKnobsChange,
+    setKnob: player.setKnob,
+    resetKnob: player.resetKnob,
+    grabKnob: player.grabKnob,
+    writeKnobs: player.writeKnobs,
+    evalLive: player.evalLive,
+    evalFailed: player.evalFailed,
   },
   { onStatus: stage.setEditorLink }
 );

@@ -113,8 +113,10 @@ export function buildPattern(
 export interface SongSource {
   file: string;
   version?: string;
-  /** The file's text exactly as on disk, which the highlight offsets index into */
+  /** The text exactly as compiled (the file on disk, or a live buffer), which the highlight offsets index into */
   text?: string;
+  /** An evaluated, unsaved editor buffer (live eval) rather than the file on disk */
+  live?: boolean;
 }
 
 interface SongModule {

@@ -5,9 +5,28 @@ import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { contentVersion, editorFileUrl, type CommandMsg, type RevealMsg } from "../../src/live/protocol.ts";
+import {
+  contentVersion,
+  editorFileUrl,
+  type CommandMsg,
+  type EvalResultMsg,
+  type KnobState,
+  type KnobWriteMsg,
+  type RevealMsg,
+} from "../../src/live/protocol.ts";
 import { BridgeConnection } from "./connection.ts";
 import { readDiscovery, resolveEndpoint, type Endpoint } from "./discovery.ts";
+import { EditHistory } from "./edits.ts";
+import {
+  findKnobCalls,
+  formatValue,
+  knobHints,
+  knobValueEdits,
+  parseKnobInput,
+  stepKnob,
+  type KnobCall,
+} from "./knobs.ts";
+import { DEFAULT_DELAY_MS, LiveEvaluator, liveEvalMode } from "./live-eval.ts";
 import { LiveModel, planEvaluate, planPlayFile, type Action, type Changes } from "./model.ts";
 import { isSongPath, relativeTo, resolveIn } from "./paths.ts";
 import { LineIndex, findCreatePattern, toSpans } from "./ranges.ts";
@@ -116,7 +135,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
   const docCache = new WeakMap<
     vscode.TextDocument,
-    { version: number; index: LineIndex; hash?: string; tracks?: SongTracks }
+    { version: number; index: LineIndex; hash?: string; tracks?: SongTracks; knobCalls?: KnobCall[] }
   >();
   const docInfo = (doc: vscode.TextDocument) => {
     let info = docCache.get(doc);
@@ -131,23 +150,50 @@ export function activate(ctx: vscode.ExtensionContext): void {
     info.tracks ??= findTracks(doc.getText());
     return info.tracks;
   };
+  const knobCallsIn = (doc: vscode.TextDocument): KnobCall[] => {
+    const info = docInfo(doc);
+    info.knobCalls ??= findKnobCalls(doc.getText());
+    return info.knobCalls;
+  };
+  const hashOf = (doc: vscode.TextDocument): string => {
+    const info = docInfo(doc);
+    info.hash ??= contentVersion(doc.getText());
+    return info.hash;
+  };
+  /** Text versions the player may refer to, and the edits since (highlights survive typing) */
+  const histories = new WeakMap<vscode.TextDocument, EditHistory>();
+  const historyOf = (doc: vscode.TextDocument): EditHistory => {
+    let h = histories.get(doc);
+    if (!h) histories.set(doc, (h = new EditHistory()));
+    return h;
+  };
   const toRange = (index: LineIndex, start: number, end: number) => {
     const a = index.positionAt(start);
     const b = index.positionAt(end);
     return new vscode.Range(a.line, a.character, b.line, b.character);
   };
-  /** Offsets refer to the file on disk: skip dirty docs and version mismatches. */
+  /**
+   * Offsets refer to one version of the text (the saved file, or an evaluated
+   * buffer): shown when the document's text is that version, carried across
+   * the edits made since when it was (ranges an edit touched are dropped), and
+   * skipped otherwise. Unversioned offsets are only trusted on saved documents.
+   */
   const rangesFor = (
     doc: vscode.TextDocument,
     msg: { ranges: unknown; version?: string } | undefined,
   ): vscode.Range[] => {
-    if (!msg || doc.isDirty) return [];
+    if (!msg) return [];
     const info = docInfo(doc);
+    let ranges: unknown = msg.ranges;
     if (msg.version !== undefined) {
-      info.hash ??= contentVersion(doc.getText());
-      if (info.hash !== msg.version) return [];
-    }
-    return toSpans(info.index, msg.ranges).map(
+      if (hashOf(doc) === msg.version) historyOf(doc).mark(msg.version);
+      else {
+        const mapped = Array.isArray(msg.ranges) ? histories.get(doc)?.map(msg.version, msg.ranges) : null;
+        if (!mapped) return [];
+        ranges = mapped;
+      }
+    } else if (doc.isDirty) return [];
+    return toSpans(info.index, ranges).map(
       (s) => new vscode.Range(s.start.line, s.start.character, s.end.line, s.end.character),
     );
   };
@@ -182,6 +228,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
     pulses: true,
     dim: true,
     mixerLens: true,
+    knobHints: true,
+    knobLens: true,
   };
   const readSettings = () => {
     const c = config();
@@ -189,6 +237,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
     settings.pulses = c.get<boolean>("highlights.pulses", true);
     settings.dim = c.get<boolean>("mixer.dimMuted", true);
     settings.mixerLens = c.get<boolean>("mixer.codeLens", true);
+    settings.knobHints = c.get<boolean>("knobs.hints", true);
+    settings.knobLens = c.get<boolean>("knobs.codeLens", true);
   };
   readSettings();
 
@@ -250,6 +300,38 @@ export function activate(ctx: vscode.ExtensionContext): void {
       return silentTracks(ed.document, rel).map((t) => toRange(index, t.start, t.end));
     });
 
+  // Knob values: an inline hint after each knob(…) call, amber while the live
+  // value differs from the code. Redrawn only when an editor's hints change.
+  const knobHintType = vscode.window.createTextEditorDecorationType({
+    after: { margin: "0 0 0 0.5em" },
+    rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
+  });
+  const hintKeys = new WeakMap<vscode.TextEditor, string>();
+  const renderKnobHints = () => {
+    for (const ed of vscode.window.visibleTextEditors) {
+      const rel = relOf(ed.document);
+      const knobs = settings.knobHints && isSongPath(rel) ? model.knobsOf(rel) : [];
+      const hints = knobs.length ? knobHints(knobCallsIn(ed.document), knobs) : [];
+      const key = hints.map((h) => `${h.offset}:${h.text}:${h.dirty}`).join("|");
+      if ((hintKeys.get(ed) ?? "") === key) continue;
+      hintKeys.set(ed, key);
+      const index = docInfo(ed.document).index;
+      ed.setDecorations(
+        knobHintType,
+        hints.map((h) => ({
+          range: toRange(index, h.offset, h.offset),
+          hoverMessage: h.title,
+          renderOptions: {
+            after: {
+              contentText: h.text,
+              color: new vscode.ThemeColor(h.dirty ? "strudel.knobDirtyForeground" : "strudel.knobForeground"),
+            },
+          },
+        })),
+      );
+    }
+  };
+
   // ── Diagnostics ────────────────────────────────────────────────────────────
 
   const diagnostics = vscode.languages.createDiagnosticCollection("strudel");
@@ -297,9 +379,24 @@ export function activate(ctx: vscode.ExtensionContext): void {
       }
       const mix = settings.mixerLens ? model.tracksOf(file) : null;
       if (mix) lenses.push(...mixerLenses(doc, mix));
+      if (settings.knobLens) lenses.push(...knobLenses(doc, model.knobsOf(file)));
       return lenses;
     },
   };
+  /** "write" / "reset" above each knob whose live value differs from the code */
+  function knobLenses(doc: vscode.TextDocument, knobs: KnobState[]) {
+    const out: vscode.CodeLens[] = [];
+    const calls = knobCallsIn(doc);
+    for (const k of knobs) {
+      if (!k.dirty) continue;
+      const call = calls.find((c) => c.name === k.name);
+      if (!call) continue;
+      const where = doc.isDirty ? "into the editor (unsaved)" : "into the file";
+      out.push(lens(doc, call.start, `◉ ${k.name} changed · write`, `Write the live value of ${k.name} ${where}`, "strudel.writeKnob", [k.name]));
+      out.push(lens(doc, call.start, "reset", `Back to the value in the code (${formatValue(k, k.def)})`, "strudel.resetKnob", [k.name]));
+    }
+    return out;
+  }
   function mixerLenses(doc: vscode.TextDocument, mix: { tracks: string[]; muted: string[]; soloed: string[] }) {
     const out: vscode.CodeLens[] = [];
     const found = tracksIn(doc);
@@ -349,6 +446,219 @@ export function activate(ctx: vscode.ExtensionContext): void {
     if (ch.highlights.size) renderHighlights(ch.highlights);
     if (ch.pulses.size) renderPulses(ch.pulses);
     if (ch.reveal) void revealLocation(ch.reveal);
+    if (ch.knobs) {
+      renderKnobHints();
+      for (const l of knobListeners) l();
+    }
+    if (ch.knobWrite) onKnobWrite(ch.knobWrite);
+    if (ch.evalResult) onEvalResult(ch.evalResult);
+  }
+
+  // ── Live eval: the unsaved buffer → the player ────────────────────────────
+
+  const docOfFile = (file: string) => vscode.workspace.textDocuments.find((d) => songFileOf(d) === file);
+  /** Ctrl/Cmd+Enter evaluates unsaved text instead of saving it */
+  const liveOn = () => liveEvalMode(config().get<string>("liveEval")) !== "off";
+  const liveEval = new LiveEvaluator({
+    mode: () => liveEvalMode(config().get<string>("liveEval")),
+    delay: () => config().get<number>("liveEvalDelay", DEFAULT_DELAY_MS),
+    // pauses only update the song that's loaded: typing elsewhere never switches the music
+    eligible: (file) => model.player && model.isCurrent(file),
+    send: (file, text, version, play) => {
+      const sent = conn.send({ type: "eval", file, text, version, ...(play ? { play } : {}) });
+      const doc = sent ? docOfFile(file) : undefined;
+      if (doc && hashOf(doc) === version) historyOf(doc).mark(version);
+      return sent;
+    },
+  });
+
+  const shownErrors = new Map<string, number>();
+  function onEvalResult(r: EvalResultMsg) {
+    out.appendLine(
+      `Eval ${r.file}@${r.version}: ${r.ok ? (r.applied ? "playing" : "kept for when the song is selected") : r.error?.message ?? "failed"}`,
+    );
+    // located errors become diagnostics (state.error); setup problems need a message
+    if (r.ok || !r.error || r.error.line !== undefined) return;
+    const now = Date.now();
+    if ((shownErrors.get(r.error.message) ?? 0) > now - 5000) return;
+    shownErrors.set(r.error.message, now);
+    void vscode.window.showWarningMessage(`Strudel: ${r.error.message}`);
+  }
+
+  // ── Knobs ──────────────────────────────────────────────────────────────────
+
+  /** Open knob steppers redraw when values arrive */
+  const knobListeners = new Set<() => void>();
+  const knobNamed = (name: string) => model.knobs?.knobs.find((k) => k.name === name);
+
+  function onKnobWrite(r: KnobWriteMsg) {
+    if (r.ok) {
+      const what = (r.changes ?? []).map((c) => `${c.name} = ${c.literal}`).join(", ");
+      if (what) out.appendLine(`Wrote ${what} into ${r.file}`);
+    } else void vscode.window.showWarningMessage(`Strudel: ${r.error ?? "could not write the knob"}`);
+  }
+
+  /** The knob(…) call under the cursor in the active editor */
+  function knobAtCursor(): string | undefined {
+    const ed = vscode.window.activeTextEditor;
+    const pos = ed?.selection?.active;
+    if (!ed || !pos || !songFileOf(ed.document)) return undefined;
+    const offset = ed.document.offsetAt(pos);
+    return knobCallsIn(ed.document).find((c) => offset >= c.start && offset <= c.end)?.name;
+  }
+
+  async function pickKnob(arg: unknown, only?: (k: KnobState) => boolean): Promise<KnobState | undefined> {
+    if (!(await ensurePlayer())) return undefined;
+    if (typeof arg === "string") return knobNamed(arg);
+    const knobs = (model.knobs?.knobs ?? []).filter((k) => !only || only(k));
+    if (!knobs.length) {
+      void vscode.window.showInformationMessage(
+        only
+          ? "No knob has been turned away from the value in the code."
+          : 'This song has no knobs. Put knob("name", value, min, max) where a number goes.',
+      );
+      return undefined;
+    }
+    const atCursor = knobAtCursor();
+    const cursorKnob = atCursor ? knobs.find((k) => k.name === atCursor) : undefined;
+    if (cursorKnob) return cursorKnob;
+    if (knobs.length === 1) return knobs[0];
+    type Item = vscode.QuickPickItem & { name: string };
+    const pick = await vscode.window.showQuickPick<Item>(
+      knobs.map((k) => ({
+        label: `◉ ${k.name}`,
+        description: `${formatValue(k)}${k.dirty ? ` (code: ${formatValue(k, k.def)})` : ""}`,
+        detail: `${formatValue(k, k.min)}–${formatValue(k, k.max)}${k.log ? ", log" : ""}`,
+        name: k.name,
+      })),
+      { title: "Strudel: knob", placeHolder: model.state?.songName ?? undefined },
+    );
+    return pick && knobNamed(pick.name);
+  }
+
+  const knobCommand = (msg: Omit<CommandMsg, "type">) => conn.send({ type: "command", ...msg });
+
+  /**
+   * A stepper for one knob: −/+ a step, −/+ 5% of its travel, type a value
+   * (or just type a number and Enter), reset, write. It stays open while you
+   * step, and holds the knob meanwhile so file edits don't reset it.
+   */
+  async function adjustKnob(arg?: unknown) {
+    const knob = await pickKnob(arg);
+    if (!knob) return;
+    const name = knob.name;
+    type Item = vscode.QuickPickItem & { steps?: number; coarse?: boolean; action?: "type" | "reset" | "write" };
+    const qp = vscode.window.createQuickPick<Item>();
+    let value = knob.value;
+    const items = (k: KnobState): Item[] => [
+      { label: "$(remove) step down", description: `−${formatValue(k, k.step)}`, steps: -1 },
+      { label: "$(add) step up", description: `+${formatValue(k, k.step)}`, steps: 1 },
+      { label: "$(chevron-down) down 5%", steps: -1, coarse: true },
+      { label: "$(chevron-up) up 5%", steps: 1, coarse: true },
+      { label: "$(edit) type a value…", action: "type" },
+      { label: `$(discard) reset to ${formatValue(k, k.def)}`, description: "the value in the code", action: "reset" },
+      {
+        label: "$(save) write to file",
+        description: docOfFile(model.knobs?.file ?? "")?.isDirty ? "into the editor (unsaved)" : undefined,
+        action: "write",
+      },
+    ];
+    const render = () => {
+      const k = knobNamed(name);
+      if (!k) return void qp.hide(); // the song changed
+      qp.title = `◉ ${name} = ${formatValue(k, value)}${k.dirty ? `  (code: ${formatValue(k, k.def)})` : ""}`;
+      qp.placeholder = `${formatValue(k, k.min)}–${formatValue(k, k.max)}, step ${formatValue(k, k.step)}: pick a step, or type a number and press Enter`;
+    };
+    const onValues = () => {
+      const k = knobNamed(name);
+      if (k) value = k.value;
+      render();
+    };
+    qp.items = items(knob);
+    render();
+    knobListeners.add(onValues);
+    const set = (v: number) => {
+      value = v;
+      knobCommand({ command: "setKnob", knob: name, value: v });
+      render();
+    };
+    qp.onDidAccept(async () => {
+      const k = knobNamed(name);
+      if (!k) return qp.hide();
+      const typed = qp.value.trim();
+      if (typed && /^[-+.\d]/.test(typed)) {
+        const parsed = parseKnobInput(k, typed);
+        if ("error" in parsed) qp.placeholder = parsed.error;
+        else set(parsed.value);
+        qp.value = "";
+        return;
+      }
+      const item = qp.selectedItems[0] ?? qp.activeItems[0];
+      if (!item) return;
+      if (item.steps) return set(stepKnob({ ...k, value }, item.steps, item.coarse));
+      if (item.action === "reset") {
+        value = k.def;
+        knobCommand({ command: "resetKnob", knob: name });
+        return render();
+      }
+      qp.hide();
+      if (item.action === "write") return void writeKnobs([name]);
+      if (item.action === "type") {
+        const input = await vscode.window.showInputBox({
+          title: `◉ ${name}`,
+          value: formatValue(k, value),
+          prompt: `${formatValue(k, k.min)}–${formatValue(k, k.max)}`,
+          validateInput: (v: string) => {
+            const r = parseKnobInput(k, v);
+            return "error" in r ? r.error : undefined;
+          },
+        });
+        const r = input === undefined ? null : parseKnobInput(k, input);
+        if (r && "value" in r) knobCommand({ command: "setKnob", knob: name, value: r.value });
+      }
+    });
+    qp.onDidHide(() => {
+      knobListeners.delete(onValues);
+      knobCommand({ command: "grabKnob", knob: name, on: false });
+      qp.dispose();
+    });
+    knobCommand({ command: "grabKnob", knob: name, on: true });
+    qp.show();
+  }
+
+  /**
+   * Write knobs' live values into the code. A saved document: the dev server
+   * rewrites the file (Vite HMR swaps it, seamlessly). A document with unsaved
+   * changes: the file isn't what plays, so the values go into the editor
+   * buffer instead (and are evaluated right away unless live eval is off).
+   */
+  async function writeKnobs(names?: string[]) {
+    if (!(await ensurePlayer())) return;
+    const msg = model.knobs;
+    const knobs = (msg?.knobs ?? []).filter((k) => (names ? names.includes(k.name) : k.dirty));
+    if (!msg || !knobs.length) {
+      void vscode.window.showInformationMessage("No knob has been turned away from the value in the code.");
+      return;
+    }
+    const doc = docOfFile(msg.file);
+    if (!doc?.isDirty) {
+      knobCommand({ command: "writeKnobs", knobs: knobs.map((k) => k.name), file: msg.file });
+      return;
+    }
+    const text = doc.getText();
+    const edit = new vscode.WorkspaceEdit();
+    const index = docInfo(doc).index;
+    for (const k of knobs) {
+      const r = knobValueEdits(text, k.name, k.value);
+      if ("error" in r) {
+        void vscode.window.showWarningMessage(`Strudel: ${r.error}`);
+        return;
+      }
+      for (const e of r.edits) edit.replace(doc.uri, toRange(index, e.start, e.end), e.text);
+    }
+    if (!(await vscode.workspace.applyEdit(edit))) return;
+    out.appendLine(`Wrote ${knobs.map((k) => `${k.name} = ${formatValue(k)}`).join(", ")} into the unsaved ${msg.file}`);
+    if (liveOn()) liveEval.evaluate(msg.file, doc.getText());
   }
 
   // ── Reveal: the player asks to open a file position ───────────────────────
@@ -416,7 +726,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
   }
 
   async function run(actions: Action[], doc?: vscode.TextDocument) {
-    const sends = actions.filter((a) => a.kind === "send");
+    const sends = actions.filter((a) => a.kind !== "save");
     if (sends.length && !(await ensurePlayer())) {
       // still save: saving is how changes are applied
       if (doc && actions.some((a) => a.kind === "save")) await doc.save();
@@ -424,7 +734,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
     }
     for (const a of actions) {
       if (a.kind === "save") await doc?.save();
-      else conn.send(a.msg);
+      else if (a.kind === "eval") {
+        const file = songFileOf(doc);
+        if (doc && file) liveEval.evaluate(file, doc.getText(), a.play);
+      } else conn.send(a.msg);
     }
   }
 
@@ -516,8 +829,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
   reg("strudel.evaluate", async () => {
     const ed = vscode.window.activeTextEditor;
-    const file = songFileOf(ed?.document);
-    await run(planEvaluate(model, file, !!ed?.document.isDirty), ed?.document);
+    const doc = ed?.document;
+    const file = songFileOf(doc);
+    const opts = { live: liveOn(), version: doc && file ? hashOf(doc) : undefined };
+    await run(planEvaluate(model, file, !!doc?.isDirty, opts), doc);
   });
   reg("strudel.toggle", () => sendCommand({ command: "toggle" }));
   reg("strudel.play", () => sendCommand({ command: "play" }));
@@ -533,7 +848,12 @@ export function activate(ctx: vscode.ExtensionContext): void {
       void vscode.window.showInformationMessage("Not a song file (src/songs/<name>.ts).");
       return;
     }
-    await run(doc?.isDirty ? [{ kind: "save" }, ...planPlayFile(model, file)] : planPlayFile(model, file), doc);
+    const plan: Action[] = !doc?.isDirty
+      ? planPlayFile(model, file)
+      : liveOn()
+        ? [{ kind: "eval", play: true }]
+        : [{ kind: "save" }, ...planPlayFile(model, file)];
+    await run(plan, doc);
   });
   reg("strudel.openPlayer", openPlayer);
   reg("strudel.startDevServer", startDevServer);
@@ -545,6 +865,16 @@ export function activate(ctx: vscode.ExtensionContext): void {
   reg("strudel.nextSection", async () => (await withSections()) && conn.send({ type: "command", command: "nextSection" }));
   reg("strudel.prevSection", async () => (await withSections()) && conn.send({ type: "command", command: "prevSection" }));
   reg("strudel.toggleLoop", async () => (await withSections()) && conn.send({ type: "command", command: "loop" }));
+  reg("strudel.adjustKnob", adjustKnob);
+  reg("strudel.writeKnob", async (name?: unknown) => {
+    const k = await pickKnob(name, (x) => x.dirty);
+    if (k) await writeKnobs([k.name]);
+  });
+  reg("strudel.writeKnobs", () => writeKnobs());
+  reg("strudel.resetKnob", async (name?: unknown) => {
+    const k = await pickKnob(name, (x) => x.dirty);
+    if (k) knobCommand({ command: "resetKnob", knob: k.name });
+  });
   reg("strudel.showError", async () => {
     const err = model.state?.error;
     if (!err) return;
@@ -576,6 +906,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     highlights.type,
     pulses.type,
     dimmed.type,
+    knobHintType,
     diagnostics,
     lensChanged,
     vscode.languages.registerCodeLensProvider(
@@ -587,18 +918,32 @@ export function activate(ctx: vscode.ExtensionContext): void {
       renderHighlights();
       renderPulses();
       renderDim();
+      renderKnobHints();
     }),
     vscode.workspace.onDidChangeTextDocument((e) => {
       if (!e.contentChanges.length) return;
-      // Edited → on-disk offsets no longer match: clear right away.
+      const file = songFileOf(e.document);
+      if (file) {
+        // carry the highlights' offsets across the edit (touched tokens go dark)
+        histories.get(e.document)?.record(
+          e.contentChanges.map((c) => ({ offset: c.rangeOffset, length: c.rangeLength, inserted: c.text.length })),
+        );
+        liveEval.changed({ file, text: () => e.document.getText(), dirty: () => e.document.isDirty });
+      }
       if (highlights.showsDocument(e.document)) renderHighlights();
       if (pulses.showsDocument(e.document)) renderPulses();
+      if (file && model.knobs?.file === file) renderKnobHints();
       if (dimmed.showsDocument(e.document) || (model.state?.muted?.length || model.state?.soloed?.length)) {
-        if (songFileOf(e.document)) scheduleDim();
+        if (file) scheduleDim();
       }
     }),
     vscode.workspace.onDidSaveTextDocument((doc) => {
       const rel = relOf(doc);
+      const file = songFileOf(doc);
+      if (file) {
+        liveEval.saved(file); // Vite HMR takes it from here
+        historyOf(doc).mark(hashOf(doc));
+      }
       if (rel && model.highlights.has(rel)) renderHighlights(new Set([rel]));
     }),
     vscode.workspace.onDidOpenTextDocument(() => {
@@ -612,7 +957,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
         renderPulses();
       }
       if (e.affectsConfiguration("strudel.mixer")) renderDim();
-      if (e.affectsConfiguration("strudel.codeLens") || e.affectsConfiguration("strudel.mixer")) lensChanged.fire();
+      if (e.affectsConfiguration("strudel.knobs")) renderKnobHints();
+      if (["strudel.codeLens", "strudel.mixer", "strudel.knobs"].some((k) => e.affectsConfiguration(k))) lensChanged.fire();
     }),
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
       rootCache = undefined;
@@ -626,6 +972,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
   disposeAll = () => {
     conn.dispose();
+    liveEval.dispose();
     if (ticker) clearInterval(ticker);
     if (pulseTimer) clearTimeout(pulseTimer);
     if (dimTimer) clearTimeout(dimTimer);

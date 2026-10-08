@@ -2,8 +2,8 @@
 // record every message from the bridge, send commands, wait for messages.
 
 import WebSocket from "ws";
-import type { CommandMsg, StateMsg } from "../src/live/protocol.ts";
-import { BRIDGE_PATH } from "../src/live/protocol.ts";
+import type { CommandMsg, EvalResultMsg, StateMsg } from "../src/live/protocol.ts";
+import { BRIDGE_PATH, contentVersion } from "../src/live/protocol.ts";
 
 export type Msg = { type: string } & Record<string, unknown>;
 
@@ -32,6 +32,26 @@ export class EditorClient {
 
   send(command: Omit<CommandMsg, "type">) {
     this.ws.send(JSON.stringify({ type: "command", ...command }));
+  }
+
+  /** Any message, as is */
+  sendRaw(msg: object) {
+    this.ws.send(JSON.stringify(msg));
+  }
+
+  /**
+   * Live-evaluate `text` as the unsaved buffer of `file` (what the extension's
+   * Ctrl+Enter does) and wait for the player's evalResult for it.
+   */
+  async eval(file: string, text: string, { play = false, timeout = 10_000 } = {}): Promise<EvalResultMsg> {
+    const version = contentVersion(text);
+    const from = this.messages.length;
+    this.sendRaw({ type: "eval", file, text, version, ...(play ? { play } : {}) });
+    return this.waitFor<EvalResultMsg & Msg>(
+      (m) => m.type === "evalResult" && m.file === file && m.version === version,
+      `evalResult for ${file}@${version}`,
+      { from, timeout }
+    );
   }
 
   /** Resolve with the first message (at index >= `from`) matching `predicate`. */

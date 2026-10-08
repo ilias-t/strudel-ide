@@ -5,7 +5,7 @@
 // Run: node --test test/bridge.test.ts   (Node ≥ 22.18 strips TS types)
 
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer as createHttpServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
@@ -15,6 +15,7 @@ import { createServer, loadConfigFromFile, type ViteDevServer } from "vite";
 import WebSocket from "ws";
 import strudelBridge, { createBridgeRelay, detectEditorScheme } from "../vite-plugins/strudel-bridge.ts";
 import { connectBridge, type BridgeClient, type BridgeClientOptions } from "../src/live/bridge-client.ts";
+import { LiveBuffers, LiveEvalError, liveVersionOf, songFileOf, syntaxError } from "../vite-plugins/strudel-live-eval.ts";
 import { DISCOVERY_FILE, editorFileUrl, type CommandMsg, type DiscoveryInfo } from "../src/live/protocol.ts";
 
 const repoRoot = resolve(import.meta.dirname, "..");
@@ -505,5 +506,144 @@ describe("editor scheme", () => {
     );
     assert.equal(editorFileUrl("vscode", "/a b/c/", "src/x.ts", 3), "vscode://file/a%20b/c/src/x.ts:3");
     assert.equal(editorFileUrl("vscode", "C:\\dev\\strudel", "src/x.ts", 1, 2), "vscode://file/C:/dev/strudel/src/x.ts:1:2");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Live eval and knobs through the relay
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("live eval and knobs through the relay", () => {
+  const open = async (info: Parameters<typeof createBridgeRelay>[1] = {}) => {
+    const http: Server = createHttpServer();
+    await new Promise<void>((res) => http.listen(0, "127.0.0.1", res));
+    const url = `ws://127.0.0.1:${(http.address() as AddressInfo).port}/__strudel`;
+    const relay = createBridgeRelay(() => {}, info);
+    const detach = relay.attach(http);
+    return {
+      url,
+      relay,
+      async close() {
+        detach();
+        relay.close();
+        await new Promise<void>((res) => http.close(() => res()));
+      },
+    };
+  };
+
+  test("eval goes to the handler, never raw to the browsers; without one the editor hears why", async () => {
+    const seen: unknown[] = [];
+    let relayRef: ReturnType<typeof createBridgeRelay> | null = null;
+    const s = await open({
+      onEval: (msg, reply) => {
+        seen.push(msg);
+        if (msg.text === "reply") reply({ type: "evalResult", file: msg.file, version: "x", ok: false });
+        else relayRef!.toBrowsers({ type: "live", file: msg.file, version: "v", text: msg.text, url: "/u" });
+      },
+    });
+    relayRef = s.relay;
+    const browser = new Peer(s.url);
+    await browser.opened;
+    browser.send({ type: "hello", role: "browser" });
+    assert.equal((await browser.next()).type, "server");
+    assert.equal((await browser.next()).type, "editors");
+    const ed = await Peer.editor(s.url);
+    assert.equal((await ed.next()).type, "player");
+    assert.equal((await browser.next()).type, "editors");
+
+    ed.send({ type: "eval", file: "src/songs/a.ts", text: "x" });
+    const live = await browser.next();
+    assert.deepEqual(live, { type: "live", file: "src/songs/a.ts", version: "v", text: "x", url: "/u" });
+    assert.deepEqual(seen, [{ type: "eval", file: "src/songs/a.ts", text: "x" }]);
+    ed.send({ type: "eval", file: "src/songs/a.ts", text: "reply" });
+    assert.deepEqual(await ed.next(), { type: "evalResult", file: "src/songs/a.ts", version: "x", ok: false });
+    assert.equal(await browser.silent(), true, "the browser saw neither eval");
+    // malformed evals are dropped; browsers can't eval or fake `live`
+    ed.send({ type: "eval", file: 3 });
+    browser.send({ type: "eval", file: "src/songs/a.ts", text: "x" });
+    ed.send({ type: "live", file: "src/songs/a.ts", version: "v", text: "x", url: "/evil" });
+    assert.equal(await browser.silent(), true);
+    assert.equal(seen.length, 2);
+    browser.close();
+    ed.close();
+    await s.close();
+
+    // no live eval (e.g. middleware mode): the editor is told
+    const plain = await open();
+    const ed2 = await Peer.editor(plain.url);
+    await ed2.next(); // player
+    ed2.send({ type: "eval", file: "src/songs/a.ts", text: "x" });
+    const r = await ed2.next();
+    assert.equal(r.type, "evalResult");
+    assert.equal(r.ok, false);
+    assert.match(String((r.error as { message: string }).message), /dev server/);
+    ed2.close();
+    await plain.close();
+  });
+
+  test("knobs are relayed and replayed to editors that connect later; knob commands reach the browser", async () => {
+    const s = await open();
+    const commands: CommandMsg[] = [];
+    const b = connectBridge({ url: s.url, enabled: true, onCommand: (c) => commands.push(c), minDelay: 50 });
+    await until(() => b.connected);
+    const knobs = [{ name: "cutoff", value: 1800, def: 2200, min: 200, max: 8000, step: 10, log: true, dirty: true }];
+    b.sendKnobs("jynx", "src/songs/jynx.ts", knobs);
+    await until(() => s.relay.counts().browsers === 1);
+    await new Promise((r) => setTimeout(r, 50));
+    const ed = await Peer.editor(s.url);
+    const replay = [await ed.next(), await ed.next()];
+    assert.deepEqual(replay[1], { type: "knobs", songId: "jynx", file: "src/songs/jynx.ts", knobs });
+    ed.send({ type: "command", command: "setKnob", knob: "cutoff", value: 900 });
+    ed.send({ type: "command", command: "writeKnobs", knobs: ["cutoff"] });
+    await until(() => commands.length === 2);
+    assert.deepEqual(commands, [
+      { type: "command", command: "setKnob", knob: "cutoff", value: 900 },
+      { type: "command", command: "writeKnobs", knobs: ["cutoff"] },
+    ]);
+    b.send({ type: "knobWrite", file: "src/songs/jynx.ts", ok: false, error: "nope" });
+    assert.deepEqual(await ed.next(), { type: "knobWrite", file: "src/songs/jynx.ts", ok: false, error: "nope" });
+    b.close();
+    ed.close();
+    await s.close();
+  });
+});
+
+describe("live eval service", () => {
+  test("buffers: newest last, bounded per file", () => {
+    const buffers = new LiveBuffers();
+    for (let i = 0; i < 10; i++) buffers.put("src/songs/a.ts", `v${i}`, `t${i}`);
+    assert.equal(buffers.get("src/songs/a.ts", "v0"), undefined, "evicted");
+    assert.equal(buffers.get("src/songs/a.ts", "v9"), "t9");
+    assert.deepEqual(buffers.latest("src/songs/a.ts"), { version: "v9", text: "t9" });
+    assert.deepEqual(buffers.put("src/songs/a.ts", "v5", "t5"), [], "re-evaluating a kept version evicts nothing");
+    assert.deepEqual(buffers.latest("src/songs/a.ts"), { version: "v5", text: "t5" });
+  });
+
+  test("syntax errors are located in the buffer (1-based)", () => {
+    const text = "const a = 1;\nconst b = note(\"c3\".gain(;\n";
+    const err = syntaxError(text, "src/songs/a.ts");
+    assert.ok(err);
+    assert.match(err.message, /^Syntax error: /);
+    assert.equal(err.line, 2);
+    assert.equal(syntaxError("const ok: number = 1;\nexport default { createPattern: () => s(\"bd\") };\n", "x.ts"), null);
+  });
+
+  test("only existing song modules can be evaluated", () => {
+    const root = mkdtempSync(join(tmpdir(), "strudel-live-"));
+    try {
+      mkdirSync(join(root, "src", "songs"), { recursive: true });
+      writeFileSync(join(root, "src", "songs", "a.ts"), "");
+      assert.equal(songFileOf(root, "src/songs/a.ts"), "src/songs/a.ts");
+      assert.equal(songFileOf(root, "./src/songs/../songs/a.ts"), "src/songs/a.ts");
+      for (const bad of ["src/songs/index.ts", "src/songs/_template.ts", "../a.ts", "src/main.ts", "/etc/passwd", 7]) {
+        assert.throws(() => songFileOf(root, bad), LiveEvalError, String(bad));
+      }
+      assert.throws(() => songFileOf(root, "src/songs/new.ts"), /not on disk yet/);
+      assert.equal(liveVersionOf("/x/src/songs/a.ts?live=0123abcd"), "0123abcd");
+      assert.equal(liveVersionOf("/x/src/songs/a.ts?t=1&live=0123abcd&import"), "0123abcd");
+      assert.equal(liveVersionOf("/x/src/songs/a.ts?raw"), null);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

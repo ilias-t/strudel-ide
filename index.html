@@ -6,476 +6,128 @@
     <title>Strudel IDE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-      :root {
-        --bg-primary: #0d0221;
-        --bg-secondary: #150534;
-        --bg-card: rgba(20, 10, 50, 0.6);
-        --neon-pink: #ff2a6d;
-        --neon-cyan: #05d9e8;
-        --neon-purple: #d300c5;
-        --text-primary: #ffffff;
-        --text-dim: #7a6b9a;
-        --border: rgba(5, 217, 232, 0.2);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: 'JetBrains Mono', monospace;
-        background: var(--bg-primary);
-        color: var(--text-primary);
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background-image:
-          linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-      }
-
-      /* Grid overlay */
-      body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background:
-          linear-gradient(90deg, rgba(5, 217, 232, 0.03) 1px, transparent 1px),
-          linear-gradient(rgba(5, 217, 232, 0.03) 1px, transparent 1px);
-        background-size: 50px 50px;
-        pointer-events: none;
-      }
-
-      .container {
-        width: 100%;
-        max-width: 400px;
-        padding: 2rem;
-        position: relative;
-        z-index: 1;
-      }
-
-      /* ─────────────────────────────────────────────────────────────────────── */
-      /* Header                                                                  */
-      /* ─────────────────────────────────────────────────────────────────────── */
-
-      header {
-        text-align: center;
-        margin-bottom: 2.5rem;
-      }
-
-      h1 {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 1.8rem;
-        font-weight: 700;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-pink) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        filter: drop-shadow(0 0 25px rgba(5, 217, 232, 0.4));
-      }
-
-      /* ─────────────────────────────────────────────────────────────────────── */
-      /* Player Card - Combined selector + controls                              */
-      /* ─────────────────────────────────────────────────────────────────────── */
-
-      .player {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .player-row {
-        display: flex;
-        gap: 0.75rem;
-        align-items: stretch;
-      }
-
-      .player select {
-        flex: 1;
-        padding: 0 1rem;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.8rem;
-        background: rgba(0, 0, 0, 0.3);
-        color: var(--text-primary);
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        cursor: pointer;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2305d9e8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 0.75rem center;
-        transition: all 0.15s ease;
-        min-height: 48px;
-      }
-
-      .player select:hover {
-        border-color: var(--neon-cyan);
-      }
-
-      .player select:focus {
-        outline: none;
-        border-color: var(--neon-cyan);
-        box-shadow: 0 0 15px rgba(5, 217, 232, 0.2);
-      }
-
-      .player button {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.75rem;
-        font-weight: 500;
-        padding: 0 1.5rem;
-        min-height: 48px;
-        border: 2px solid var(--neon-pink);
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.15s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        background: transparent;
-        color: var(--neon-pink);
-        white-space: nowrap;
-      }
-
-      .player button:hover {
-        background: var(--neon-pink);
-        color: var(--bg-primary);
-        box-shadow: 0 0 25px rgba(255, 42, 109, 0.5);
-      }
-
-      .player button.playing {
-        border-color: var(--neon-cyan);
-        color: var(--neon-cyan);
-        background: rgba(5, 217, 232, 0.1);
-        box-shadow: 0 0 20px rgba(5, 217, 232, 0.3);
-      }
-
-      .player button.playing:hover {
-        background: rgba(5, 217, 232, 0.2);
-        color: var(--neon-cyan);
-      }
-
-      /* ─────────────────────────────────────────────────────────────────────── */
-      /* Now Playing Display                                                     */
-      /* ─────────────────────────────────────────────────────────────────────── */
-
-      .now-playing {
-        text-align: center;
-        margin-bottom: 1.5rem;
-      }
-
-      .now-playing-label {
-        font-size: 0.55rem;
-        text-transform: uppercase;
-        letter-spacing: 0.2em;
-        color: var(--text-dim);
-        margin-bottom: 0.5rem;
-      }
-
-      .now-playing-value {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 1rem;
-        font-weight: 500;
-        letter-spacing: 0.05em;
-        color: var(--neon-cyan);
-        text-shadow: 0 0 20px rgba(5, 217, 232, 0.5);
-        min-height: 1.5rem;
-      }
-
-      .now-playing-value.idle {
-        color: var(--text-dim);
-        text-shadow: none;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.8rem;
-      }
-
-      /* ─────────────────────────────────────────────────────────────────────── */
-      /* Player options (follow edits)                                           */
-      /* ─────────────────────────────────────────────────────────────────────── */
-
-      .player-options {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.75rem;
-        margin-top: 1rem;
-        font-size: 0.62rem;
-        color: var(--text-dim);
-        letter-spacing: 0.05em;
-        white-space: nowrap;
-      }
-
-      .toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.6rem;
-        cursor: pointer;
-        user-select: none;
-      }
-
-      .toggle input {
-        appearance: none;
-        width: 28px;
-        height: 14px;
-        border: 1px solid var(--border);
-        border-radius: 7px;
-        background: rgba(0, 0, 0, 0.3);
-        position: relative;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-
-      .toggle input::after {
-        content: '';
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--text-dim);
-        transition: all 0.15s ease;
-      }
-
-      .toggle input:checked {
-        border-color: var(--neon-cyan);
-        box-shadow: 0 0 10px rgba(5, 217, 232, 0.3);
-      }
-
-      .toggle input:checked::after {
-        left: 16px;
-        background: var(--neon-cyan);
-      }
-
-      .toggle input:focus-visible {
-        outline: 1px solid var(--neon-cyan);
-        outline-offset: 2px;
-      }
-
-      .toggle:hover {
-        color: var(--text-primary);
-      }
-
-      .keys kbd {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.6rem;
-        padding: 0.05rem 0.35rem;
-        border: 1px solid var(--border);
-        border-radius: 3px;
-        color: var(--neon-cyan);
-      }
-
-      .player button:disabled {
-        opacity: 0.5;
-        cursor: wait;
-        background: transparent;
-        color: var(--neon-pink);
-        box-shadow: none;
-      }
-
-      /* ─────────────────────────────────────────────────────────────────────── */
-      /* Loading / audio hint                                                    */
-      /* ─────────────────────────────────────────────────────────────────────── */
-
-      .notice {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.6rem;
-        margin-bottom: 1.5rem;
-        font-size: 0.65rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--neon-cyan);
-      }
-
-      .notice[hidden] {
-        display: none;
-      }
-
-      .spinner {
-        width: 10px;
-        height: 10px;
-        border: 2px solid rgba(5, 217, 232, 0.25);
-        border-top-color: var(--neon-cyan);
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-      }
-
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-
-      .audio-hint {
-        width: fit-content;
-        margin-inline: auto;
-        padding: 0.5rem 1rem;
-        border: 1px solid var(--neon-purple);
-        border-radius: 4px;
-        background: rgba(13, 2, 33, 0.9);
-        color: var(--neon-purple);
-        cursor: pointer;
-        animation: pulse 1.6s ease-in-out infinite;
-      }
-
-      @keyframes pulse {
-        50% { opacity: 0.45; }
-      }
-
-      /* ─────────────────────────────────────────────────────────────────────── */
-      /* Error panel                                                             */
-      /* ─────────────────────────────────────────────────────────────────────── */
-
-      .error-panel {
-        position: relative;
-        margin-bottom: 1.5rem;
-        padding: 1rem 2.25rem 1rem 1rem;
-        background:
-          linear-gradient(rgba(255, 42, 109, 0.08), rgba(255, 42, 109, 0.08)),
-          rgba(13, 2, 33, 0.94);
-        border: 1px solid var(--neon-pink);
-        border-left-width: 3px;
-        border-radius: 4px;
-        box-shadow: 0 0 25px rgba(255, 42, 109, 0.15);
-        font-size: 0.7rem;
-        line-height: 1.5;
-      }
-
-      .error-panel[hidden] {
-        display: none;
-      }
-
-      .error-panel[data-kind="trigger"],
-      .error-panel[data-kind="load"] {
-        border-color: var(--neon-purple);
-        background:
-          linear-gradient(rgba(211, 0, 197, 0.08), rgba(211, 0, 197, 0.08)),
-          rgba(13, 2, 33, 0.94);
-        box-shadow: 0 0 25px rgba(211, 0, 197, 0.12);
-      }
-
-      .error-title {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.65rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--neon-pink);
-        margin-bottom: 0.5rem;
-      }
-
-      .error-panel[data-kind="trigger"] .error-title,
-      .error-panel[data-kind="load"] .error-title {
-        color: var(--neon-purple);
-      }
-
-      .error-message {
-        white-space: pre-wrap;
-        word-break: break-word;
-        color: var(--text-primary);
-      }
-
-      .error-location {
-        margin-top: 0.4rem;
-        color: var(--neon-cyan);
-      }
-
-      .error-location[hidden],
-      .error-note[hidden] {
-        display: none;
-      }
-
-      .error-note {
-        margin-top: 0.5rem;
-        color: var(--text-dim);
-      }
-
-      .error-dismiss {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        width: 1.5rem;
-        height: 1.5rem;
-        border: none;
-        background: transparent;
-        color: var(--text-dim);
-        font-size: 1rem;
-        line-height: 1;
-        cursor: pointer;
-      }
-
-      .error-dismiss:hover {
-        color: var(--text-primary);
-      }
-
-      /* ─────────────────────────────────────────────────────────────────────── */
-      /* Footer                                                                  */
-      /* ─────────────────────────────────────────────────────────────────────── */
-
-      .footer {
-        margin-top: 2rem;
-        text-align: center;
-        color: var(--text-dim);
-        font-size: 0.65rem;
-        letter-spacing: 0.05em;
-      }
-
-      .footer code {
-        color: var(--neon-purple);
-      }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/ui/stage.css" />
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>Strudel</h1>
+    <div class="stage" id="stage">
+      <!-- ── Top bar ─────────────────────────────────────────────────────── -->
+      <header class="topbar">
+        <div class="brand" aria-label="Strudel IDE">Strudel</div>
+
+        <div class="song-picker">
+          <select id="song-select" data-testid="song-picker" aria-label="Song"></select>
+        </div>
+
+        <button id="play" class="transport" data-testid="play-button" disabled aria-label="Play">
+          <svg class="icon-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z" /></svg>
+          <svg class="icon-stop" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9" rx="1" /></svg>
+          <span class="transport-label">Loading…</span>
+        </button>
+
+        <div class="readouts">
+          <div class="readout" data-testid="tempo" title="Tempo">
+            <span class="readout-value" id="bpm">120</span><span class="readout-unit">bpm</span>
+          </div>
+          <div class="readout counter" data-testid="bar-beat" title="Bar . beat">
+            <span class="readout-value"><span id="bar">1</span><span class="counter-dot">.</span><span id="beat">1</span></span>
+            <span class="readout-unit">bar</span>
+          </div>
+        </div>
+
+        <div class="status-area">
+          <div class="loading" id="loading" role="status">
+            <span class="spinner"></span><span class="loading-text">Starting audio engine…</span>
+          </div>
+        </div>
+
+        <label class="toggle" title="Switch to the song you save in your editor">
+          <input type="checkbox" id="follow-edits" data-testid="follow-edits" checked />
+          <span>Follow edits</span>
+        </label>
+
+        <div class="editor-link" id="editor-link" data-testid="editor-link" data-connected="false" title="Editor bridge">
+          <span class="link-led"></span><span class="link-label">VS Code</span>
+        </div>
+
+        <button class="icon-button" id="help-button" data-testid="help-button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
       </header>
 
-      <div class="player">
-        <div class="player-row">
-          <select id="song-select" aria-label="Select track">
-            <!-- Populated by JavaScript -->
-          </select>
-          <button id="play" disabled>Loading…</button>
+      <!-- ── Code view ───────────────────────────────────────────────────── -->
+      <main class="code-pane" id="code-pane" data-testid="code-view" aria-label="Song source">
+        <div class="code-head">
+          <span class="code-file" id="code-file"></span>
+          <span class="code-stale" id="code-stale" hidden>edited · not playing yet</span>
+          <button class="chip follow-chip" id="follow-chip" data-testid="follow-playhead" hidden>Follow the music</button>
         </div>
-        <div class="player-options">
-          <label class="toggle" title="Switch to the song you save in your editor">
-            <input type="checkbox" id="follow-edits" checked />
-            Follow edits
-          </label>
-          <span class="keys"><kbd>Space</kbd> play <kbd>←</kbd><kbd>→</kbd> song</span>
+        <div class="code-scroll" id="code-scroll" tabindex="0">
+          <div class="code-content" id="code-content">
+            <div class="code-highlights" id="code-highlights" aria-hidden="true"></div>
+            <div class="code-lines" id="code-lines"></div>
+          </div>
         </div>
-      </div>
 
-      <div class="notice" id="loading">
-        <span class="spinner"></span><span class="loading-text">Starting audio engine…</span>
-      </div>
+        <button class="audio-hint" id="audio-hint" hidden>Click anywhere to enable audio</button>
 
-      <div class="notice audio-hint" id="audio-hint" hidden>Click anywhere to enable audio</div>
+        <div class="error-panel" id="error-panel" data-testid="error-panel" role="alert" hidden>
+          <div class="error-head">
+            <span class="error-title" id="error-title" data-testid="error-title"></span>
+            <button class="error-location" id="error-location" data-testid="error-location" hidden></button>
+            <button class="error-dismiss" id="error-dismiss" data-testid="error-dismiss" aria-label="Dismiss error">×</button>
+          </div>
+          <div class="error-message" id="error-message" data-testid="error-message"></div>
+          <div class="error-note" id="error-note" hidden></div>
+        </div>
+      </main>
 
-      <div class="now-playing">
-        <div class="now-playing-label">Now Playing</div>
-        <div class="now-playing-value idle" id="current-pattern">Select a track</div>
-      </div>
+      <!-- ── Mixer ───────────────────────────────────────────────────────── -->
+      <aside class="mixer" id="mixer" data-testid="mixer" aria-label="Mixer">
+        <div class="panel-head">
+          <span class="panel-title">Tracks</span>
+          <button class="chip" id="unmute-all" data-testid="unmute-all" title="Clear all mutes and solos (0)">Reset</button>
+        </div>
+        <div class="strips" id="strips"></div>
+        <p class="mixer-empty" id="mixer-empty" hidden>This song returns a single pattern. Return named tracks, like <code>{ kick, bass }</code>, to mix them here.</p>
+      </aside>
 
-      <div class="error-panel" id="error-panel" role="alert" hidden>
-        <button class="error-dismiss" id="error-dismiss" aria-label="Dismiss error">×</button>
-        <div class="error-title" id="error-title"></div>
-        <div class="error-message" id="error-message"></div>
-        <div class="error-location" id="error-location" hidden></div>
-        <div class="error-note" id="error-note" hidden></div>
-      </div>
+      <!-- ── Timeline ────────────────────────────────────────────────────── -->
+      <footer class="timeline" id="timeline" data-testid="timeline">
+        <div class="tl-now">
+          <span class="tl-section" id="tl-section" data-testid="section-name"></span>
+          <span class="tl-sub" id="tl-sub"></span>
+        </div>
+        <div class="tl-track" id="tl-track">
+          <div class="tl-segments" id="tl-segments"></div>
+          <div class="tl-playhead" id="tl-playhead" data-testid="timeline-playhead"></div>
+        </div>
+        <button class="loop-toggle" id="loop-toggle" data-testid="loop-toggle" aria-pressed="false" title="Loop this section (L)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 5.5h6.5a2.5 2.5 0 0 1 0 5H9M4 5.5 6 3.5M4 5.5l2 2M12 10.5H5.5a2.5 2.5 0 0 1 0-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Loop</span>
+        </button>
+      </footer>
+    </div>
 
-      <div class="footer">
-        Edit songs in <code>src/songs/</code>
+    <!-- ── Keyboard help ─────────────────────────────────────────────────── -->
+    <div class="help-overlay" id="help-overlay" data-testid="help-overlay" hidden>
+      <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <h2 id="help-title">Keys</h2>
+        <dl class="help-keys">
+          <dt><kbd>Space</kbd></dt><dd>Play / stop</dd>
+          <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Previous / next song</dd>
+          <dt><kbd>1</kbd>–<kbd>9</kbd></dt><dd>Mute track 1–9</dd>
+          <dt><kbd>Shift</kbd> + <kbd>1</kbd>–<kbd>9</kbd></dt><dd>Solo track 1–9</dd>
+          <dt><kbd>0</kbd></dt><dd>Clear mutes and solos</dd>
+          <dt><kbd>[</kbd> <kbd>]</kbd></dt><dd>Jump to previous / next section on the next bar</dd>
+          <dt><kbd>L</kbd></dt><dd>Loop the current section</dd>
+          <dt><kbd>C</kbd></dt><dd>Show / hide the code</dd>
+          <dt><kbd>F</kbd></dt><dd>Follow the music in the code again</dd>
+          <dt><kbd>?</kbd></dt><dd>This help</dd>
+        </dl>
+        <p class="help-note">Click a section in the timeline to jump there. Edit <code>src/songs/*.ts</code> in your editor; every save hot-swaps without stopping the music.</p>
+        <button class="chip help-close" id="help-close">Close</button>
       </div>
     </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

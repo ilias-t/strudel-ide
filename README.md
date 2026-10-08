@@ -24,6 +24,28 @@ player errors as diagnostics. To build it, run `npm run ext:package` and
 install `vscode-extension/strudel-live.vsix`. See
 [vscode-extension/README.md](vscode-extension/README.md).
 
+## Tests
+
+```bash
+npm run check        # fast, no browser: types, songs, bridge relay, extension
+npm run test:e2e     # end-to-end in headless Chromium (~1 min)
+npm run test:e2e:ui  # the same in Playwright's UI mode
+npm run test:build   # production build (tsc + vite build into dist/)
+```
+
+The end-to-end suite (`e2e/`, Playwright) copies the app (`index.html`,
+`src/`) into `.e2e-app/` and serves that copy with its own Vite dev server on
+port 5310 (`E2E_PORT` to change it). It plays every song for a few seconds,
+then edits a throwaway fixture song in the copy
+(`.e2e-app/src/songs/zz-e2e-fixture.ts`) while it plays to check
+hot-swapping, error handling, follow-edits, tempo changes, the editor bridge
+and the production build. Your songs are never edited, and a `npm run dev`
+session running at the same time (and the VS Code extension linked to it)
+doesn't see any of it. `.e2e-app/` is deleted when the run ends. Tests drive
+the player through `window.__strudel`, not the DOM.
+
+First time on a new machine: `npx playwright install chromium`.
+
 ## Adding Songs
 
 1. Copy `src/songs/_template.ts` to a new file (e.g., `my-song.ts`)

@@ -1,0 +1,358 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   The track builder unit (./track-builder.ts), in the #track-builder drawer
+   slot over the rack column. Gear like the rest of the rig: silkscreened step
+   numbers, rubber keys with a colour cap per role, black glass for the lists
+   and the code. The chosen role's colour (--c, on the unit) runs through it:
+   the role key's cap, the snippet marker, the name's LED, the add key.
+   Loaded with the chunk; stage.css owns .mod, .screen, .key and the slot.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.m-builder {
+  --c: var(--silk-faint);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 12px 14px 14px;
+}
+
+.m-builder .mod-head {
+  min-height: 20px;
+}
+
+.tb-body {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* room for the keys' focus rings and drop shadows */
+  margin: -4px -6px;
+  padding: 4px 6px 6px;
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3e transparent;
+}
+
+/* ── a step: a silkscreened number and its name ───────────────────────────── */
+
+.tb-step {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.tb-step-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--silk-soft);
+}
+
+.tb-num {
+  display: inline-grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--silk-faint);
+  font-size: 9.5px;
+  font-weight: 600;
+  font-stretch: 75%;
+  color: var(--silk);
+}
+
+.tb-step-name {
+  color: var(--silk);
+  font-weight: 600;
+}
+
+/* ── colour caps: a role's LED set into a key ─────────────────────────────── */
+
+.tb-cap {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c);
+  opacity: 0.32;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.12s, box-shadow 0.12s;
+}
+
+/* ── 1 role ────────────────────────────────────────────────────────────────── */
+
+.tb-roles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px 6px;
+}
+
+.tb-role {
+  justify-content: flex-start;
+  min-width: 0;
+  padding: 0 8px;
+  font-weight: 500;
+}
+
+.tb-role[aria-pressed="true"] {
+  color: #fff;
+  background: linear-gradient(180deg, #2f2f33, #29292c);
+}
+
+.tb-role[aria-pressed="true"] .tb-cap,
+.tb-role:hover .tb-cap {
+  opacity: 1;
+}
+
+.tb-role[aria-pressed="true"] .tb-cap {
+  box-shadow: 0 0 6px var(--c), 0 0 12px color-mix(in srgb, var(--c) 55%, transparent);
+}
+
+/* ── 2 snippet ─────────────────────────────────────────────────────────────── */
+
+.tb-snippets {
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  min-height: 34px;
+}
+
+.tb-snippet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+  padding: 0 8px 0 10px;
+  border-radius: 3px;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--px-dim);
+}
+
+.tb-snippet::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 11px;
+  border-radius: 1px;
+  background: var(--px-faint);
+}
+
+.tb-snippet:hover {
+  color: var(--px);
+}
+
+.tb-snippet[aria-pressed="true"] {
+  color: var(--px);
+  background: #141416;
+}
+
+.tb-snippet[aria-pressed="true"]::before {
+  background: var(--c);
+  box-shadow: 0 0 6px var(--c);
+}
+
+.tb-snippet-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tb-empty {
+  padding: 6px 10px;
+  font-size: 11.5px;
+  color: var(--px-dim);
+}
+
+.tb-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.tb-desc {
+  padding: 0 2px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--silk-soft);
+  max-width: 60ch;
+}
+
+.tb-code-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 8px 8px 10px;
+}
+
+.tb-code {
+  flex: 1;
+  min-width: 0;
+  font-size: 11.5px;
+  line-height: 16px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tb-play {
+  flex: none;
+}
+
+/* ── 3 sound, 4 name: glass fields ────────────────────────────────────────── */
+
+.tb-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tb-select-wrap {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+}
+
+.tb-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 100%;
+  padding: 0 26px 0 10px;
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--px);
+  cursor: pointer;
+  text-overflow: ellipsis;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0h8L4 5z' fill='%235a5750'/%3E%3C/svg%3E") no-repeat right 10px center;
+}
+
+.tb-select option,
+.tb-select optgroup {
+  background: #111113;
+  color: var(--px);
+}
+
+.tb-note {
+  padding: 0 2px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--silk-soft);
+}
+
+.tb-name-wrap {
+  flex: 0 1 170px;
+  min-width: 0;
+  height: 28px;
+}
+
+.tb-name {
+  width: 100%;
+  height: 100%;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--px);
+  caret-color: var(--c);
+}
+
+.tb-name:disabled {
+  color: var(--px-faint);
+}
+
+.tb-name[aria-invalid="true"] {
+  color: var(--ember-px);
+}
+
+.tb-role-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--silk-soft);
+  white-space: nowrap;
+}
+
+.tb-role-tag .tb-cap {
+  opacity: 1;
+  box-shadow: 0 0 6px var(--c);
+}
+
+.tb-problem {
+  color: var(--ember-px);
+}
+
+/* ── 5 add: the line, a status, the key ────────────────────────────────────── */
+
+.tb-foot {
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.45);
+  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+.tb-foot .tb-step {
+  gap: 8px;
+}
+
+.tb-preview {
+  min-height: 52px;
+  max-height: 96px;
+  overflow-y: auto;
+  padding: 8px 10px;
+  font-size: 11.5px;
+  line-height: 16px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tb-preview[data-empty="true"] {
+  color: var(--px-dim);
+}
+
+.tb-foot-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tb-message {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--silk-soft);
+}
+
+.tb-message[data-kind="warn"] {
+  color: var(--amber);
+}
+
+.tb-add {
+  flex: none;
+  height: 30px;
+  padding: 0 14px 0 11px;
+  font-size: 12px;
+}
+
+.tb-add:not(:disabled) .tb-cap {
+  opacity: 1;
+  box-shadow: 0 0 6px var(--c), 0 0 14px color-mix(in srgb, var(--c) 50%, transparent);
+}
+
+.tb-add:disabled .tb-cap {
+  opacity: 0.18;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tb-cap {
+    transition: none;
+  }
+}

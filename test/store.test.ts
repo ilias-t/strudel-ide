@@ -445,6 +445,89 @@ describe("boot", () => {
     assert.ok(player.hasSong("good"));
     assert.ok(store.getMySong("bad"), "kept: the user can fix it");
   });
+
+  // The replay awaits each song's compile in turn: what the user does to the
+  // later songs meanwhile (revert, edit) must win over what boot read first.
+  describe("while an earlier stored song is still compiling", () => {
+    /** Boot with "slow" (a user song whose addSong is held) stored first, then `later` */
+    async function bootHeld(later: [id: string, kind: string, text: string]) {
+      const { store, storage, player } = setup();
+      let release!: () => void;
+      const held = new Promise<void>((resolve) => (release = resolve));
+      // like the real player's sequence guard: removeSong cancels the add still compiling
+      let cancelled = false;
+      const addSong = player.addSong.bind(player);
+      player.addSong = async (id, text) => {
+        if (id !== "slow") return addSong(id, text);
+        await held;
+        return cancelled ? { ok: false, error: { message: "superseded by a newer edit" } } : addSong(id, text);
+      };
+      const removeSong = player.removeSong.bind(player);
+      player.removeSong = (id) => {
+        if (id === "slow") cancelled = true;
+        return removeSong(id);
+      };
+      storage.setItem(`${PREFIX}slow`, entry("user", "s", 2));
+      storage.setItem(`${PREFIX}${later[0]}`, entry(later[1], later[2], 1));
+      const booted = store.init(player);
+      await Promise.resolve();
+      assert.equal(player.calls.length, 0, "slow is still compiling");
+      return { store, storage, player, booted, release };
+    }
+
+    test("a user song reverted meanwhile isn't added back", async () => {
+      const { store, storage, player, booted, release } = await bootHeld(["wobble", "user", "w"]);
+      assert.equal(store.revert("wobble"), true);
+      release();
+      const report = await booted;
+      assert.deepEqual(player.calls.filter((c) => c[1] === "wobble"), [["removeSong", "wobble"]]);
+      assert.equal(player.hasSong("wobble"), false);
+      assert.equal(storage.getItem(`${PREFIX}wobble`), null);
+      assert.ok(player.hasSong("slow"));
+      assert.deepEqual(report.failed, []);
+    });
+
+    test("an override reverted meanwhile isn't evaluated back", async () => {
+      const { store, storage, player, booted, release } = await bootHeld(["jynx", "override", "j"]);
+      assert.equal(store.revert("jynx"), true);
+      release();
+      const report = await booted;
+      assert.deepEqual(player.calls.filter((c) => c[1] === "jynx"), [["revertSource", "jynx"]]);
+      assert.equal(storage.getItem(`${PREFIX}jynx`), null);
+      assert.deepEqual(report.failed, []);
+    });
+
+    test("the compiling song itself reverted: the player drops it, and it isn't reported as failing", async () => {
+      const { store, storage, player, booted, release } = await bootHeld(["wobble", "user", "w"]);
+      assert.equal(store.revert("slow"), true);
+      release();
+      const report = await booted;
+      assert.equal(storage.getItem(`${PREFIX}slow`), null);
+      assert.deepEqual(report.failed, []);
+      assert.ok(player.hasSong("wobble"));
+    });
+
+    test("a song edited meanwhile is replayed with its newest text", async () => {
+      const { store, player, booted, release } = await bootHeld(["jynx", "override", "j"]);
+      store.saveOverride("jynx", "j2");
+      release();
+      await booted;
+      assert.deepEqual(player.calls.filter((c) => c[1] === "jynx"), [["evalSource", "jynx", "j2", { intent: "commit", origin: "browser" }]]);
+    });
+
+    test("a user song edited meanwhile is added with its newest text, and known by it", async () => {
+      const { store, player, booted, release } = await bootHeld(["wobble", "user", "w"]);
+      store.saveOverride("wobble", "w2");
+      release();
+      await booted;
+      assert.deepEqual(player.calls.filter((c) => c[1] === "wobble"), [["addSong", "wobble", "w2"]]);
+      // with the saved entry gone, the store still knows the song by the text it added:
+      // a share link with that text reuses it instead of opening a copy
+      store.discard("wobble");
+      const hash = `#song=${await encodeShare("wobble", "w2")}`;
+      assert.deepEqual(await store.loadFromHash(hash), { ok: true, id: "wobble" });
+    });
+  });
 });
 
 describe("save to file", () => {

@@ -390,12 +390,17 @@ export function createSongsStore(deps: SongsStoreDeps): SongsStore {
     const report: InitReport = { failed: [], shared: null };
     // Read everything synchronously first: with nothing saved and no share
     // link, return without calling the player (no compiler load at boot).
+    // This snapshot only decides that and the order: each song compiles in
+    // turn, and meanwhile the user may revert or edit the ones still waiting.
     const saved = storedIds()
       .map((id) => [id, readEntry(id)] as const)
       .filter((e): e is readonly [string, StoredEntry] => e[1] !== null);
     const hasShare = sharePayload(safeHash()) !== null;
     if (!saved.length && !hasShare) return report;
-    for (const [id, entry] of saved) {
+    for (const [id] of saved) {
+      // what is saved now: a reverted song stays reverted, an edited one replays its new text
+      const entry = readEntry(id);
+      if (!entry) continue;
       try {
         let result: EvalResult;
         if (p.isBuiltInSong(id)) {
@@ -404,6 +409,8 @@ export function createSongsStore(deps: SongsStoreDeps): SongsStore {
           result = await p.addSong(id, entry.text);
           if (result.ok) registered.set(id, entry.text);
         }
+        // reverted while it compiled: the player dropped it (its sequence guard), nothing failed
+        if (!result.ok && !readEntry(id)) continue;
         if (!result.ok) report.failed.push({ id, error: errorText(result.error) });
       } catch (err) {
         report.failed.push({ id, error: err instanceof Error ? err.message : String(err) });

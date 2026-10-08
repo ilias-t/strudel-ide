@@ -222,12 +222,8 @@ type SampleName =
 /** Every sound name s()/sound() can play (drum machine sounds need `.bank()`). */
 type SoundName = SynthName | DrumPartName | SampleName;
 
-/**
- * Drum machine banks (tidal-drum-machines) for `.bank()`.
- * Note: the short aliases ("TR909") only work if tidal-drum-machines-alias.json is loaded with
- * aliasBank(), not samples().
- */
-type BankName =
+/** Drum machine banks (tidal-drum-machines) for `.bank()`, e.g. "RolandTR909". */
+type DrumMachineBankName =
   | "AJKPercusyn"
   | "AkaiLinn"
   | "AkaiMPC60"
@@ -299,6 +295,78 @@ type BankName =
   | "YamahaRX5"
   | "YamahaRY30"
   | "YamahaTG33";
+
+/** Short bank aliases from tidal-drum-machines-alias (registered with aliasBank() in main.ts), e.g. "TR909". */
+type BankAliasName =
+  | "9000"
+  | "Ace"
+  | "CircuitsDrumtracks"
+  | "CircuitsTom"
+  | "Compurhythm1000"
+  | "Compurhythm78"
+  | "Compurhythm8000"
+  | "ConcertMateMG1"
+  | "D110"
+  | "D70"
+  | "DDM110"
+  | "DDR30"
+  | "DMX"
+  | "DPM48"
+  | "DR110"
+  | "DR220"
+  | "DR55"
+  | "DR550"
+  | "Drumulator"
+  | "HR16"
+  | "JD990"
+  | "KPR77"
+  | "KR55"
+  | "KRZ"
+  | "Linn"
+  | "LM1"
+  | "LM2"
+  | "LM8953"
+  | "M1"
+  | "MC202"
+  | "MC303"
+  | "MicroRhythmer12"
+  | "Minipops"
+  | "MPC60"
+  | "MS404"
+  | "MT32"
+  | "Percysyn"
+  | "Polaris"
+  | "Poly800"
+  | "R8"
+  | "R88"
+  | "RM50"
+  | "RX21"
+  | "RX5"
+  | "RY30"
+  | "RZ1"
+  | "S50"
+  | "SDS400"
+  | "SDS5"
+  | "SH09"
+  | "SK1"
+  | "SP12"
+  | "SpaceDrum"
+  | "SR16"
+  | "System100"
+  | "T3"
+  | "TG33"
+  | "TR505"
+  | "TR606"
+  | "TR626"
+  | "TR707"
+  | "TR727"
+  | "TR808"
+  | "TR909"
+  | "VL1"
+  | "XR10";
+
+/** Every bank name `.bank()` accepts. */
+type BankName = DrumMachineBankName | BankAliasName;
 
 /** Scale types understood by .scale() — multi-word scales use ":" (e.g. "major:pentatonic"). */
 type ScaleName =

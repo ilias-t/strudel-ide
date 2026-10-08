@@ -19,9 +19,11 @@ const cacheDir = join(root, "node_modules/.cache/strudel-samples");
 const outFile = join(root, "src/strudel.sounds.generated.d.ts");
 const offline = process.argv.includes("--offline");
 
-// Keep in sync with the samples() calls in src/main.ts
+// Keep in sync with SAMPLE_MAPS / BANK_ALIASES in src/main.ts
 const SAMPLE_MAPS = ["tidal-drum-machines", "piano", "vcsl", "uzu-drumkit", "uzu-wavetables", "mridangam"];
 const DRUM_MACHINES = "tidal-drum-machines";
+// main.ts applies this with aliasBank() after the banks load, so "TR909" works like "RolandTR909"
+const BANK_ALIASES = "tidal-drum-machines-alias";
 
 async function loadJson(name) {
   const file = join(cacheDir, `${name}.json`);
@@ -56,6 +58,13 @@ for (const name of SAMPLE_MAPS) {
       samples.add(key);
     }
   }
+}
+
+const aliasMap = await loadJson(BANK_ALIASES);
+const bankAliases = new Set();
+for (const [bank, alias] of Object.entries(aliasMap)) {
+  if (!banks.has(bank)) continue;
+  for (const a of [alias].flat()) bankAliases.add(a);
 }
 
 const sortU = (xs) => [...new Set(xs)].sort((a, b) => a.localeCompare(b));
@@ -93,13 +102,16 @@ ${union(sortU(samples))};
 /** Every sound name s()/sound() can play (drum machine sounds need \`.bank()\`). */
 type SoundName = SynthName | DrumPartName | SampleName;
 
-/**
- * Drum machine banks (${DRUM_MACHINES}) for \`.bank()\`.
- * Note: the short aliases ("TR909") only work if tidal-drum-machines-alias.json is loaded with
- * aliasBank(), not samples().
- */
-type BankName =
+/** Drum machine banks (${DRUM_MACHINES}) for \`.bank()\`, e.g. "RolandTR909". */
+type DrumMachineBankName =
 ${union(sortU(banks))};
+
+/** Short bank aliases from ${BANK_ALIASES} (registered with aliasBank() in main.ts), e.g. "TR909". */
+type BankAliasName =
+${union(sortU(bankAliases))};
+
+/** Every bank name \`.bank()\` accepts. */
+type BankName = DrumMachineBankName | BankAliasName;
 
 /** Scale types understood by .scale() — multi-word scales use ":" (e.g. "major:pentatonic"). */
 type ScaleName =
@@ -114,5 +126,5 @@ type ScaleString = \`\${ScaleRoot}:\${ScaleName}\`;
 
 writeFileSync(outFile, body);
 console.log(
-  `wrote ${outFile.replace(root + "/", "")}: ${synths.length} synths, ${parts.size} drum parts, ${samples.size} samples, ${banks.size} banks, ${scaleNames.length} scales`,
+  `wrote ${outFile.replace(root + "/", "")}: ${synths.length} synths, ${parts.size} drum parts, ${samples.size} samples, ${banks.size} banks (+${bankAliases.size} aliases), ${scaleNames.length} scales`,
 );

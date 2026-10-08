@@ -12,6 +12,7 @@ import type { Song, Tracks } from "./songs";
 export const drums = s("bd*4, [~ sd]*2, hh*8").bank("RolandTR909").gain(0.8).room(0.2).orbit(1);
 export const miniControls = s("hh*8").gain("[0.4 0.22 0.45 0.28]*4").pan("0 1").lpf("<400 2000>");
 export const soundAlias = sound("piano").note("c4 e4 g4");
+export const bankAlias = s("bd*2 sd").bank("TR909").bank("<RolandTR808 LinnDrum>");
 export const sampleIndex = s("bd:3 sd:1").n("<0 1 2>").speed("1 2").cut(1);
 export const synthChain = note("c2 [eb2 g2]").s("sawtooth").lpf(800).lpq(8).attack(0.01).decay(0.2).sustain(0).release(0.3).shape(0.4).crush(8).delay(0.25).delaytime(0.125).delayfeedback(0.5);
 export const sizeControl = s("bd").room(0.5).size(4).rsize(2);

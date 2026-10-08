@@ -58,6 +58,22 @@ const ARRANGEMENT = [
 type Section = (typeof ARRANGEMENT)[number][0];
 const BARS = Object.fromEntries(ARRANGEMENT) as Record<Section, number>;
 
+// ─── 🎚️ MIX — faders in dB on top of each part's own gain ──────────────────
+// Set from measurements (`npm run analyze -- acid-rain`, see docs/audio-tools.md).
+// There's no limiter on the output, so MASTER_DB keeps the peaks under 0 dBFS.
+const MASTER_DB = -2.6;
+const FADERS_DB: Record<string, number> = {
+  kick: -7, // was within 0.5 dB of the whole mix and set the peaks
+  acid: 3, // the star was 12-13 dB under the mix
+  riser: 6, // was 27-29 dB under the mix: inaudible
+  rain: 3, // was 29 dB under the mix in the outro
+};
+/** Every track through its fader (postgain: after drive/shape, before the delay/reverb sends) */
+const mixdown = (tracks: Record<string, Pattern>): Record<string, Pattern> =>
+  Object.fromEntries(
+    Object.entries(tracks).map(([name, p]) => [name, p.postgain(10 ** ((MASTER_DB + (FADERS_DB[name] ?? 0)) / 20))])
+  );
+
 const song: Song = {
   name: "Acid Rain",
   bpm: BPM,
@@ -352,7 +368,7 @@ const song: Song = {
 
     // ─── 🎚️ MIXER — named tracks, stacked by the player ──────────────────────
 
-    return { kick, rumble, hats, openhat, clap, ride, perc, crash, acid, stab, pad, rain, riser };
+    return mixdown({ kick, rumble, hats, openhat, clap, ride, perc, crash, acid, stab, pad, rain, riser });
   },
 };
 

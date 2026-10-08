@@ -57,6 +57,20 @@ const SECTIONS = [
 
 type Section = (typeof SECTIONS)[number][0];
 
+// ─── 🎚️ MIX — faders in dB on top of each part's own gain ──────────────────
+// Set from measurements (`npm run analyze -- jynx`, see docs/audio-tools.md).
+// There's no limiter on the output, so MASTER_DB keeps the peaks under 0 dBFS.
+const MASTER_DB = -3.2;
+const FADERS_DB: Record<string, number> = {
+  kick: -5, // was within 1 dB of the whole mix and set the peaks
+  arp: 7, // was 27-28 dB under the mix: inaudible
+};
+/** Every track through its fader (postgain: after drive/shape, before the delay/reverb sends) */
+const mixdown = (tracks: Record<string, Pattern>): Record<string, Pattern> =>
+  Object.fromEntries(
+    Object.entries(tracks).map(([name, p]) => [name, p.postgain(10 ** ((MASTER_DB + (FADERS_DB[name] ?? 0)) / 20))])
+  );
+
 const song: Song = {
   name: "Jynx",
   bpm: BPM,
@@ -323,7 +337,7 @@ const song: Song = {
     const LAST_BAR_OUT = "<1!7 0>";
     const SECOND_HALF_16 = "<0!8 1!8>"; // in a 16-bar section: bars 9–16 only
 
-    return {
+    return mixdown({
       kick: track({
         intro: kick, // no ducking yet: the pump kicks in with the groove
         groove: pumpingKick,
@@ -416,7 +430,7 @@ const song: Song = {
 
       pad: track({
         breakdown: pad(saw.rangex(800, 2000).slow(8)),
-        rise: pad(saw.rangex(2000, 5000).slow(8)),
+        rise: pad(saw.rangex(2000, 5000).slow(8)).hpf(250), // thinner as the kick returns: the low mids were 38% of the rise
       }),
 
       vox: track({
@@ -441,7 +455,7 @@ const song: Song = {
         drop2: arp,
         outro: arp.mask("<1!4 0!4>"),
       }),
-    };
+    });
   },
 };
 

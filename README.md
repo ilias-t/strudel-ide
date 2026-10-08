@@ -76,3 +76,10 @@ export default song;
 
 - [Strudel Documentation](https://strudel.cc/)
 - [Mini Notation](https://strudel.cc/learn/mini-notation/)
+
+## Render and analyze
+
+`npm run render -- <song>` bounces a song to `renders/<song>.wav` (offline, faster
+than real time). `npm run analyze -- <song>` measures loudness, peaks, clipping,
+spectral balance and each track's level against the mix. See
+[docs/audio-tools.md](docs/audio-tools.md).

@@ -29,6 +29,8 @@ const song: Song = {
   // "pianoroll" (scrolling notes), "scope" (waveform) or "none".
   // Full config: { type: "pianoroll", options: { cycles: 8, labels: true } }
   visualization: "pianoroll",
+  // The stage's room: "dusk" (soft, the default) or "club" (dark, hard strobes)
+  // room: "club",
 
   createPattern() {
     // ─── 🥁 DRUMS ─────────────────────────────────────────────────────────────

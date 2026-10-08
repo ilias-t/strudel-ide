@@ -18,6 +18,16 @@ npm run dev
    Ctrl/Cmd+Enter (or a pause in typing) plays your unsaved code, like on
    strudel.cc (see [Live eval](#live-eval)).
 
+## The stage
+
+The browser page is the stage: a small rig of graphite gear (code display,
+transport, visualizer, knobs, mixer, a sequencer strip of sections) in a room
+lit by the music. The kick is a floor lamp, the pads a window wash, the bass a
+pool of blue on the right and the snare light off the left wall. Track names
+pick the colours and lamps (`kick`, `snare`, `hats`, `bass`, `pads`, `arp`,
+`lead`, …), and `room: "club"` in a song swaps the dusk studio for a dark club
+with hard strobes. With reduced motion turned on, the lamps hold a steady glow.
+
 ## Knobs
 
 Like strudel.cc's `slider()`: write `knob(name, value, min, max, step?)`

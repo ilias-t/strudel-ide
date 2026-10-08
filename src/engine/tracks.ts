@@ -28,8 +28,8 @@ export type TrackRole = "kick" | "snare" | "hats" | "perc" | "bass" | "pads" | "
 
 const ROLE_PATTERNS: [TrackRole, RegExp][] = [
   ["kick", /kick|^bd|909|808k|pulse/i],
-  ["snare", /snare|^sd|clap|^cp|rim/i],
-  ["hats", /hat|^hh|^oh|ride|cymbal|shaker|ghost/i],
+  ["snare", /snare|^sd|clap|^cp|rim|ghost/i],
+  ["hats", /hat|^hh|^oh|ride|cymbal|shaker/i],
   ["perc", /perc|tom|crash|fill|conga|bongo|clave|cowbell|break/i],
   ["acid", /acid|303/i],
   ["bass", /bass|sub|rumble|reese|wobble|low/i],

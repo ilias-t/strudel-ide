@@ -941,6 +941,7 @@ code {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  user-select: none; /* flashes repeat the token's text: never part of a selection */
   z-index: 1;
   contain: layout style;
 }

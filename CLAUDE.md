@@ -4,9 +4,10 @@ Songs are TypeScript files in `src/songs/`, played live by a browser stage that 
 
 ## Writing songs
 
-- Default-export a `Song` (`src/songs/index.ts`). `createPattern()` returns a record of **named tracks** (`{ kick, bass, … }`). Track names drive the mixer, mute/solo and the editor's track lenses, so keep them short. Return the record as a literal `{…}` or wrapped (`mixdown({…})`) so the editor can find each track's definition.
+- Default-export a `Song` (`src/songs/index.ts`). `createPattern()` returns a record of **named tracks** (`{ kick, bass, … }`). Track names drive the mixer, mute/solo and the editor's track lenses, so keep them short. They also pick each track's colour and which lamp it drives in the stage's room (the role patterns in `src/engine/tracks.ts`: `kick`, `snare`/`clap`, `hats`, `bass`/`sub`, `pads`/`chords`, `arp`, `lead`, `acid`…), so name tracks for what they are. Return the record as a literal `{…}` or wrapped (`mixdown({…})`) so the editor can find each track's definition.
 - 1 cycle = 1 bar of 4/4. The player sets cps to `bpm / 240`.
 - Export `sections` from the song's own form table (`sections: FORM`) so the timeline can jump and loop.
+- `room: "club"` gives the stage a dark club with hard, short lights (Acid Rain); the default `"dusk"` suits softer songs.
 - **Literals light up.** Only string literals passed directly to a call carry source locations, so only they highlight in the stage and the editor. A pattern string built by a helper, a template or a variable plays fine but stays dark. Prefer literals for the musical lines people will watch.
 - Methods on string literals don't exist here (no strudel.cc transpiler). Write `mini("<c e>").note()` or `note("<c e>")`.
 - `knob(name, value, min, max)` is the performable parameter. Use it for things worth turning live (cutoff, swing, sends). Write-back rewrites the numeric literal, so keep `value` a plain number.

@@ -99,11 +99,6 @@ export class Timeline {
     });
   }
 
-  /** Stopped: no bar is "now" */
-  idle() {
-    this.lightBar(-1);
-  }
-
   private build(sections: SectionInfo[] | null) {
     this.segments = [];
     this.leds = [];

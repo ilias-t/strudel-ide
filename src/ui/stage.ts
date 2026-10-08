@@ -400,6 +400,7 @@ export function mountStage(): Stage {
   let live: Live | null = null;
   let lastBar = "";
   let lastBeat = "";
+  let litBeat = -2;
 
   type OnsetHap = { value: unknown; context: { track?: string; locations?: { start: number; end: number }[] } };
   /** Meter level of a hit: gain × velocity, on a gentle curve */
@@ -443,7 +444,10 @@ export function mountStage(): Stage {
       barEl.textContent = lastBar = barText;
       beatEl.textContent = lastBeat = beatText;
       barDigits.set(`${barText}.${beatText}`);
-      const lit = state?.playing ? beat - 1 : -1;
+    }
+    const lit = state?.playing ? beat - 1 : -1;
+    if (lit !== litBeat) {
+      litBeat = lit;
       beatLeds.forEach((led, i) => led.classList.toggle("on", i === lit));
     }
     timeline.frame(position, state?.section ?? null, bar, beat);

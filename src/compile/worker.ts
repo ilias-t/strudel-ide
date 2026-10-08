@@ -2,14 +2,18 @@
 // The song compiler's Web Worker (module worker, created by ./client.ts)
 // ═══════════════════════════════════════════════════════════════════════════
 //
-//   in:  { id, text, file }      out: { id, result: CompileResult }
+//   in:  { id, text, file }                        out: { id, result: CompileResult }
+//   in:  { id, op: "addTrack", text, file, track }  out: { id, result: AddTrackPlan }
+//   in:  { id, op: "trackNames", text, file }       out: { id, result: TrackNames }
 //
-// On the first message it loads TypeScript and @strudel/core|mini|tonal (only
+// The track builder's requests (./add-track.ts) carry an `op`; compile requests
+// don't. On the first message of either kind it loads TypeScript and @strudel/core|mini|tonal (only
 // to introspect which calls take mini-notation, like the Vite plugin does;
 // nothing is evaluated here) and keeps them for the next compiles.
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type TS from "typescript";
+import { planAddTrack, trackNames, type AddTrackPlan, type NewTrack, type TrackNames } from "./add-track.ts";
 import { compileSong, type CompileResult } from "./compile.ts";
 import { strudelNamesFrom, type StrudelModules, type StrudelNames } from "./names.ts";
 
@@ -22,6 +26,30 @@ export interface CompileRequest {
 export interface CompileResponse {
   id: number;
   result: CompileResult;
+}
+
+/** The track builder: plan adding a track to the song's text */
+export interface AddTrackRequest {
+  id: number;
+  op: "addTrack";
+  text: string;
+  file: string;
+  track: NewTrack;
+}
+
+/** The track builder: the song's tracks and the names a new one can't take */
+export interface TrackNamesRequest {
+  id: number;
+  op: "trackNames";
+  text: string;
+  file: string;
+}
+
+export type WorkerRequest = CompileRequest | AddTrackRequest | TrackNamesRequest;
+
+export interface WorkerResponse {
+  id: number;
+  result: CompileResult | AddTrackPlan | TrackNames;
 }
 
 let ready: Promise<{ ts: typeof TS; names: StrudelNames }> | undefined;
@@ -48,11 +76,33 @@ async function load() {
 }
 
 const scope = self as unknown as {
-  onmessage: ((event: MessageEvent<CompileRequest>) => void) | null;
-  postMessage(message: CompileResponse): void;
+  onmessage: ((event: MessageEvent<WorkerRequest>) => void) | null;
+  postMessage(message: WorkerResponse): void;
 };
 
-scope.onmessage = async ({ data: { id, text, file } }) => {
+async function trackOp(data: AddTrackRequest | TrackNamesRequest): Promise<AddTrackPlan | TrackNames> {
+  let ts: typeof TS;
+  try {
+    ({ ts } = await (ready ??= load()));
+  } catch (err) {
+    ready = undefined; // a failed load is retried on the next request
+    const reason = `the song compiler failed to load: ${err instanceof Error ? err.message : String(err)}`;
+    return data.op === "addTrack" ? { ok: false, reason } : { ok: false, reason, taken: [] };
+  }
+  if (data.op === "addTrack") return planAddTrack(ts, data.text, data.track, data.file); // never throws
+  try {
+    return trackNames(ts, data.text, data.file);
+  } catch (err) {
+    return { ok: false, reason: `couldn't read the song: ${err instanceof Error ? err.message : String(err)}`, taken: [] };
+  }
+}
+
+scope.onmessage = async ({ data }) => {
+  if ("op" in data) {
+    scope.postMessage({ id: data.id, result: await trackOp(data) });
+    return;
+  }
+  const { id, text, file } = data;
   let result: CompileResult;
   try {
     const { ts, names } = await (ready ??= load());

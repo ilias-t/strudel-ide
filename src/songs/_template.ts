@@ -1,49 +1,60 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// 🎵 SONG NAME
+// 🎵 SONG NAME — one line about the vibe (key, tempo, genre)
 // ═══════════════════════════════════════════════════════════════════════════
 //
 // Copy this file to create a new song:
-//   1. Duplicate this file with your song name (e.g., my-song.ts)
-//   2. Update the name and bpm
-//   3. That's it! Songs are auto-discovered.
+//   1. Duplicate it with your song name (e.g. my-song.ts) — songs are auto-discovered
+//   2. Set the name, then tweak the knobs below
+//   3. Each track is its own named pattern, returned at the bottom.
+//      The player stacks them (and the mixer can mute/solo them by name).
+//
+// 🧪 Try this:
+//   • change the progression, e.g. "<Am F C G>"
+//   • hats: "*8" → "*16"
 //
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type { Song } from ".";
 
+// ─── 🎛️ KNOBS ──────────────────────────────────────────────────────────────
+const bpm = 120; // quarter notes per minute; 1 cycle = 1 bar of 4/4
+const progression = "<C Am F G>"; // one chord per bar
+const cutoff = 1200; // Hz: lower = darker
+
 const song: Song = {
   name: "My Song",
-  bpm: 120,
+  bpm,
 
-  // Visualization options:
-  //   "pianoroll" - scrolling piano roll showing notes
-  //   "scope"     - oscilloscope waveform
-  //   "none"      - no visualization
-  //
-  // Or use full config: { type: "pianoroll", options: { cycles: 8, labels: true } }
+  // "pianoroll" (scrolling notes), "scope" (waveform) or "none".
+  // Full config: { type: "pianoroll", options: { cycles: 8, labels: true } }
   visualization: "pianoroll",
 
   createPattern() {
-    // ─────────────────────────────────────────────────────────────────────────
-    // 🥁 DRUMS
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── 🥁 DRUMS ─────────────────────────────────────────────────────────────
+    const kick = s("bd*4").bank("RolandTR808").gain(0.9);
+    const snare = s("~ sd ~ sd").bank("RolandTR808").gain(0.7);
+    const hats = s("hh*8").bank("RolandTR808").gain(0.35);
 
-    const kick = s("bd*4").bank("RolandTR808").gain(1);
-    const snare = s("~ sd ~ sd").bank("RolandTR808").gain(0.8);
-    const hihat = s("hh*8").bank("RolandTR808").gain(0.5);
-    const drums = stack(kick, snare, hihat);
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // 🎸 BASS
-    // ─────────────────────────────────────────────────────────────────────────
-
-    const bass = note("<c2 c2 f2 g2>")
-      .sound("sawtooth")
-      .lpf(400)
+    // ─── 🎸 BASS — the root of each chord, in octave 2 ───────────────────────
+    // @ts-expect-error missing from strudel.d.ts (chord/rootNotes)
+    const bass = chord(progression).rootNotes(2)
+      .struct("x ~ x ~ x ~ x x")
+      .s("sawtooth")
+      .lpf(cutoff / 3)
       .decay(0.2)
-      .sustain(0);
+      .sustain(0.3)
+      .gain(0.5);
 
-    return stack(drums, bass);
+    // ─── 🎹 CHORDS — chord symbols turned into piano voicings ────────────────
+    // @ts-expect-error missing from strudel.d.ts (chord/voicing)
+    const chords = chord(progression).voicing()
+      .s("piano")
+      .lpf(cutoff * 2)
+      .gain(0.5)
+      .room(0.3);
+
+    // Silence a part in a section with .mask("<0 0 1 1>") (0 = off, per bar)
+    return { kick, snare, hats, bass, chords };
   },
 };
 

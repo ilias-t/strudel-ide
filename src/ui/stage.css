@@ -767,6 +767,16 @@ code {
   min-width: 0;
 }
 
+.code-head > * {
+  flex: none;
+  white-space: nowrap;
+}
+
+.code-head > .code-file {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
 .code-file {
   color: var(--px);
   white-space: nowrap;
@@ -794,8 +804,37 @@ code {
   box-shadow: 0 0 6px var(--amber);
 }
 
-.follow-chip {
-  margin-left: auto;
+.code-head-gap {
+  flex: 1;
+}
+
+/* hot-swap LED: green after a swap, red while a broken save is held back */
+.code-swap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.code-swap .led {
+  width: 5px;
+  height: 5px;
+}
+
+.code-swap[data-state="swapped"] .led {
+  --led-on: var(--green);
+  background: var(--led-on);
+  box-shadow: 0 0 6px var(--led-on);
+}
+
+.code-swap[data-state="error"] .led {
+  --led-on: var(--red);
+  background: var(--led-on);
+  box-shadow: 0 0 6px var(--led-on);
+}
+
+.code-swap[data-state="error"] {
+  color: #ffb2a8;
 }
 
 .code-scroll {

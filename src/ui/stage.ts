@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import * as player from "../engine/player";
-import { trackColor } from "../engine/tracks";
+import { trackColor, trackRole, type TrackRole } from "../engine/tracks";
 import { engine } from "../engine/strudel";
 import type { Live } from "../engine/live";
 import type { PlayerError, PlayerState } from "../engine/types";
@@ -18,6 +18,21 @@ import { formatKnob, knobTextWidth, type KnobInfo } from "../engine/knobs";
 import { Timeline } from "./timeline";
 import { SegmentDisplay } from "./segments";
 import { Room } from "./room";
+
+/** Legend names for the pianoroll's colour families (drums share shades of ember) */
+const LEGEND: Record<TrackRole, string | null> = {
+  kick: "drums",
+  snare: "drums",
+  hats: "drums",
+  perc: "drums",
+  bass: "bass",
+  pads: "pads",
+  arp: "arp",
+  lead: "lead",
+  acid: "acid",
+  fx: "fx",
+  other: null,
+};
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -59,6 +74,8 @@ export function mountStage(): Stage {
   const viewName = $("view-name");
   const viewLegend = $("view-legend");
   const room = new Room(stage);
+  const codeSwap = $("code-swap");
+  const codeSwapText = $("code-swap-text");
 
   let reveal: (file: string, line: number, column?: number) => RevealResult = () => "none";
   const codeView = new CodeView({
@@ -145,6 +162,10 @@ export function mountStage(): Stage {
   let lastRevealed = "";
   let pausedForError = false;
   let lastState: PlayerState | null = null;
+  let shownSwaps = -1;
+  let swappedAt = 0;
+  let prevPlaying = false;
+  let prevSong = "";
 
   function render(state: PlayerState) {
     lastState = state;
@@ -188,6 +209,14 @@ export function mountStage(): Stage {
     const playing = player.playingSource();
     codeStale.hidden = !(state.playing && playing && source && playing.version !== source.version);
 
+    // an edit landing in the song that was already playing (not play, not a song change)
+    if (state.swapCount !== shownSwaps) {
+      if (shownSwaps >= 0 && prevPlaying && prevSong === state.songId) swappedAt = performance.now();
+      shownSwaps = state.swapCount;
+    }
+    if (state.songId !== prevSong || !state.playing) swappedAt = 0;
+    prevPlaying = state.playing;
+    prevSong = state.songId;
     trackIndex = new Map((state.tracks ?? []).map((t, i) => [t, i]));
     renderView(state);
     mixer.render(state);
@@ -195,25 +224,27 @@ export function mountStage(): Stage {
     renderError(state.error);
   }
 
-  /** The visualizer unit's label, and a legend of the colours in the roll */
+  /** The visualizer unit's label, and a legend of the colour families in the roll */
   let viewKey = "";
   function renderView(state: PlayerState) {
     const tracks = state.tracks ?? [];
-    const key = `${state.visualization}|${tracks.join(",")}`;
+    // the song's own setting, so the label holds while stopped
+    const viz = player.songsRecord()[state.songId]?.visualization;
+    const type = (typeof viz === "string" ? viz : viz?.type) ?? "none";
+    const key = `${type}|${tracks.join(",")}`;
     if (key === viewKey) return;
     viewKey = key;
-    viewEl.dataset.viz = state.visualization;
+    viewEl.dataset.viz = type;
     const b = document.createElement("b");
-    b.textContent = state.visualization === "none" ? "view" : state.visualization;
+    b.textContent = type === "none" ? "view" : type;
     viewName.replaceChildren(b);
-    // one swatch per colour, named after the first track wearing it
-    const seen = new Map<string, string>();
+    const families = new Map<string, string>();
     tracks.forEach((t, i) => {
-      const c = trackColor(t, i);
-      if (!seen.has(c)) seen.set(c, t);
+      const family = LEGEND[trackRole(t)];
+      if (family && !families.has(family)) families.set(family, trackColor(t, i));
     });
     viewLegend.replaceChildren(
-      ...(state.visualization === "pianoroll" ? [...seen].slice(0, 6) : []).map(([color, name]) => {
+      ...(type === "pianoroll" ? [...families] : []).map(([name, color]) => {
         const span = document.createElement("span");
         span.style.setProperty("--c", color);
         span.append(document.createElement("i"), name);
@@ -417,6 +448,7 @@ export function mountStage(): Stage {
     }
     timeline.frame(position, state?.section ?? null, bar, beat);
     renderCue(state);
+    renderSwap(state, now);
 
     if (live && state?.playing) {
       const sourceOk = sameSource();
@@ -456,6 +488,26 @@ export function mountStage(): Stage {
     cueEl.hidden = !cue;
     cueEl.textContent = cue;
     cueEl.dataset.kind = kind;
+  }
+
+  /** The code unit's hot-swap LED and how long ago the last swap landed */
+  let lastSwap = "";
+  function renderSwap(state: PlayerState | null, now: number) {
+    let kind = "idle";
+    let text = "";
+    if (state?.error?.kind === "build" && state.error.keptPrevious) {
+      kind = "error";
+      text = "save not applied";
+    } else if (swappedAt) {
+      const s = Math.floor((now - swappedAt) / 1000);
+      kind = s < 120 ? "swapped" : "idle";
+      text = s < 2 ? "hot-swapped" : s < 120 ? `hot-swapped ${s} s ago` : "hot-swapped";
+    }
+    const key = `${kind}|${text}`;
+    if (key === lastSwap) return;
+    lastSwap = key;
+    codeSwap.dataset.state = kind;
+    codeSwapText.textContent = text;
   }
 
   /** Highlights only make sense when the code shown is the code playing */

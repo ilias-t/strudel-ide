@@ -22,7 +22,7 @@ interface Strip {
 }
 
 /** Meter fall, per second */
-const FALL = 2.4;
+const FALL = 1.5;
 /** LED flash decay time constant, seconds */
 const FLASH_TAU = 0.09;
 

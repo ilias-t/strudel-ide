@@ -147,8 +147,6 @@ test("an edit that doesn't build is kept too, and comes back after a reload with
   await expect(page.getByTestId("code-edited")).toBeVisible();
   const line = broken.split("\n").findIndex((l) => l.includes(".gain(((")) + 1;
   await expect.poll(() => page.evaluate(() => window.__strudelEditor!.markers().map((m) => m.line))).toContain(line);
-  // the stored replay at boot reports it like a save would; dismiss it for the console check
-  player.clearErrors();
 });
 
 test("an edit typed back to the original drops the kept copy", async ({ player, page }) => {

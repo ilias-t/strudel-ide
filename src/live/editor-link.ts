@@ -7,7 +7,7 @@
 
 import { connectBridge } from "./bridge-client";
 import type { CommandMsg, StateMsg } from "./protocol";
-import type { PlayerState } from "../main";
+import type { PlayerState } from "../engine/types";
 
 export interface PlayerApi {
   getState(): PlayerState;
@@ -32,10 +32,16 @@ export function songIdForFile(file: string | undefined): string | null {
   return match ? match[1] : null;
 }
 
-export function linkEditor(player: PlayerApi) {
+export interface LinkOptions {
+  /** Called with true/false when the bridge socket opens/closes */
+  onConnectionChange?: (connected: boolean) => void;
+}
+
+export function linkEditor(player: PlayerApi, options: LinkOptions = {}) {
   const bridge = connectBridge({
     client: "strudel-ide-player",
     onCommand: (cmd) => handleCommand(player, cmd),
+    onConnectionChange: options.onConnectionChange,
   });
 
   let lastSongs = "";

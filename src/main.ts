@@ -66,6 +66,8 @@ interface EngineApi {
   samples(url: string): Promise<void>;
   aliasBank(map: string | Record<string, string | string[]>): Promise<void>;
   getAudioContext(): AudioContext;
+  /** Resumes the AudioContext and loads superdough's AudioWorklets (cached after the first call) */
+  initAudio(): Promise<void>;
   logKey: string;
 }
 
@@ -545,6 +547,11 @@ export async function play(): Promise<boolean> {
   }
   if (repl.scheduler.started) return true;
   requireAudio();
+  // Worklet-based sounds (supersaw, shape, ladder filter…) fail on the first
+  // note if playback starts before the worklets are registered. initAudio()
+  // waits on resume(), which hangs without a user gesture — so cap the wait.
+  await Promise.race([engine.initAudio().catch(() => {}), sleep(1500)]);
+  if (repl.scheduler.started) return true;
   return swap({ start: true });
 }
 
@@ -584,6 +591,10 @@ export function setFollowEdits(on: boolean) {
   followEdits = on;
   writeStorage(STORAGE.follow, String(on));
   changed();
+}
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
 /** Browsers keep the AudioContext suspended until a user gesture; flag it so the UI can ask for a click. */

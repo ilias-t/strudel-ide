@@ -31,8 +31,8 @@ export interface SongSaverOptions {
   /** Quiet time after the last change before writing (default 300) */
   debounceMs?: number;
   timers?: SessionTimers;
-  /** The stored state of `id` may have changed (badges re-read the store) */
-  onSaved?(id: string): void;
+  /** A write happened (badges re-read the store; "not-persisted" means the edit isn't kept) */
+  onSaved?(id: string, result: KeepResult): void;
 }
 
 /** keep()'s outcome: written / nothing to keep (the original text) / storage unavailable */
@@ -102,7 +102,7 @@ export class SongSaver {
         result = "not-persisted"; // an id that can't name a song file
       }
     }
-    this.opts.onSaved?.(id);
+    this.opts.onSaved?.(id, result);
     return result;
   }
 }

@@ -394,7 +394,6 @@ export function mountStage(): Stage {
     const existing = sessions.get(songId);
     if (existing) {
       existing.incoming(incomingOf(source));
-      restoreSaved(songId, existing);
       return existing;
     }
     const session = new EditSession({
@@ -406,6 +405,7 @@ export function mountStage(): Stage {
       },
     });
     sessions.set(songId, session);
+    // only a new session: a later file save of the buffer's own text must not bring an older kept edit back
     restoreSaved(songId, session);
     return session;
   }
@@ -421,10 +421,18 @@ export function mountStage(): Stage {
   const saver = new SongSaver({
     store: songsStore,
     originalText,
-    onSaved: (id) => {
+    onSaved: (id, result) => {
+      if (result === "not-persisted") {
+        if (!notKept.has(id)) toast("not kept: this browser blocks storage (download keeps a copy)", "error");
+        notKept.add(id);
+      } else {
+        notKept.delete(id);
+      }
       if (id === player.currentSongId_()) renderEdited();
     },
   });
+  /** Songs whose last autosave the browser refused: their stored copy (if any) is older than the buffer */
+  const notKept = new Set<string>();
   // a reload or a closed tab within the debounce must not lose the last keys
   addEventListener("pagehide", () => saver.flush());
   document.addEventListener("visibilitychange", () => {
@@ -442,7 +450,7 @@ export function mountStage(): Stage {
 
   /** A saved edit comes back as the browser's buffer (after a reload, or before the store's replay lands) */
   function restoreSaved(songId: string, session: EditSession) {
-    if (session.view().owner === "browser") return;
+    if (session.view().owner === "browser" || saver.pending(songId)) return;
     const text = savedEdit(songId);
     if (text === null) return;
     // the store's boot replay may still be compiling it: that eval is ours, don't evaluate twice
@@ -456,9 +464,10 @@ export function mountStage(): Stage {
     const mine = songsStore.getMySong(id);
     // the buffer went back to the file (e.g. saved with exactly this text): nothing is edited any more
     if (mine && player.isBuiltInSong(id) && mine.text === originalText(id) && !saver.pending(id)) songsStore.discard(id);
-    const edited = player.isBuiltInSong(id) && savedEdit(id) !== null;
+    const edited = player.isBuiltInSong(id) && savedEdit(id) !== null && !notKept.has(id);
     editedBadge.hidden = revertKey.hidden = !edited;
     const source = player.currentSource();
+    // what plays is kept, unless the browser refused the last write
     codeUnsaved.hidden = !source?.live || (edited && source.origin === "browser");
     codeUnsaved.title =
       source?.origin === "browser"
@@ -618,13 +627,16 @@ export function mountStage(): Stage {
     const id = shownSongId;
     const session = sessions.get(id);
     if (!id || !session || !editor || surface !== editor) return;
+    const local = await songsStore.canSaveToFile();
+    // read the buffer after the probe: typing may have gone on meanwhile
+    if (sessions.get(id) !== session) return;
     const view = session.view();
     if (view.readOnly) {
       toast(`${ideName} is editing this song: take over to save it here`, "warn");
       return;
     }
     const text = view.text;
-    if (!(await songsStore.canSaveToFile())) {
+    if (!local) {
       const kept = saver.keep(id, text);
       toast(
         kept === "saved"
@@ -646,11 +658,27 @@ export function mountStage(): Stage {
     }
     saver.flush(id); // the kept copy is this text, so a successful save can drop it
     toast("saving…", "pending");
-    const result = await songsStore.saveToFile(id, text, { create: !builtIn });
+    // one write per song at a time, in order: an older, slower save must never land after a newer one
+    const run = (fileSaves.get(id) ?? Promise.resolve()).then(() => songsStore.saveToFile(id, text, { create: !builtIn }));
+    const settled = run.then(
+      () => undefined,
+      () => undefined
+    );
+    fileSaves.set(id, settled);
+    let result: Awaited<typeof run>;
+    try {
+      result = await run;
+    } catch (err) {
+      result = { ok: false, error: err instanceof Error ? err.message : String(err) };
+    } finally {
+      if (fileSaves.get(id) === settled) fileSaves.delete(id);
+    }
     renderEdited();
     if (result.ok) toast(`saved to ${result.file}`);
     else toast(`not saved: ${result.error}`, "error");
   }
+  /** File saves still being written, per song (the newest of the chain) */
+  const fileSaves = new Map<string, Promise<void>>();
 
   async function share() {
     const id = player.currentSongId_();
@@ -692,6 +720,10 @@ export function mountStage(): Stage {
   async function revertSong() {
     const id = player.currentSongId_();
     if (askOpen() || savedEdit(id) === null) return;
+    if (fileSaves.has(id)) {
+      toast("a save is still being written: revert once it's done", "warn");
+      return;
+    }
     const name = player.playingSongOf(id)?.name ?? id;
     const ok = await ask({
       testid: "revert-dialog",
@@ -706,7 +738,7 @@ export function mountStage(): Stage {
       tone: "warn",
       focus: "cancel",
     });
-    if (!ok || player.currentSongId_() !== id) return;
+    if (!ok || player.currentSongId_() !== id || fileSaves.has(id)) return;
     saver.cancel(id); // a pending write would bring the edit back
     // a fresh session starts from the original (the old one would see it as a conflict)
     sessions.get(id)?.dispose();

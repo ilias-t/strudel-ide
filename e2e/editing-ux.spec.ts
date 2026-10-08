@@ -17,7 +17,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Page } from "@playwright/test";
-import { FIXTURE_FILE, FIXTURE_ID, FIXTURE_PATH, ROOT, fixtureSource } from "./fixture.ts";
+import { FIXTURE_FILE, FIXTURE_ID, FIXTURE_PATH, ROOT, fixtureSource, writeFixture } from "./fixture.ts";
 import { expect, test, type Player } from "./player.ts";
 
 test.afterEach(async ({ player }) => {
@@ -192,6 +192,61 @@ test("⌘S under the dev server writes the song file (in the test snapshot) and 
   await expect(page.getByTestId("code-edited")).toBeHidden();
   await expect(page.getByTestId("code-unsaved")).toBeHidden();
   await expect.poll(() => player.probe()).toMatchObject({ gain: 0.4 });
+});
+
+test("two ⌘S saves land in order: the newest text ends up in the file", async ({ player, page }) => {
+  test.setTimeout(60_000);
+  // the first save's request is slow, so the second one is sent while it's out
+  let posts = 0;
+  await page.route("**/__strudel/song", async (route) => {
+    if (route.request().method() === "POST" && ++posts === 1) await new Promise((r) => setTimeout(r, 1500));
+    await route.continue();
+  });
+  await playFixtureAndEdit(player);
+  await typeGainEdit(page);
+  await page.keyboard.press("ControlOrMeta+s");
+  await page.keyboard.press("Backspace");
+  await page.keyboard.type("3");
+  const newest = await buffer(page);
+  expect(newest).toContain(".gain(0.3)");
+  await page.keyboard.press("ControlOrMeta+s");
+  await expect.poll(() => posts).toBe(2);
+  await expect(page.getByTestId("code-toast")).toHaveText(`saved to ${FIXTURE_FILE}`, { timeout: 10_000 });
+  await page.waitForTimeout(500);
+  expect(readFileSync(FIXTURE_PATH, "utf8"), "the newest text, not the slow older save").toBe(newest);
+  await expect.poll(() => kept(page)).toBeNull();
+  await expect.poll(() => buffer(page)).toBe(newest);
+});
+
+test("a file saved with the buffer's text while an autosave is pending keeps that text", async ({ player, page }) => {
+  await playFixtureAndEdit(player);
+  await typeGainEdit(page); // A: kept
+  await expect.poll(async () => (await kept(page)) !== null).toBe(true);
+  await page.keyboard.press("Backspace");
+  await page.keyboard.type("3"); // B: autosave pending
+  const b = await buffer(page);
+  expect(writeFixture({ gain: 0.3 })).toBe(b); // the IDE saves exactly B
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor!.session()?.owner)).toBe("mirror");
+  await page.waitForTimeout(600); // past the autosave debounce
+  expect(await buffer(page), "not the older kept edit").toBe(b);
+  expect(await kept(page), "B is the file: nothing kept").toBeNull();
+  await expect(page.getByTestId("code-edited")).toBeHidden();
+});
+
+test("when the browser can't keep an edit, the stage says so", async ({ player, page }) => {
+  await playFixtureAndEdit(player);
+  await page.evaluate(() => {
+    const set = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key: string, value: string) {
+      if (key.includes("my-song:")) throw new DOMException("full", "QuotaExceededError");
+      return set.call(this, key, value);
+    };
+  });
+  await typeGainEdit(page);
+  await expect(page.getByTestId("code-toast")).toContainText("not kept");
+  await expect(page.getByTestId("code-toast")).toHaveAttribute("data-kind", "error");
+  await expect(page.getByTestId("code-unsaved")).toBeVisible();
+  await expect(page.getByTestId("code-edited")).toBeHidden();
 });
 
 test("⌘S on the site keeps the edit in this browser at once", async ({ player, page }) => {

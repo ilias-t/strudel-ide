@@ -57,7 +57,7 @@ function setup({ blocked = false, debounceMs }: { blocked?: boolean; debounceMs?
     originalText: (id) => originals[id],
     timers,
     debounceMs,
-    onSaved: (id) => notified.push(id),
+    onSaved: (id, result) => notified.push(`${id}:${result}`),
   });
   return { saver, saved, log, timers, notified };
 }
@@ -118,13 +118,20 @@ describe("autosave", () => {
     assert.equal(saved.get("wobble"), "W");
   });
 
-  test("every write is announced (the edited badge re-reads the store)", () => {
+  test("every write is announced with its outcome (the badge re-reads the store; a failure is shown)", () => {
     const { saver, timers, notified } = setup();
     saver.edit("jynx", "A");
     timers.advance(300);
     saver.edit("jynx", "ORIGINAL");
     timers.advance(300);
-    assert.deepEqual(notified, ["jynx", "jynx"]);
+    assert.deepEqual(notified, ["jynx:saved", "jynx:unchanged"]);
+  });
+
+  test("an autosave the storage refuses is announced as not persisted", () => {
+    const { saver, timers, notified } = setup({ blocked: true });
+    saver.edit("jynx", "A");
+    timers.advance(300);
+    assert.deepEqual(notified, ["jynx:not-persisted"]);
   });
 });
 

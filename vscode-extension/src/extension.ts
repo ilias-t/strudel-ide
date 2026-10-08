@@ -22,9 +22,18 @@ export function activate(ctx: vscode.ExtensionContext): void {
   // ── Roots & files ──────────────────────────────────────────────────────────
 
   const folders = () => (vscode.workspace.workspaceFolders ?? []).map((f) => f.uri.fsPath);
-  /** Vite root: from the discovery file, else the folder that has src/songs. */
-  const root = (): string | null =>
-    endpoint.root ?? folders().find((f) => existsSync(path.join(f, "src", "songs"))) ?? folders()[0] ?? null;
+  /** Vite root: from the discovery file, else the folder that has src/songs. Cached (hot path). */
+  let rootCache: { key: string; root: string | null } | undefined;
+  const root = (): string | null => {
+    const key = endpoint.root ?? `folders:${folders().join("|")}`;
+    if (rootCache?.key !== key)
+      rootCache = {
+        key,
+        root:
+          endpoint.root ?? folders().find((f) => existsSync(path.join(f, "src", "songs"))) ?? folders()[0] ?? null,
+      };
+    return rootCache.root;
+  };
   const relOf = (doc: vscode.TextDocument): string | null => {
     const r = root();
     return doc.uri.scheme === "file" && r ? relativeTo(r, doc.uri.fsPath) : null;
@@ -68,12 +77,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     status.text = v.text;
     status.tooltip = v.tooltip;
     status.command = v.command;
-    status.backgroundColor =
-      v.kind === "error"
-        ? new vscode.ThemeColor("statusBarItem.errorBackground")
-        : v.kind === "noPlayer" || v.kind === "offline"
-          ? new vscode.ThemeColor("statusBarItem.warningBackground")
-          : undefined;
+    status.backgroundColor = v.kind === "error" ? new vscode.ThemeColor("statusBarItem.errorBackground") : undefined;
   };
   // Tick the bar number while playing.
   let ticker: ReturnType<typeof setInterval> | undefined;
@@ -132,10 +136,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
       (s) => new vscode.Range(s.start.line, s.start.character, s.end.line, s.end.character),
     );
   };
-  const highlightsEnabled = () =>
-    vscode.workspace.getConfiguration("strudel").get<boolean>("highlights.enabled", true);
+  const readEnabled = () => vscode.workspace.getConfiguration("strudel").get<boolean>("highlights.enabled", true);
+  let highlightsEnabled = readEnabled();
   const renderHighlights = (files?: Set<string>) => {
-    const enabled = highlightsEnabled();
+    const enabled = highlightsEnabled;
     for (const ed of vscode.window.visibleTextEditors) {
       const rel = relOf(ed.document);
       if (files && !(rel && files.has(rel))) continue;
@@ -356,10 +360,16 @@ export function activate(ctx: vscode.ExtensionContext): void {
     }),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("strudel.serverUrl")) conn.reconnect();
-      if (e.affectsConfiguration("strudel.highlights")) renderHighlights();
+      if (e.affectsConfiguration("strudel.highlights")) {
+        highlightsEnabled = readEnabled();
+        renderHighlights();
+      }
       if (e.affectsConfiguration("strudel.codeLens")) lensChanged.fire();
     }),
-    vscode.workspace.onDidChangeWorkspaceFolders(() => conn.reconnect()),
+    vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      rootCache = undefined;
+      conn.reconnect();
+    }),
   );
 
   renderStatus();

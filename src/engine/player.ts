@@ -1146,7 +1146,10 @@ async function addSongNow(id: string, text: string): Promise<EvalSourceResult> {
     restoreModuleKnobs(id);
     return { ok: false, error: compiled.error };
   }
-  if (isBuiltInSong(id)) return { ok: false, error: { message: `"${id}" became a built-in song meanwhile` } };
+  if (isBuiltInSong(id)) {
+    restoreModuleKnobs(id);
+    return { ok: false, error: { message: `"${id}" became a built-in song meanwhile` } };
+  }
   const version = contentVersion(text);
   const previous = userSongs.get(id);
   const previousLive = liveSongs.get(id);

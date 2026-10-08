@@ -224,6 +224,7 @@ export default song;
 
 ## Docs
 
+- [Architecture](docs/architecture.md): how the stage, the dev server and the editor fit together
 - [Strudel Documentation](https://strudel.cc/)
 - [Mini Notation](https://strudel.cc/learn/mini-notation/)
 

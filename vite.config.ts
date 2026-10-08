@@ -12,6 +12,12 @@ export default defineConfig({
   plugins: [strudelLocations(), strudelKnobs(), strudelBridge()],
   // main.ts uses top-level await (audio engine + samples load before the UI)
   build: { target: "es2022", chunkSizeWarningLimit: 1500 },
+  // The song compiler's worker (src/compile/worker.ts) lazy-imports TypeScript
+  // and strudel: module workers can code-split, iife ones can't
+  worker: { format: "es" },
+  // Pre-bundle what that worker imports, so the first compile in dev doesn't
+  // discover new dependencies and reload the page
+  optimizeDeps: { include: ["typescript", "magic-string", "@strudel/core", "@strudel/mini", "@strudel/tonal"] },
   server: {
     port: 3000,
     open: !process.env.CI && !process.env.NO_OPEN,

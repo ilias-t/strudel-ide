@@ -15,7 +15,7 @@ import { join, relative } from "node:path";
 import { songInfo, listSongIds, ROOT } from "./lib/song-info.mjs";
 import { render, pool } from "./lib/render.mjs";
 import { readWav, writeWav } from "./lib/wav.mjs";
-import { measure, summarize, trackVsMix, silentRuns, HOP_SECONDS, BANDS } from "./lib/audio-analysis.mjs";
+import { measure, summarize, trackVsMix, silentRuns, round, dbAmp, HOP_SECONDS, BANDS } from "./lib/audio-analysis.mjs";
 import { parseArgs, resolveRange, openEnv } from "./render.mjs";
 
 // Thresholds for the problem list (heuristics, see docs/audio-tools.md)
@@ -105,6 +105,14 @@ export function analyze({ info, from, bars, mix, tracks }) {
       };
     });
   }
+  if (tracks) {
+    const h = Math.round(result.overall.peakAt / HOP_SECONDS);
+    result.overall.peakTracks = Object.entries(tracks)
+      .map(([name, t]) => ({ name, peakDb: round(dbAmp(t.peak[h] ?? 0)) }))
+      .filter((x) => x.peakDb !== null && x.peakDb > -30)
+      .sort((a, b) => b.peakDb - a.peakDb)
+      .slice(0, 4);
+  }
   result.problems = findProblems(result);
   for (const s of [result.overall, ...result.sections]) delete s.bandEnergy;
   return result;
@@ -114,8 +122,9 @@ function findProblems(r) {
   const p = [];
   const L = LIMITS;
   const o = r.overall;
-  if (o.clips > 0) p.push({ kind: "clipping", where: "song", detail: `${o.clips} samples at/over 0 dBFS (peak ${o.peakDb} dBFS)` });
-  else if (o.peakDb > L.hotPeakDb) p.push({ kind: "hot", where: "song", detail: `peak ${o.peakDb} dBFS, less than ${-L.hotPeakDb} dB headroom` });
+  const at = `at ${o.peakAt} s` + (o.peakTracks?.length ? ` (${o.peakTracks.map((t) => `${t.name} ${t.peakDb}`).join(", ")} dBFS soloed)` : "");
+  if (o.clips > 0) p.push({ kind: "clipping", where: "song", detail: `${o.clips} samples at/over 0 dBFS, peak ${o.peakDb} dBFS ${at}` });
+  else if (o.peakDb > L.hotPeakDb) p.push({ kind: "hot", where: "song", detail: `peak ${o.peakDb} dBFS ${at}, less than ${-L.hotPeakDb} dB headroom` });
   for (const s of r.sections) {
     if (s.clips > 0) p.push({ kind: "clipping", where: s.name, detail: `${s.clips} samples clipped, peak ${s.peakDb} dBFS` });
     if (s.lufs === null || s.lufs < L.silentLufs) p.push({ kind: "silent", where: s.name, detail: `${s.lufs ?? "-inf"} LUFS` });
@@ -160,7 +169,7 @@ export function printReport(r, { renderInfo } = {}) {
   const out = [];
   out.push(`🎚️  ${r.name} (${r.song}) — ${r.bpm} BPM, bars ${r.from + 1}–${r.from + r.bars}, ${r.seconds} s @ ${r.sampleRate} Hz${renderInfo ? `  [${renderInfo}]` : ""}`);
   out.push(
-    `   Integrated ${fmt(o.lufs)} LUFS · short-term max ${fmt(o.shortTermMax)} LUFS · LRA ${fmt(o.lra)} LU · sample peak ${fmt(o.peakDb)} dBFS` +
+    `   Integrated ${fmt(o.lufs)} LUFS · short-term max ${fmt(o.shortTermMax)} LUFS · LRA ${fmt(o.lra)} LU · sample peak ${fmt(o.peakDb)} dBFS @ ${o.peakAt} s` +
       ` · clipped ${o.clips} · RMS ${fmt(o.rmsDb)} dBFS · crest ${fmt(o.crestDb)} dB · PLR ${fmt(o.plr)} dB · corr ${fmt(o.correlation, 2)} · width ${fmt(o.widthDb)} dB`
   );
   out.push("");
@@ -241,7 +250,7 @@ async function main() {
     log(`Rendering ${info.name}: mix${withTracks ? ` + ${info.tracks.length} soloed tracks` : ""}, bars ${from + 1}–${from + bars}, ${jobs} at a time …`);
     let done = 0;
     const measured = await pool(renders, jobs, async (job) => {
-      const res = await render(env, { songId: id, bpm: info.bpm, from, bars, tail: 0, solo: job.solo, mute: opts.mute });
+      const res = await render(env, { songId: id, bpm: info.bpm, from, bars, tail: 0, solo: job.solo, mute: opts.mute, maxPolyphony: opts.maxPolyphony });
       if (job.name === null) {
         for (const w of res.warnings) warnings.add(w);
         if (opts.out) {

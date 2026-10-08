@@ -253,11 +253,14 @@ export function summarize(t, h0 = 0, h1 = t.hops) {
   const stGated = st.filter((x) => x > -70);
   const relGate = lufs - 20;
   const lraVals = stGated.filter((x) => x > relGate).sort((a, b) => a - b);
-  let ms = 0, peak = 0, clips = 0, lr = 0, ll = 0, rr = 0, mid = 0, side = 0, silent = 0;
+  let ms = 0, peak = 0, peakHop = h0, clips = 0, lr = 0, ll = 0, rr = 0, mid = 0, side = 0, silent = 0;
   const bands = BANDS.map(() => 0);
   for (let h = h0; h < h1; h++) {
     ms += t.ms[h];
-    if (t.peak[h] > peak) peak = t.peak[h];
+    if (t.peak[h] > peak) {
+      peak = t.peak[h];
+      peakHop = h;
+    }
     clips += t.clips[h];
     lr += t.lr[h]; ll += t.ll[h]; rr += t.rr[h]; mid += t.mid[h]; side += t.side[h];
     if (dbAmp(Math.sqrt(t.ms[h])) < SILENCE_DB) silent++;
@@ -274,6 +277,7 @@ export function summarize(t, h0 = 0, h1 = t.hops) {
     lra: round(lraVals.length > 1 ? percentile(lraVals, 95) - percentile(lraVals, 10) : 0),
     rmsDb: round(rmsDb),
     peakDb: round(peakDb),
+    peakAt: round(peakHop * HOP_SECONDS, 1), // seconds into the render (100 ms resolution)
     clips,
     crestDb: round(peakDb - rmsDb),
     plr: round(peakDb - lufs), // peak-to-loudness ratio

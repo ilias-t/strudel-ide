@@ -174,6 +174,7 @@ export async function launchBrowser() {
  *   solo      track names to keep (others muted)
  *   mute      track names to drop
  *   sampleRate (default 48000)
+ *   maxPolyphony  voice limit (default: superdough's 128, as live)
  * @returns {Promise<{sampleRate, channels: [Float32Array, Float32Array], seconds, renderMs, warnings: string[], tracks}>}
  */
 export async function render(env, opts) {
@@ -190,7 +191,8 @@ export async function render(env, opts) {
     bars: opts.bars,
     solo: opts.solo ?? [],
     mute: opts.mute ?? [],
-    chunk: opts.chunk ?? Number(process.env.RENDER_CHUNK ?? 0.1),
+    chunk: opts.chunk ?? 0.1,
+    maxPolyphony: opts.maxPolyphony ?? null, // superdough's default is 128, like the live app
     preciseTimers: process.env.RENDER_IMPRECISE_TIMERS !== "1", // only for proving the duck test
     sampleRate,
     length,
@@ -277,6 +279,7 @@ async function renderInPage(cfg) {
     }
   }
   await g.initAudio(); // loads the AudioWorklets into our context
+  if (cfg.maxPolyphony) g.setMaxPolyphony(cfg.maxPolyphony);
 
   // ── the pattern ──
   let pattern;

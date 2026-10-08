@@ -26,6 +26,7 @@ const USAGE = `Usage: npm run render -- <song-id> [options]
   --url URL         use a running dev server instead of starting one
   --code EXPR       render a Strudel expression instead of a song (needs --bpm)
   --bpm N           tempo for --code (default 120)
+  --max-polyphony N voice limit (default 128, as live: older voices are cut beyond it)
 Songs: ${listSongIds().join(", ")}`;
 
 /** Parse CLI args shared by render and analyze. */
@@ -52,6 +53,7 @@ export function parseArgs(argv, { flags = [] } = {}) {
       case "--code": opts.code = val(); break;
       case "--bpm": opts.bpm = Number(val()); break;
       case "--float": opts.float = true; break;
+      case "--max-polyphony": opts.maxPolyphony = Number(val()); break;
       case "-h": case "--help": opts.help = true; break;
       default:
         if (flags.includes(a)) opts[a.replace(/^--/, "")] = true;
@@ -112,7 +114,7 @@ async function main() {
 
   const env = await openEnv(opts);
   try {
-    console.error(`Rendering ${info.name}: bars ${from}–${from + bars} at ${info.bpm} BPM` +
+    console.error(`Rendering ${info.name}: bars ${from + 1}–${from + bars} at ${info.bpm} BPM` +
       (opts.solo.length ? `, solo ${opts.solo.join(",")}` : "") + (opts.mute.length ? `, mute ${opts.mute.join(",")}` : "") + " …");
     const result = await render(env, {
       songId: opts.code ? null : id,
@@ -124,6 +126,7 @@ async function main() {
       solo: opts.solo,
       mute: opts.mute,
       sampleRate: opts.sampleRate,
+      maxPolyphony: opts.maxPolyphony,
     });
     mkdirSync(dirname(out), { recursive: true });
     const { clipped } = writeWav(out, result.channels, result.sampleRate, { float: opts.float });

@@ -69,13 +69,33 @@ constant; 8-bar blocks when it has none), and each track soloed:
 Problems are flagged with these heuristics (`LIMITS` in `scripts/analyze.mjs`):
 clipping, peak above −1 dBFS, a track more than 25 dB under the mix (inaudible), a track
 within 1.5 dB of the whole mix while 3+ other parts play (dominating), 250–500 Hz above
-22 % of the energy (mud), 2–20 kHz above 14 % (harsh), sections under −50 LUFS, negative
-correlation.
+22 % of the energy in a section that has a low end (mud), 2–20 kHz above 14 % (harsh),
+sections under −50 LUFS, negative correlation. A clipping/hot report says when the peak
+happens and which soloed tracks peak loudest at that moment, which usually names the
+culprit (often kick + snare landing together).
 
 Soloing removes sidechain ducking (the kick isn't playing), so ducked parts read a little
 louder soloed than they sound in the mix.
 
 Agents: use `--json` or read `renders/<song>.analysis.json`.
+
+### Mixing with it
+
+Songs carry a `MASTER_DB` / `FADERS_DB` block: per-track faders in dB, applied with
+`postgain` (after a part's drive/shape, so changing a fader never changes its tone).
+The workflow: `npm run analyze -- <song>`, fix balance with faders (or EQ in the part),
+then set `MASTER_DB` so the song lands near the house loudness without clipping.
+
+House loudness is **about −17.5 LUFS integrated, sample peak ≤ −1 dBFS**. There's no
+limiter on the output, so how loud a song can get is its PLR (peak-to-loudness ratio):
+with unlimited drums that's 15–18 dB, which puts −14 LUFS out of reach without clipping.
+
+### Voice limit
+
+superdough cuts the oldest voice once 128 are sounding, live and in these renders alike.
+Dense songs with long tails (tidepools) hit it, so some notes are cut early and renders
+vary by about ±0.5 dB from run to run. `--max-polyphony 100000` shows the song without
+the limit.
 
 ## Verification
 

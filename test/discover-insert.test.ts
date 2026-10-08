@@ -2,6 +2,8 @@
 // Run: node --test test/discover-insert.test.ts
 
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, test } from "node:test";
 import { defaultInsertSpot, insertionFor, type InsertItem } from "../src/ui/discover/insert.ts";
 
@@ -10,6 +12,7 @@ function apply(src: string, item: InsertItem): string {
   const at = src.indexOf("|");
   const text = src.slice(0, at) + src.slice(at + 1);
   const ins = insertionFor(text, at, item);
+  assert.ok(ins, "refused");
   const out = text.slice(0, at) + ins.text + text.slice(at);
   const caret = at + ins.caret;
   return out.slice(0, caret) + "|" + out.slice(caret);
@@ -52,6 +55,15 @@ describe("sounds", () => {
   });
 });
 
+describe("bank-only sounds (no unbanked samples) carry their bank", () => {
+  const perc: InsertItem = { type: "sound", name: "perc", bank: "RolandTR909" };
+  test("as an expression, chained, and inside a string", () => {
+    assert.equal(apply("const p = |", perc), 'const p = s("perc").bank("RolandTR909")|');
+    assert.equal(apply('n("0 1")|', perc), 'n("0 1").s("perc").bank("RolandTR909")|');
+    assert.equal(apply('s("hh |")', perc), 's("hh perc|")');
+  });
+});
+
 describe("banks", () => {
   test("after an expression: .bank()", () => {
     assert.equal(apply('s("bd*4")|', tr909), 's("bd*4").bank("RolandTR909")|');
@@ -91,9 +103,15 @@ describe("functions", () => {
 });
 
 describe("code (snippets, examples)", () => {
-  test("goes in as written", () => {
-    const code: InsertItem = { type: "code", code: 's("bd*4").bank("RolandTR909")' };
+  const code: InsertItem = { type: "code", code: 's("bd*4").bank("RolandTR909")' };
+  test("goes in as written where an expression starts", () => {
     assert.equal(apply("const kick = |", code), 'const kick = s("bd*4").bank("RolandTR909")|');
+    assert.equal(apply("stack(|)", code), 'stack(s("bd*4").bank("RolandTR909")|)');
+  });
+  test("is refused inside a string or right after an expression (it would break the file)", () => {
+    const text = 's("hh ")';
+    assert.equal(insertionFor(text, text.indexOf(" ") + 1, code), null);
+    assert.equal(insertionFor('s("hh")', 7, code), null);
   });
 });
 
@@ -102,7 +120,7 @@ describe("a selection is replaced", () => {
     const text = 'const kick = s("sd");';
     const start = text.indexOf("sd");
     const ins = insertionFor(text, start, bd, start + 2);
-    assert.equal(ins.text, "bd");
+    assert.equal(ins?.text, "bd");
   });
 });
 
@@ -128,6 +146,26 @@ export default song;
     assert.ok(spot);
     assert.equal(song.slice(spot.offset, spot.offset + 10), "    return");
     assert.equal(spot.indent, "    ");
+  });
+  test("only createPattern()'s own top-level return: not a helper after the song, not a nested function", () => {
+    const text = song.replace("export default song;", 'function after() {\n  return "x";\n}\n\nexport default song;').replace(
+      "    return { kick };",
+      "    return { kick };\n    function late() {\n      return 2;\n    }"
+    );
+    const spot = defaultInsertSpot(text);
+    assert.ok(spot);
+    assert.equal(text.slice(spot.offset, spot.offset + 18), "    return { kick ");
+  });
+  test("every song and starter has one: its createPattern() return", () => {
+    for (const dir of ["src/songs", "src/starters"]) {
+      for (const file of readdirSync(dir).filter((f) => f.endsWith(".ts") && f !== "index.ts")) {
+        const text = readFileSync(join(dir, file), "utf8");
+        const spot = defaultInsertSpot(text);
+        assert.ok(spot, `${dir}/${file}`);
+        assert.match(text.slice(spot.offset + spot.indent.length), /^return\b/, `${dir}/${file}`);
+        assert.ok(spot.offset > text.indexOf("createPattern"), `${dir}/${file}`);
+      }
+    }
   });
   test("none without createPattern", () => {
     assert.equal(defaultInsertSpot("const x = 1;\n"), null);

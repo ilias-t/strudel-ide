@@ -169,14 +169,18 @@ export function soundItems(catalog: SoundsCatalog): PaletteItem[] {
     const banks = info.banks ? Object.keys(info.banks).length : 0;
     if (banks) parts.push(`in ${plural(banks, "drum machine")}`);
     const pitched = info.pitched ? { pitched: true } : {};
+    // a bank-only sound (fx, perc) doesn't exist alone: it plays from its first drum machine
+    const onlyBanked = info.count === undefined && info.source === undefined && info.banks;
+    const bank = onlyBanked ? Object.keys(info.banks!)[0] : undefined;
+    const banked = bank ? { bank } : {};
     return {
       kind: "sound",
       id: name,
       name,
       detail: parts.join(" · "),
       weight: KIND_WEIGHT.sound,
-      run: { type: "insert", item: { type: "sound", name, ...pitched } },
-      play: { type: "sound", name, ...pitched },
+      run: { type: "insert", item: { type: "sound", name, ...pitched, ...banked } },
+      play: { type: "sound", name, ...pitched, ...banked },
     };
   });
 }

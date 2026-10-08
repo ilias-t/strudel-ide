@@ -191,6 +191,17 @@ describe("refusals", () => {
     unchanged(song(`    const t = { kick: s("bd") };\n    return { ...t };`), "hats", /track list/);
   });
 
+  test("literal computed keys are tracks too: their name is taken", () => {
+    const text = song(`    const old = s("hh");\n    return { kick: s("bd"), ["hats"]: old };`);
+    unchanged(text, "hats", /taken|already/);
+    assert.equal(freeTrackName(ts, text, "hats"), "hats2");
+  });
+
+  test("keys that can't be read (a spread next to tracks, a computed key) are refused: the new key could replace a track", () => {
+    unchanged(song(`    const t = { hats: s("hh") };\n    return { kick: s("bd"), ...t };`), "hats", /can't tell|track list/);
+    unchanged(song(`    const k = "hats";\n    return { kick: s("bd"), [k]: s("hh") };`), "hats", /can't tell|track list/);
+  });
+
   test("an arrow createPattern with an expression body is refused", () => {
     const text = `import type { Song } from ".";\nexport default { name: "t", createPattern: () => ({ kick: s("bd") }) } satisfies Song;\n`;
     unchanged(text, "hats", /createPattern/);

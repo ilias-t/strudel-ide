@@ -8,7 +8,7 @@
 
 import { fileURLToPath } from "node:url";
 import { build, preview, type PreviewServer } from "vite";
-import { APP_ROOT, FIXTURE_ID, writeFixture } from "./fixture.ts";
+import { APP_ROOT, FIXTURE_ID, fixtureSource, writeFixture } from "./fixture.ts";
 import { expect, test } from "./player.ts";
 
 test.afterEach(async ({ player }) => {
@@ -36,9 +36,32 @@ test("dev: booting and playing loads no discovery feature or catalog; opening on
   await page.locator("body").press("b");
   await expect.poll(() => page.evaluate(() => window.__strudelDiscover!.isOpen("library"))).toBe(true);
   await expect.poll(async () => (await resources()).some((url) => /\/src\/ui\/discover\/library[^/]*\.ts/.test(url))).toBe(true);
-  await page.locator("body").press("b");
+  // the library focuses its search (which keeps every key, b included): Esc closes it
+  await expect(page.getByTestId("library-search")).toBeFocused();
+  await page.keyboard.press("Escape");
   await expect.poll(() => page.evaluate(() => window.__strudelDiscover!.isOpen("library"))).toBe(false);
   await player.stop();
+});
+
+test("dev: a stored song compiles at boot without loading the track builder's planner", async ({ player, page }) => {
+  await player.boot();
+  const text = fixtureSource({ gain: 0.3 });
+  await page.evaluate(({ id, text }) => window.__strudel!.store.saveOverride(id, text), { id: FIXTURE_ID, text });
+
+  // the boot replay compiles it in the song compiler's worker: see what the worker loads too
+  const requests: string[] = [];
+  page.context().on("request", (req) => requests.push(req.url()));
+  await page.reload();
+  await page.waitForFunction(() => window.__strudel?.getState().ready === true, null, { timeout: 30_000 });
+  await expect
+    .poll(() => page.evaluate((id) => window.__strudel!.songs()[id] && window.__strudel!.store.getMySong(id)?.text, FIXTURE_ID))
+    .toBe(text);
+  expect(await player.select(FIXTURE_ID)).toBe(true);
+  await player.play();
+  await expect.poll(() => player.probe(), { message: "the stored edit plays" }).toMatchObject({ gain: 0.3 });
+  await player.stop();
+  expect(requests.some((url) => /\/src\/compile\/worker\.ts/.test(url)), "the compiler worker ran (the replay)").toBe(true);
+  expect(requests.filter((url) => LAZY_MODULES.test(url)), "no discovery module, in the page or the worker").toEqual([]);
 });
 
 let server: PreviewServer | undefined;

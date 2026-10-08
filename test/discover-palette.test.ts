@@ -93,6 +93,7 @@ const sounds: SoundsCatalog = {
     piano: { kind: "keys", source: "piano", count: 29, pitched: true },
     sawtooth: { kind: "synth", source: "superdough" },
     saw: { kind: "synth", source: "superdough", aliasOf: "sawtooth" },
+    perc: { kind: "perc", banks: { AkaiMPC60: 5, RolandTR909: 2 } },
   },
 };
 
@@ -103,6 +104,13 @@ describe("sounds and banks", () => {
     assert.deepEqual(piano.play, { type: "sound", name: "piano", pitched: true });
     assert.match(piano.detail, /Keys/);
     assert.deepEqual(byId(soundItems(sounds), "bd").run, { type: "insert", item: { type: "sound", name: "bd" } });
+  });
+
+  test("a bank-only sound (perc, fx) inserts and plays from its first drum machine", () => {
+    const bank = Object.keys(sounds.sounds.perc.banks!)[0];
+    const perc = byId(soundItems(sounds), "perc");
+    assert.deepEqual(perc.run, { type: "insert", item: { type: "sound", name: "perc", bank } });
+    assert.deepEqual(perc.play, { type: "sound", name: "perc", bank });
   });
 
   test("a sound's detail names its kind; an alias names what it stands for", () => {

@@ -142,14 +142,20 @@ export function mountDiscovery(host: DiscoveryHost) {
       const text = ed.value();
       // no caret placed yet (a fresh editor has it at the very top): on its own line where the tracks are
       const spot = sel.start === 0 && sel.end === 0 ? defaultInsertSpot(text) : null;
+      const refuse = () => {
+        host.toast("code doesn't go here: put the cursor where an expression starts (after =, in a call's parentheses)", "warn");
+        return false;
+      };
       if (spot) {
         const ins = insertionFor(text, spot.offset, item);
+        if (!ins) return refuse();
         const line = `${spot.indent}${ins.text}\n`;
         return ed.applyEdits([{ start: spot.offset, end: spot.offset, text: line }], {
           caret: spot.offset + spot.indent.length + ins.caret,
         });
       }
       const ins = insertionFor(text, sel.start, item, sel.end);
+      if (!ins) return refuse();
       return ed.applyEdits([{ start: sel.start, end: sel.end, text: ins.text }], { caret: sel.start + ins.caret });
     },
     open,

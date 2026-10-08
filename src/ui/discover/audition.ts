@@ -100,7 +100,10 @@ export async function auditionSound(name: string, opts: SoundOptions = {}): Prom
   stopAudition();
   const label = opts.bank ? `${name} · ${opts.bank}` : name;
   const rec = record("sound", label);
+  const turn = take(rec);
   if (!(await unlock())) return fail(rec, "audio is locked: click the page first");
+  if (turn.stopped) return rec; // stopped, or a newer audition started, while audio unlocked
+  current = null;
   const ctx = engine.getAudioContext();
   const value: Record<string, unknown> = { s: name, gain: 0.8 };
   if (opts.bank) value.bank = opts.bank;
@@ -111,6 +114,22 @@ export async function auditionSound(name: string, opts: SoundOptions = {}): Prom
     if (rec.status === "playing") rec.status = "done";
   }, 600);
   return rec;
+}
+
+/**
+ * The audition's turn, taken before anything is awaited: stopAudition() or a
+ * newer audition ends it, and an audition whose turn ended never starts
+ */
+function take(rec: AuditionRecord): { stopped: boolean; stop(): void } {
+  const turn = {
+    stopped: false,
+    stop() {
+      turn.stopped = true;
+      if (rec.status === "playing") rec.status = "stopped";
+    },
+  };
+  current = turn;
+  return turn;
 }
 
 function fail(rec: AuditionRecord, error: string): AuditionRecord {
@@ -171,7 +190,12 @@ export async function previewCode(code: string, { cycles = 1, label = code }: Pr
   } catch (err) {
     return fail(rec, err instanceof Error ? err.message : String(err));
   }
-  if (!(await unlock())) return fail(rec, "audio is locked: click the page first");
+  const turn = take(rec);
+  if (!(await unlock())) {
+    if (current === turn) current = null;
+    return fail(rec, "audio is locked: click the page first");
+  }
+  if (turn.stopped) return rec; // stopped, or a newer audition started, while audio unlocked
 
   const ctx = engine.getAudioContext();
   const cps = currentCps();
@@ -180,11 +204,13 @@ export async function previewCode(code: string, { cycles = 1, label = code }: Pr
   let timer: ReturnType<typeof setInterval> | undefined;
   const stop = (status: AuditionRecord["status"]) => {
     clearInterval(timer);
+    turn.stopped = true;
     if (rec.status === "playing") rec.status = status;
     if (current === handle) current = null;
   };
   const handle = { stop: () => stop("stopped") };
   const tick = () => {
+    if (turn.stopped) return stop("stopped");
     const until = Math.min(cycles, (ctx.currentTime + LOOKAHEAD - t0) * cps);
     if (until <= done) return;
     try {

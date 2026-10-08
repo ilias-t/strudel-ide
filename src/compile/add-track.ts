@@ -69,6 +69,7 @@ export type TrackNames =
   | { ok: false; reason: string; taken: string[] };
 
 export const TRACK_LIST_REASON = "can't find the track list: createPattern() must end with return { … } or mixdown({ … })";
+export const UNREADABLE_KEYS_REASON = "can't tell all the track names (a spread or a computed key in the track list): add this track by hand";
 
 /** Words that can't name a const in a module (strict mode), and globals not to shadow */
 const RESERVED = new Set(
@@ -139,6 +140,11 @@ function unwrap(ts: Ts, e: TS.Expression): TS.Expression {
 function propName(ts: Ts, name: TS.PropertyName | undefined): string | undefined {
   if (!name) return undefined;
   if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name) || ts.isPrivateIdentifier(name)) return name.text;
+  // ["hats"]: a literal computed key is a plain key
+  if (ts.isComputedPropertyName(name)) {
+    const e = name.expression;
+    if (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e) || ts.isNumericLiteral(e)) return e.text;
+  }
   return undefined;
 }
 
@@ -238,10 +244,10 @@ function analyze(ts: Ts, sf: TS.SourceFile): Analysis {
   const tracks: string[] = [];
   for (const p of props) {
     const name = ts.isSpreadAssignment(p) ? undefined : propName(ts, p.name);
-    if (name !== undefined) {
-      tracks.push(name);
-      taken.add(name);
-    }
+    // a spread or a computed key could hold the new name: adding it might replace a track
+    if (name === undefined) return { found: null, reason: UNREADABLE_KEYS_REASON, tracks: [], taken };
+    tracks.push(name);
+    taken.add(name);
   }
   return { found: { body, ret, record: value }, reason: "", tracks, taken };
 }

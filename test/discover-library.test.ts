@@ -178,6 +178,16 @@ describe("sound rows", () => {
     assert.deepEqual(soundInsert("bd", sounds.sounds.bd), { type: "sound", name: "bd", pitched: false });
     assert.deepEqual(soundInsert("piano", sounds.sounds.piano), { type: "sound", name: "piano", pitched: true });
   });
+
+  test("insert: a bank-only sound brings the bank it plays from (alone it doesn't exist)", () => {
+    assert.deepEqual(soundInsert("perc", sounds.sounds.perc), {
+      type: "sound",
+      name: "perc",
+      pitched: false,
+      bank: soundAudition("perc", sounds.sounds.perc).opts.bank,
+    });
+    assert.ok(soundInsert("perc", sounds.sounds.perc).type === "sound");
+  });
 });
 
 describe("bank rows", () => {

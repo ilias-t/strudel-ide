@@ -13,7 +13,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type TS from "typescript";
-import { planAddTrack, trackNames, type AddTrackPlan, type NewTrack, type TrackNames } from "./add-track.ts";
+// the track builder's planner loads with its first request, never with a compile (stored songs compile at boot)
+import type { AddTrackPlan, NewTrack, TrackNames } from "./add-track.ts";
 import { compileSong, type CompileResult } from "./compile.ts";
 import { strudelNamesFrom, type StrudelModules, type StrudelNames } from "./names.ts";
 
@@ -89,9 +90,16 @@ async function trackOp(data: AddTrackRequest | TrackNamesRequest): Promise<AddTr
     const reason = `the song compiler failed to load: ${err instanceof Error ? err.message : String(err)}`;
     return data.op === "addTrack" ? { ok: false, reason } : { ok: false, reason, taken: [] };
   }
-  if (data.op === "addTrack") return planAddTrack(ts, data.text, data.track, data.file); // never throws
+  let planner: typeof import("./add-track.ts");
   try {
-    return trackNames(ts, data.text, data.file);
+    planner = await import("./add-track.ts");
+  } catch (err) {
+    const reason = `the track planner failed to load: ${err instanceof Error ? err.message : String(err)}`;
+    return data.op === "addTrack" ? { ok: false, reason } : { ok: false, reason, taken: [] };
+  }
+  if (data.op === "addTrack") return planner.planAddTrack(ts, data.text, data.track, data.file); // never throws
+  try {
+    return planner.trackNames(ts, data.text, data.file);
   } catch (err) {
     return { ok: false, reason: `couldn't read the song: ${err instanceof Error ? err.message : String(err)}`, taken: [] };
   }

@@ -25,6 +25,7 @@
 
 import "./palette.css";
 import * as player from "../../engine/player";
+import { askOpen } from "../ask";
 import { auditionSound, previewCode, previewable } from "./audition";
 import { loadFunctions, loadSnippets, loadSounds } from "./catalog";
 import { rank, type Ranked } from "./fuzzy";
@@ -489,8 +490,17 @@ export function createPalette(d: Discovery): FeatureHandle {
   });
 
   // keys aimed outside while open (focus fell to <body>): never the stage's
+  // a stage dialog (ask(): a share link's confirmation, the clipboard fallback)
+  // opened over the palette: it's in charge now, so the palette steps away
+  // rather than fight it for focus
+  const yieldToDialog = () => {
+    if (!askOpen()) return false;
+    close({ restore: false });
+    return true;
+  };
   const onStrayKey = (e: KeyboardEvent) => {
     if (e.target instanceof Node && root.contains(e.target)) return;
+    if (yieldToDialog()) return;
     e.stopPropagation();
     e.preventDefault();
     if (e.key === "Escape") close();
@@ -498,6 +508,7 @@ export function createPalette(d: Discovery): FeatureHandle {
   };
   const onFocusIn = (e: FocusEvent) => {
     if (e.target instanceof Node && root.contains(e.target)) return;
+    if (yieldToDialog()) return;
     input.focus();
   };
 

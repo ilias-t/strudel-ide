@@ -17,8 +17,11 @@
 import { tokenize, type Token } from "../tokenize.ts";
 
 export type InsertItem =
-  /** A sound name (sounds.json); pitched samples get a note */
-  | { type: "sound"; name: string; pitched?: boolean }
+  /**
+   * A sound name (sounds.json); pitched samples get a note. `bank`: the sound
+   * only exists in drum machines (no unbanked samples), so it plays from this one
+   */
+  | { type: "sound"; name: string; pitched?: boolean; bank?: string }
   /** A drum machine bank; `part` is the drum used when a new expression is needed (default bd) */
   | { type: "bank"; name: string; part?: string }
   /** A function (functions.json): kind decides method vs call; params = parameter count */
@@ -81,20 +84,29 @@ function contextAt(text: string, offset: number): Context {
  * at the top of the file): the start of the line of createPattern()'s last
  * `return`, where the tracks are defined. The inserted code goes on its own
  * line there, indented like the return. A heuristic over tokens (no parser):
- * the last `return` keyword after `createPattern` and before `export default`.
+ * the last `return` keyword at the top level of the body that follows
+ * `createPattern` (its first `{`, to the matching `}`; strings and comments
+ * are tokens of their own, so their braces don't count).
  */
 export function defaultInsertSpot(text: string): { offset: number; indent: string } | null {
   const tokens = tokenize(text);
   let seen = false;
+  let depth = 0; // braces open inside the body (1 = its top level)
   let spot: number | null = null;
-  for (const t of tokens) {
+  scan: for (const t of tokens) {
     const word = text.slice(t.start, t.end);
     if (!seen) {
       seen = t.kind !== "c" && t.kind !== "s" && word === "createPattern";
       continue;
     }
-    if (t.kind === "k" && word === "export") break;
-    if (t.kind === "k" && word === "return") spot = t.start;
+    if (t.kind === "p") {
+      for (const ch of word) {
+        if (ch === "{") depth++;
+        else if (ch === "}" && depth > 0 && --depth === 0) break scan;
+      }
+    } else if (t.kind === "k" && word === "return" && depth === 1) {
+      spot = t.start;
+    }
   }
   if (spot === null) return null;
   const lineStart = text.lastIndexOf("\n", spot - 1) + 1;
@@ -119,17 +131,21 @@ const at = (text: string, caret = text.length): Insertion => ({ text, caret });
 
 /**
  * What to insert at `offset` (replacing [offset, selectionEnd) if given: the
- * context is read at the selection's start).
+ * context is read at the selection's start). null: it doesn't go there. Code
+ * (a snippet, an example) only goes where an expression starts: inside a
+ * string or right after an expression it would break the file.
  */
-export function insertionFor(text: string, offset: number, item: InsertItem, selectionEnd = offset): Insertion {
+export function insertionFor(text: string, offset: number, item: InsertItem, selectionEnd = offset): Insertion | null {
   const rest = text.slice(0, offset) + text.slice(selectionEnd);
   const ctx = contextAt(rest, offset);
-  if (item.type === "code") return at(item.code);
+  if (item.type === "code") return ctx === "expression" ? at(item.code) : null;
   if (ctx === "string") return inString(rest, offset, item.name);
   switch (item.type) {
-    case "sound":
-      if (ctx === "chain") return at(`.s(${str(item.name)})`);
-      return at(item.pitched ? `note("c3").s(${str(item.name)})` : `s(${str(item.name)})`);
+    case "sound": {
+      const bank = item.bank ? `.bank(${str(item.bank)})` : "";
+      if (ctx === "chain") return at(`.s(${str(item.name)})${bank}`);
+      return at(item.pitched ? `note("c3").s(${str(item.name)})${bank}` : `s(${str(item.name)})${bank}`);
+    }
     case "bank":
       if (ctx === "chain") return at(`.bank(${str(item.name)})`);
       return at(`s(${str(item.part ?? "bd")}).bank(${str(item.name)})`);

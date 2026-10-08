@@ -130,7 +130,9 @@ export function soundAudition(name: string, info: SoundInfo): { name: string; op
 
 /** What insert on a sound row inserts */
 export function soundInsert(name: string, info: SoundInfo): InsertItem {
-  return { type: "sound", name, pitched: playsNotes(info) };
+  // a bank-only sound (fx, perc) doesn't exist alone: it plays from the bank ▶ uses
+  const { bank } = soundAudition(name, info).opts;
+  return bank ? { type: "sound", name, pitched: playsNotes(info), bank } : { type: "sound", name, pitched: playsNotes(info) };
 }
 
 /** The drum a bank row plays and inserts: bd, else its first part */

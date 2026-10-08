@@ -19,25 +19,52 @@
 
 import { internals, remakeHap, type Hap } from "./strudel";
 
-/** Neon palette, assigned to tracks in order */
-export const TRACK_COLORS = [
-  "#05d9e8", // cyan
-  "#ff2a6d", // hot pink
-  "#b967ff", // violet
-  "#ffb347", // amber
-  "#3dffc4", // mint
-  "#ff57e3", // magenta
-  "#4d9fff", // sky
-  "#f5f56b", // lemon
-  "#ff7a59", // coral
-  "#d6a6ff", // lilac
-  "#00c2a8", // teal
-  "#ff9ec7", // rose
+/**
+ * What a track plays, guessed from its name. The role picks the track's colour
+ * (knob caps, keys, meter LEDs, pianoroll, lit code) and which lamp in the
+ * stage's room it drives (src/ui/room.ts).
+ */
+export type TrackRole = "kick" | "snare" | "hats" | "perc" | "bass" | "pads" | "arp" | "lead" | "acid" | "fx" | "other";
+
+const ROLE_PATTERNS: [TrackRole, RegExp][] = [
+  ["kick", /kick|^bd|909|808k|pulse/i],
+  ["snare", /snare|^sd|clap|^cp|rim/i],
+  ["hats", /hat|^hh|^oh|ride|cymbal|shaker|ghost/i],
+  ["perc", /perc|tom|crash|fill|conga|bongo|clave|cowbell|break/i],
+  ["acid", /acid|303/i],
+  ["bass", /bass|sub|rumble|reese|wobble|low/i],
+  ["pads", /pad|chord|key|string|choir|organ|piano|rhodes|drone|atmos|stab/i],
+  ["arp", /arp|pluck|seq|bell|harp|loop|pebble/i],
+  ["lead", /lead|melody|vox|vocal|hook|voice|tune/i],
+  ["fx", /fx|riser|sweep|noise|vinyl|rain|shore|hiss|texture|impact/i],
 ];
 
-const MUTED_COLOR = "#3a2f5a";
+export function trackRole(name: string): TrackRole {
+  return ROLE_PATTERNS.find(([, re]) => re.test(name))?.[0] ?? "other";
+}
 
-export const trackColor = (index: number) => TRACK_COLORS[index % TRACK_COLORS.length];
+/** Stage palette (src/ui/stage.css): ember drums, cobalt bass, lilac pads, teal arp, cream lead */
+const ROLE_COLORS: Record<TrackRole, string | null> = {
+  kick: "#ff6a2b", // ember
+  snare: "#ff8a52", // ember, a step lighter
+  hats: "#ffa877", // ember, lighter still
+  perc: "#e8582a", // ember, deeper
+  bass: "#3f6bff", // cobalt
+  pads: "#9c82f2", // lilac
+  arp: "#1db89f", // teal
+  lead: "#f1ece1", // cream
+  acid: "#b9f03a", // acid
+  fx: "#f0729a", // rose
+  other: null,
+};
+
+/** For tracks whose name says nothing about them, in order */
+const SPARE_COLORS = ["#1db89f", "#9c82f2", "#f1ece1", "#3f6bff", "#f0729a", "#ff6a2b"];
+
+const MUTED_COLOR = "#3a3a3e";
+
+export const trackColor = (name: string, index: number) =>
+  ROLE_COLORS[trackRole(name)] ?? SPARE_COLORS[index % SPARE_COLORS.length];
 
 function decorate(pattern: Pattern, track: string, color: string, muted: boolean): Pattern {
   return internals(pattern).withHap((hap: Hap) => {
@@ -62,5 +89,5 @@ export function composeTracks(
   parts: readonly [string, Pattern][],
   isAudible: (track: string) => boolean
 ): Pattern {
-  return stack(...parts.map(([name, p], i) => decorate(p, name, trackColor(i), !isAudible(name))));
+  return stack(...parts.map(([name, p], i) => decorate(p, name, trackColor(name, i), !isAudible(name))));
 }

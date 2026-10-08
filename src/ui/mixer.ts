@@ -1,16 +1,30 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// Mixer: a strip per track with an activity LED and Mute / Solo
+// Mixer: a vertical strip per track: activity LED, name, meter, Mute / Solo
 // ═══════════════════════════════════════════════════════════════════════════
+//
+// The meter is a fixed segment strip under a cover that scales away (a
+// transform, so it stays on the compositor). A hit sets the level from the
+// hap's gain × velocity; it falls back at a fixed rate, like a peak meter.
 
 import { trackColor } from "../engine/tracks";
 import type { PlayerState } from "../engine/types";
 
 interface Strip {
   el: HTMLElement;
-  glow: HTMLElement;
+  led: HTMLElement;
+  cover: HTMLElement;
   mute: HTMLButtonElement;
   solo: HTMLButtonElement;
+  /** meter level 0..1 and LED flash 0..1, as last painted */
+  level: number;
+  flash: number;
+  painted: string;
 }
+
+/** Meter fall, per second */
+const FALL = 2.4;
+/** LED flash decay time constant, seconds */
+const FLASH_TAU = 0.09;
 
 export interface MixerActions {
   toggleTrack(mode: "mute" | "solo", track: string): void;
@@ -20,14 +34,16 @@ export interface MixerActions {
 export class Mixer {
   private strips = new Map<string, Strip>();
   private tracksKey = "";
-  /** LED hits waiting for the next frame */
-  private hits = new Set<string>();
+  /** Hits since the last frame: track → loudest level */
+  private hits = new Map<string, number>();
+  private lastFrame = 0;
 
   constructor(
     private root: HTMLElement,
     private empty: HTMLElement,
     unmuteAll: HTMLButtonElement,
-    actions: MixerActions
+    actions: MixerActions,
+    private count?: HTMLElement
   ) {
     unmuteAll.addEventListener("click", () => actions.unmuteAll());
     root.addEventListener("click", (e) => {
@@ -60,37 +76,60 @@ export class Mixer {
     }
   }
 
-  /** A track just played a note */
-  hit(track: string) {
-    this.hits.add(track);
+  /** A track just played a note; `level` 0..1 (gain × velocity) */
+  hit(track: string, level = 0.8) {
+    this.hits.set(track, Math.max(level, this.hits.get(track) ?? 0));
   }
 
-  frame() {
-    if (!this.hits.size) return;
-    for (const track of this.hits) {
-      this.strips
-        .get(track)
-        ?.glow.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: "cubic-bezier(0.2, 0, 0.6, 1)" });
+  frame(now: number) {
+    const dt = Math.min(0.1, Math.max(0, (now - (this.lastFrame || now)) / 1000));
+    this.lastFrame = now;
+    for (const [name, strip] of this.strips) {
+      const hit = this.hits.get(name);
+      let { level, flash } = strip;
+      level = Math.max(0, level - FALL * dt);
+      flash *= Math.exp(-dt / FLASH_TAU);
+      if (hit !== undefined) {
+        level = Math.max(level, hit);
+        flash = 1;
+      }
+      if (level < 0.005) level = 0;
+      if (flash < 0.01) flash = 0;
+      strip.level = level;
+      strip.flash = flash;
+      const painted = `${level.toFixed(3)}|${flash.toFixed(2)}`;
+      if (painted === strip.painted) continue;
+      strip.painted = painted;
+      strip.cover.style.transform = `scaleY(${(1 - level * 0.94).toFixed(3)})`;
+      strip.led.style.opacity = (0.15 + 0.85 * flash).toFixed(2);
     }
     this.hits.clear();
   }
 
   private build(tracks: string[]) {
     this.strips.clear();
+    if (this.count) this.count.textContent = tracks.length ? `${tracks.length} tracks` : "";
+    this.root.dataset.dense = String(tracks.length > 11);
     const frag = document.createDocumentFragment();
     tracks.forEach((name, i) => {
       const el = document.createElement("div");
       el.className = "strip";
       el.dataset.testid = "mixer-strip";
       el.dataset.track = name;
-      el.style.setProperty("--c", trackColor(i));
+      el.style.setProperty("--c", trackColor(name, i));
 
       const led = document.createElement("span");
       led.className = "led";
       led.dataset.testid = "track-led";
-      const glow = document.createElement("span");
-      glow.className = "led-glow";
-      led.append(glow);
+
+      const meter = document.createElement("span");
+      meter.className = "meter";
+      meter.setAttribute("aria-hidden", "true");
+      const lit = document.createElement("span");
+      lit.className = "meter-lit";
+      const cover = document.createElement("span");
+      cover.className = "meter-cover";
+      meter.append(lit, cover);
 
       const keyHint = document.createElement("span");
       keyHint.className = "strip-key";
@@ -99,17 +138,17 @@ export class Mixer {
       const label = document.createElement("span");
       label.className = "strip-name";
       label.textContent = name;
-      label.title = name;
+      label.title = i < 9 ? `${name} (mute: ${i + 1}, solo: Shift+${i + 1})` : name;
 
       const buttons = document.createElement("span");
       buttons.className = "strip-buttons";
-      const mute = button("M", "mute", `Mute ${name}${i < 9 ? ` (${i + 1})` : ""}`);
-      const solo = button("S", "solo", `Solo ${name}${i < 9 ? ` (Shift+${i + 1})` : ""}`);
+      const mute = button("m", "mute", `Mute ${name}${i < 9 ? ` (${i + 1})` : ""}`);
+      const solo = button("s", "solo", `Solo ${name}${i < 9 ? ` (Shift+${i + 1})` : ""}`);
       buttons.append(mute, solo);
 
-      el.append(led, keyHint, label, buttons);
+      el.append(led, keyHint, label, meter, buttons);
       frag.append(el);
-      this.strips.set(name, { el, glow, mute, solo });
+      this.strips.set(name, { el, led, cover, mute, solo, level: 0, flash: 0, painted: "" });
     });
     this.root.replaceChildren(frag);
   }

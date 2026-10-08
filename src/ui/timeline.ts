@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// Timeline: sections as segments, a playhead, jump and loop
+// Timeline: the sequencer strip. Each section is a labelled bracket over one
+// LED per bar (played / now / to come); click one to jump, loop it with L.
 // ═══════════════════════════════════════════════════════════════════════════
 
 import type { PlayerState, SectionInfo } from "../engine/types";
@@ -11,6 +12,9 @@ export interface TimelineActions {
 
 export class Timeline {
   private segments: HTMLButtonElement[] = [];
+  /** one LED per bar, in song order */
+  private leds: HTMLElement[] = [];
+  private litBar = -2;
   private sectionsKey: string | null = null;
   private total = 0;
   /** segment geometry, measured on build/resize (null = re-measure) */
@@ -74,7 +78,8 @@ export class Timeline {
         this.els.playhead.style.transform = `translateX(${x}px)`;
       }
       const inSection = Math.min(section.bars, Math.floor(p - section.start) + 1);
-      sub = `bar ${inSection} of ${section.bars} · ${bar}.${beat}`;
+      sub = `bar ${String(inSection).padStart(2, "0")} of ${section.bars} · ${bar}.${beat}`;
+      this.lightBar(Math.floor(p));
     } else {
       sub = `bar ${bar}.${beat}`;
     }
@@ -84,8 +89,25 @@ export class Timeline {
     }
   }
 
+  /** LEDs: bars before `now` played, `now` lit (-1: none) */
+  private lightBar(now: number) {
+    if (now === this.litBar) return;
+    this.litBar = now;
+    this.leds.forEach((led, i) => {
+      const cls = i === now ? "now" : i < now ? "played" : "";
+      if (led.className !== cls) led.className = cls;
+    });
+  }
+
+  /** Stopped: no bar is "now" */
+  idle() {
+    this.lightBar(-1);
+  }
+
   private build(sections: SectionInfo[] | null) {
     this.segments = [];
+    this.leds = [];
+    this.litBar = -2;
     this.total = 0;
     this.lastX = -1;
     this.boxes = null;
@@ -108,10 +130,20 @@ export class Timeline {
       const name = document.createElement("span");
       name.className = "tl-seg-name";
       name.textContent = s.name;
-      const bars = document.createElement("span");
+      const bars = document.createElement("small");
       bars.className = "tl-seg-bars";
-      bars.textContent = `${s.bars} bars`;
-      seg.append(name, bars);
+      bars.textContent = String(s.bars);
+      name.append(bars);
+      const bracket = document.createElement("span");
+      bracket.className = "tl-seg-bracket";
+      const leds = document.createElement("span");
+      leds.className = "tl-seg-leds";
+      for (let b = 0; b < s.bars; b++) {
+        const led = document.createElement("i");
+        leds.append(led);
+        this.leds.push(led);
+      }
+      seg.append(name, bracket, leds);
       frag.append(seg);
       this.segments.push(seg);
       this.total = s.start + s.bars;

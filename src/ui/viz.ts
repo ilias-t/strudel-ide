@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// Visualization: the full-screen pianoroll / scope behind the stage
+// Visualization: the pianoroll / scope on the visualizer unit's screen
 // ═══════════════════════════════════════════════════════════════════════════
 
 import * as strudelWeb from "@strudel/web";
@@ -16,18 +16,21 @@ const web = strudelWeb as unknown as {
   drawTimeScope(analyser: AnalyserNode | undefined, options: Record<string, unknown>): void;
 };
 
-/** Stage defaults: the roll sits behind the code, so keep it calm and wide */
+/** Stage defaults for a small screen: a calm roll with the playhead left of centre */
 const PIANOROLL_DEFAULTS: PianorollOptions = {
   cycles: 4,
-  playhead: 0.5,
+  playhead: 0.38,
   autorange: true,
   fold: 1,
-  playheadColor: "rgba(255, 255, 255, 0.5)",
+  playheadColor: "rgba(238, 233, 222, 0.9)",
 };
+
+/** Where the canvas lives (the visualizer unit's screen); the body until the stage mounts */
+const host = () => document.getElementById("view-screen") ?? document.body;
 
 /**
  * Create the shared canvas ourselves (same id, so @strudel/draw reuses it) so
- * it exists before the first draw and tracks the window size and pixel ratio.
+ * it exists before the first draw and tracks its screen's size and pixel ratio.
  */
 export function ensureCanvas(): HTMLCanvasElement {
   let canvas = document.getElementById(DRAW_CANVAS_ID) as HTMLCanvasElement | null;
@@ -36,37 +39,55 @@ export function ensureCanvas(): HTMLCanvasElement {
   canvas.id = DRAW_CANVAS_ID;
   canvas.className = "viz-canvas";
   canvas.setAttribute("aria-hidden", "true");
+  const screen = host();
   const size = () => {
     const ratio = window.devicePixelRatio || 1;
-    canvas!.width = Math.round(window.innerWidth * ratio);
-    canvas!.height = Math.round(window.innerHeight * ratio);
+    const w = Math.max(1, Math.round(screen.clientWidth * ratio));
+    const h = Math.max(1, Math.round(screen.clientHeight * ratio));
+    // resizing clears the canvas, so only when it really changed
+    if (canvas!.width !== w) canvas!.width = w;
+    if (canvas!.height !== h) canvas!.height = h;
   };
   size();
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  window.addEventListener("resize", () => {
-    clearTimeout(timer);
-    timer = setTimeout(size, 150);
-  });
-  document.body.prepend(canvas);
+  new ResizeObserver(size).observe(screen);
+  screen.prepend(canvas);
   return canvas;
 }
 
-/** A neon time-domain scope with a glow; one colour (strudel's flickers per hap colour) */
-function neonScope(pattern: Pattern): Pattern {
+/** A time-domain scope with a soft glow, in the room's signature colour */
+function glassScope(pattern: Pattern): Pattern {
   const ctx = ensureCanvas().getContext("2d")!;
   return internals((pattern as any).analyze(DRAW_ID)).draw(
     () => {
       const { width, height } = ctx.canvas;
+      const club = document.documentElement.dataset.room === "club";
+      const color = club ? "185, 240, 58" : "95, 224, 198";
+      const dpr = window.devicePixelRatio || 1;
       ctx.clearRect(0, 0, width, height);
+      // a faint graticule
+      ctx.strokeStyle = "#141416";
+      ctx.lineWidth = dpr;
+      ctx.beginPath();
+      for (let i = 1; i < 8; i++) {
+        const x = Math.round((width * i) / 8) + 0.5;
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+      }
+      for (let i = 1; i < 4; i++) {
+        const y = Math.round((height * i) / 4) + 0.5;
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+      }
+      ctx.stroke();
       ctx.save();
-      ctx.shadowColor = "rgba(5, 217, 232, 0.9)";
-      ctx.shadowBlur = 12;
+      ctx.shadowColor = `rgba(${color}, 0.8)`;
+      ctx.shadowBlur = 8 * dpr;
       web.drawTimeScope(web.analysers[DRAW_ID], {
         ctx,
-        color: "rgba(5, 217, 232, 0.85)",
-        thickness: 2 * (window.devicePixelRatio || 1),
-        scale: 0.2,
-        pos: 0.55,
+        color: `rgba(${color}, 0.95)`,
+        thickness: 1.6 * dpr,
+        scale: 0.35,
+        pos: 0.5,
       });
       ctx.restore();
     },
@@ -80,7 +101,7 @@ export function applyVisualization(pattern: Pattern, config: VisualizationConfig
     case "pianoroll":
       return pattern.pianoroll({ ...PIANOROLL_DEFAULTS, ...config.options });
     case "scope":
-      return neonScope(pattern);
+      return glassScope(pattern);
     case "none":
     default:
       clearVisualization();

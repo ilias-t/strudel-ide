@@ -2,7 +2,7 @@
 // Live code view: the song's source with the sounding tokens lit up
 // ═══════════════════════════════════════════════════════════════════════════
 //
-// Read-only, syntax-coloured (tokenize.ts) and laid over the visualization.
+// Read-only and syntax-coloured (tokenize.ts), on the code unit's black glass.
 // Highlights are absolutely positioned boxes in an overlay, never DOM changes
 // to the text: a range's position is measured once with a DOM Range (exact,
 // whatever the font does with emoji or wrapping) and cached until the text,
@@ -10,9 +10,9 @@
 // with all layout reads before any writes.
 //
 // Two signals light it up, like strudel.cc:
-//   setRanges()  the tokens sounding now (createHighlighter, ≤ 30 Hz): outlined
-//   flash()      a hap just started on that token: a short pulse, so "bd*4"
-//                visibly hits four times while staying outlined
+//   setRanges()  the tokens sounding now (createHighlighter, ≤ 30 Hz): underlined
+//   flash()      a hap just started on that token: a brief hard invert, so
+//                "bd*4" visibly hits four times while staying underlined
 //
 // Each `knob("name", …)` call gets an inline chip after its closing paren
 // showing the knob's live value (knobChips(); the text is CSS-generated, so it
@@ -40,9 +40,8 @@ interface Box {
   color: string;
   /** still in the current range set (lit) */
   lit: boolean;
-  /** a transient box created only for a flash; removed when it fades */
+  /** a transient box created only for a flash; removed when it's over */
   transientUntil: number;
-  fade?: Animation;
 }
 
 export interface CodeViewOptions {
@@ -228,10 +227,8 @@ export class CodeView {
       for (const w of wanted) {
         keep.add(w.k);
         const box = this.boxes.get(w.k) ?? this.createBox(w.k, w.rect);
-        box.lit = true;
+        this.setLit(box, true);
         box.transientUntil = 0;
-        box.fade?.cancel();
-        box.fade = undefined;
         if (w.color && box.color !== w.color) {
           box.color = w.color;
           box.el.style.setProperty("--c", w.color);
@@ -239,7 +236,7 @@ export class CodeView {
       }
       for (const [k, box] of this.boxes) {
         if (keep.has(k)) continue;
-        box.lit = false;
+        this.setLit(box, false);
         if (box.transientUntil < now) this.removeBox(k);
       }
       this.rangesDirty = false;
@@ -250,18 +247,15 @@ export class CodeView {
       let box = this.boxes.get(f.k);
       if (!box) {
         box = this.createBox(f.k, f.rect);
-        box.lit = false;
+        this.setLit(box, false);
       }
-      if (!box.lit) box.transientUntil = now + 260;
+      if (!box.lit) box.transientUntil = now + 200;
       if (f.color && box.color !== f.color) {
         box.color = f.color;
         box.el.style.setProperty("--c", f.color);
       }
-      box.flash.animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: 240, easing: "ease-out" });
-      if (!box.lit) {
-        box.fade?.cancel();
-        box.fade = box.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: "ease-in", fill: "forwards" });
-      }
+      // a hard invert that holds briefly, then lets go
+      box.flash.animate([{ opacity: 1 }, { opacity: 1, offset: 0.45 }, { opacity: 0 }], { duration: 170, easing: "ease-in" });
     }
 
     // drop transient boxes whose flash is over
@@ -436,16 +430,25 @@ export class CodeView {
     el.className = "hl";
     el.dataset.testid = "code-highlight";
     el.dataset.range = `${Math.floor(k / PACK)}-${k % PACK}`;
+    // the flash repeats the token's text, dark on its colour: an invert of the glass
     const flash = document.createElement("div");
     flash.className = "hl-flash";
+    flash.textContent = this.text.slice(Math.floor(k / PACK), k % PACK);
     el.append(flash);
     el.style.transform = `translate(${rect.x}px, ${rect.y}px)`;
     el.style.width = `${rect.w}px`;
     el.style.height = `${rect.h}px`;
+    el.style.lineHeight = `${rect.h}px`;
     this.o.overlay.append(el);
     const box: Box = { el, flash, color: "", lit: true, transientUntil: 0 };
     this.boxes.set(k, box);
     return box;
+  }
+
+  private setLit(box: Box, lit: boolean) {
+    if (box.lit === lit && box.el.dataset.lit === String(lit)) return;
+    box.lit = lit;
+    box.el.dataset.lit = String(lit);
   }
 
   private removeBox(k: number) {

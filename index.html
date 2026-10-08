@@ -6,105 +6,141 @@
     <title>Strudel IDE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/ui/stage.css" />
   </head>
   <body>
+    <!-- The stage is a small rig of graphite gear in a room lit by the mix
+         (src/ui/room.ts paints the room and lights the gear). Every .mod is a
+         unit of gear; every .screen is black glass the room light never touches. -->
     <div class="stage" id="stage">
-      <!-- ── Top bar ─────────────────────────────────────────────────────── -->
-      <header class="topbar">
-        <div class="brand" aria-label="Strudel IDE">Strudel</div>
-
-        <div class="song-picker">
-          <select id="song-select" data-testid="song-picker" aria-label="Song"></select>
-        </div>
-
-        <button id="play" class="transport" data-testid="play-button" disabled aria-label="Play">
-          <svg class="icon-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z" /></svg>
-          <svg class="icon-stop" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9" rx="1" /></svg>
-          <span class="transport-label">Loading…</span>
-        </button>
-
-        <div class="readouts">
-          <div class="readout" data-testid="tempo" title="Tempo">
-            <span class="readout-value" id="bpm">120</span><span class="readout-unit">bpm</span>
+      <!-- ── Top row: three units with the room showing between them ─────── -->
+      <header class="row-top">
+        <section class="mod m-brand" aria-label="Song">
+          <i class="screw" style="--r: 60deg"></i><i class="screw" style="--r: -20deg"></i>
+          <div class="brand" aria-label="Strudel IDE">strudel<sup>stage</sup></div>
+          <div class="screen song-lcd">
+            <span class="song-no" id="song-no" aria-hidden="true"></span>
+            <select id="song-select" data-testid="song-picker" aria-label="Song"></select>
           </div>
-          <div class="readout counter" data-testid="bar-beat" title="Bar . beat">
-            <span class="readout-value"><span id="bar">1</span><span class="counter-dot">.</span><span id="beat">1</span></span>
+          <div class="key-pair">
+            <button class="key" id="song-prev" aria-label="Previous song" title="Previous song (←)">
+              <svg width="8" height="9" viewBox="0 0 8 9" aria-hidden="true"><path d="M7 0v9L0 4.5z" fill="currentColor" /></svg>
+            </button>
+            <button class="key" id="song-next" aria-label="Next song" title="Next song (→)">
+              <svg width="8" height="9" viewBox="0 0 8 9" aria-hidden="true"><path d="M1 0v9l7-4.5z" fill="currentColor" /></svg>
+            </button>
+          </div>
+        </section>
+
+        <section class="mod m-clock" aria-label="Transport">
+          <i class="screw" style="--r: 10deg"></i><i class="screw" style="--r: 75deg"></i>
+          <button id="play" class="key transport" data-testid="play-button" disabled aria-label="Play" title="Play / stop (Space)">
+            <span class="led" aria-hidden="true"></span>
+            <svg class="icon-play" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 .5v11l9.5-5.5z" fill="currentColor" /></svg>
+            <svg class="icon-stop" viewBox="0 0 12 12" aria-hidden="true"><rect x="1.5" y="1.5" width="9" height="9" rx="1" fill="currentColor" /></svg>
+            <span class="transport-label sr-only">Loading…</span>
+          </button>
+          <div class="screen readout" data-testid="tempo" title="Tempo">
+            <span class="seg-digits" id="bpm-digits" aria-hidden="true"></span>
+            <span class="sr-only" id="bpm">120</span><span class="readout-unit">bpm</span>
+          </div>
+          <div class="screen readout counter" data-testid="bar-beat" title="Bar . beat">
+            <span class="seg-digits" id="bar-digits" aria-hidden="true"></span>
+            <span class="sr-only"><span id="bar">1</span>.<span id="beat">1</span></span>
             <span class="readout-unit">bar</span>
           </div>
-        </div>
+          <div class="beat-leds" id="beat-leds" aria-hidden="true"><i class="led"></i><i class="led"></i><i class="led"></i><i class="led"></i></div>
+        </section>
 
-        <div class="status-area">
-          <div class="loading" id="loading" role="status">
-            <span class="spinner"></span><span class="loading-text">Starting audio engine…</span>
+        <div class="air">
+          <div class="status-area">
+            <div class="loading" id="loading" role="status">
+              <span class="spinner"></span><span class="loading-text">Starting audio engine…</span>
+            </div>
+            <div class="cue" id="cue" data-testid="cue" hidden></div>
           </div>
-          <div class="cue" id="cue" data-testid="cue" hidden></div>
         </div>
 
-        <label class="toggle" title="Switch to the song you save in your editor">
-          <input type="checkbox" id="follow-edits" data-testid="follow-edits" checked />
-          <span>Follow edits</span>
-        </label>
-
-        <div class="editor-link" id="editor-link" data-testid="editor-link" data-connected="false" title="Editor bridge">
-          <span class="link-led"></span><span class="link-label">VS Code</span>
-        </div>
-
-        <button class="icon-button" id="help-button" data-testid="help-button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+        <section class="mod m-status" aria-label="Editor">
+          <i class="screw" style="--r: -40deg"></i><i class="screw" style="--r: 35deg"></i>
+          <label class="toggle" title="Switch to the song you save in your editor">
+            <input type="checkbox" id="follow-edits" data-testid="follow-edits" checked />
+            <span class="slide" aria-hidden="true"></span>
+            <span class="label">follow edits</span>
+          </label>
+          <div class="editor-link" id="editor-link" data-testid="editor-link" data-connected="false" title="Editor bridge">
+            <span class="led link-led"></span><span class="label link-label">VS Code</span>
+          </div>
+          <button class="key icon-button" id="help-button" data-testid="help-button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+        </section>
       </header>
 
-      <!-- ── Code view ───────────────────────────────────────────────────── -->
-      <main class="code-pane" id="code-pane" data-testid="code-view" aria-label="Song source">
-        <div class="code-head">
-          <span class="code-file" id="code-file"></span>
-          <span class="code-unsaved" id="code-unsaved" data-testid="code-unsaved" hidden title="Evaluated from the editor without saving (live eval). Save the file to keep it.">unsaved</span>
-          <span class="code-stale" id="code-stale" hidden>not playing this version yet</span>
-          <button class="chip follow-chip" id="follow-chip" data-testid="follow-playhead" hidden>Follow the music</button>
-        </div>
-        <div class="code-scroll" id="code-scroll" tabindex="0">
-          <div class="code-content" id="code-content">
-            <div class="code-highlights" id="code-highlights" aria-hidden="true"></div>
-            <div class="code-lines" id="code-lines"></div>
+      <!-- ── Code display unit ───────────────────────────────────────────── -->
+      <section class="mod m-code">
+        <main class="screen code-pane" id="code-pane" data-testid="code-view" aria-label="Song source">
+          <div class="code-head">
+            <span class="code-file" id="code-file"></span>
+            <span class="code-unsaved" id="code-unsaved" data-testid="code-unsaved" hidden title="Evaluated from the editor without saving (live eval). Save the file to keep it.">unsaved</span>
+            <span class="code-stale" id="code-stale" hidden>not playing this version yet</span>
+            <button class="chip follow-chip" id="follow-chip" data-testid="follow-playhead" hidden>Follow the music</button>
           </div>
-        </div>
+          <div class="code-scroll" id="code-scroll" tabindex="0">
+            <div class="code-content" id="code-content">
+              <div class="code-highlights" id="code-highlights" aria-hidden="true"></div>
+              <div class="code-lines" id="code-lines"></div>
+            </div>
+          </div>
 
-        <button class="audio-hint" id="audio-hint" hidden>Click anywhere to enable audio</button>
+          <button class="audio-hint" id="audio-hint" hidden>Click anywhere to enable audio</button>
 
-        <div class="error-panel" id="error-panel" data-testid="error-panel" role="alert" hidden>
-          <div class="error-head">
-            <span class="error-title" id="error-title" data-testid="error-title"></span>
-            <button class="error-location" id="error-location" data-testid="error-location" hidden></button>
+          <div class="error-panel" id="error-panel" data-testid="error-panel" role="alert" hidden>
+            <span class="error-glyph" aria-hidden="true">!</span>
+            <div class="error-body">
+              <div class="error-head">
+                <span class="error-title" id="error-title" data-testid="error-title"></span>
+                <button class="error-location" id="error-location" data-testid="error-location" hidden></button>
+              </div>
+              <div class="error-message" id="error-message" data-testid="error-message"></div>
+              <div class="error-note" id="error-note" hidden></div>
+            </div>
             <button class="error-dismiss" id="error-dismiss" data-testid="error-dismiss" aria-label="Dismiss error">×</button>
           </div>
-          <div class="error-message" id="error-message" data-testid="error-message"></div>
-          <div class="error-note" id="error-note" hidden></div>
-        </div>
-      </main>
+        </main>
+      </section>
 
-      <!-- ── Mixer ───────────────────────────────────────────────────────── -->
-      <aside class="mixer" id="mixer" data-testid="mixer" aria-label="Mixer">
-        <div class="panel-head">
-          <span class="panel-title">Tracks</span>
-          <button class="chip" id="unmute-all" data-testid="unmute-all" title="Clear all mutes and solos (0)">Reset</button>
+      <!-- ── Visualizer unit (the pianoroll / scope canvas mounts in .view-screen) ── -->
+      <section class="mod m-view" id="view" aria-label="Visualizer">
+        <div class="mod-head"><span class="label" id="view-name"><b>pianoroll</b></span><span class="view-legend" id="view-legend"></span></div>
+        <div class="screen view-screen" id="view-screen"></div>
+      </section>
+
+      <div class="rack">
+      <!-- ── Knobs unit: knob("name", value, min, max) of the current song (src/ui/knobs.ts) ── -->
+      <section class="mod m-knobs knobs" id="knobs" data-testid="knobs" aria-labelledby="knobs-title" hidden>
+        <div class="mod-head">
+          <span class="label" id="knobs-title"><b>knobs</b></span>
+          <button class="key small knobs-write-all" id="knobs-write-all" data-testid="knobs-write-all" hidden>Write all</button>
+        </div>
+        <div class="knob-grid" id="knob-grid"></div>
+        <p class="knobs-status" id="knobs-status" data-testid="knobs-status" role="status" hidden></p>
+      </section>
+
+      <!-- ── Mixer unit ──────────────────────────────────────────────────── -->
+      <aside class="mod m-mixer mixer" id="mixer" data-testid="mixer" aria-label="Mixer">
+        <div class="mod-head">
+          <span class="label"><b>mixer</b> <span id="track-count"></span></span>
+          <button class="key small" id="unmute-all" data-testid="unmute-all" title="Clear all mutes and solos (0)">reset</button>
         </div>
         <div class="strips" id="strips"></div>
         <p class="mixer-empty" id="mixer-empty" hidden>This song returns a single pattern. Return named tracks, like <code>{ kick, bass }</code>, to mix them here.</p>
-
-        <!-- knob("name", value, min, max) controls of the current song (src/ui/knobs.ts) -->
-        <section class="knobs" id="knobs" data-testid="knobs" aria-labelledby="knobs-title" hidden>
-          <div class="panel-head">
-            <span class="panel-title" id="knobs-title">Knobs</span>
-            <button class="chip knobs-write-all" id="knobs-write-all" data-testid="knobs-write-all" hidden>Write all</button>
-          </div>
-          <div class="knob-grid" id="knob-grid"></div>
-          <p class="knobs-status" id="knobs-status" data-testid="knobs-status" role="status" hidden></p>
-        </section>
       </aside>
+      </div>
 
-      <!-- ── Timeline ────────────────────────────────────────────────────── -->
-      <footer class="timeline" id="timeline" data-testid="timeline">
-        <div class="tl-now">
+      <!-- ── Sequencer strip: sections, a LED per bar, loop ──────────────── -->
+      <footer class="mod m-seq timeline" id="timeline" data-testid="timeline">
+        <i class="screw" style="--r: 20deg"></i><i class="screw" style="--r: -50deg"></i><i class="screw" style="--r: 80deg"></i><i class="screw" style="--r: 5deg"></i>
+        <div class="screen tl-now">
           <span class="tl-section" id="tl-section" data-testid="section-name"></span>
           <span class="tl-sub" id="tl-sub"></span>
         </div>
@@ -112,17 +148,18 @@
           <div class="tl-segments" id="tl-segments"></div>
           <div class="tl-playhead" id="tl-playhead" data-testid="timeline-playhead"></div>
         </div>
-        <button class="loop-toggle" id="loop-toggle" data-testid="loop-toggle" aria-pressed="false" title="Loop this section (L)">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 5.5h6.5a2.5 2.5 0 0 1 0 5H9M4 5.5 6 3.5M4 5.5l2 2M12 10.5H5.5a2.5 2.5 0 0 1 0-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span>Loop</span>
+        <button class="key loop-toggle" id="loop-toggle" data-testid="loop-toggle" aria-pressed="false" title="Loop this section (L)">
+          <span class="led" aria-hidden="true"></span>
+          <svg viewBox="0 0 14 12" aria-hidden="true"><path d="M1.5 6a3.5 3.5 0 0 1 3.5-3.5h6M9 .5l2 2-2 2M12.5 6A3.5 3.5 0 0 1 9 9.5H3M5 11.5l-2-2 2-2" fill="none" stroke="currentColor" stroke-width="1.4" /></svg>
+          <span>loop section</span>
         </button>
       </footer>
     </div>
 
-    <!-- ── Keyboard help ─────────────────────────────────────────────────── -->
+    <!-- ── Keyboard help: a printed card lying on the desk ──────────────────── -->
     <div class="help-overlay" id="help-overlay" data-testid="help-overlay" hidden>
       <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
-        <h2 id="help-title">Keys</h2>
+        <h2 id="help-title">Quick reference</h2>
         <dl class="help-keys">
           <dt><kbd>Space</kbd></dt><dd>Play / stop</dd>
           <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Previous / next song</dd>
@@ -133,11 +170,11 @@
           <dt><kbd>L</kbd></dt><dd>Loop the current section</dd>
           <dt><kbd>C</kbd></dt><dd>Show / hide the code</dd>
           <dt><kbd>F</kbd></dt><dd>Follow the music in the code again</dd>
-          <dt><kbd>?</kbd></dt><dd>This help</dd>
+          <dt><kbd>?</kbd></dt><dd>This card</dd>
           <dt>Knobs</dt><dd>Drag or scroll (<kbd>Shift</kbd>: fine), arrow keys; double-click or <kbd>Delete</kbd> for the file's value</dd>
         </dl>
-        <p class="help-note">Click a section in the timeline to jump there. Edit <code>src/songs/*.ts</code> in your editor; every save hot-swaps without stopping the music.</p>
-        <button class="chip help-close" id="help-close">Close</button>
+        <p class="help-note">Click a section to jump there on the next bar. Edit <code>src/songs/*.ts</code> in your editor; every save hot-swaps without stopping the music.</p>
+        <button class="key help-close" id="help-close">close</button>
       </div>
     </div>
 

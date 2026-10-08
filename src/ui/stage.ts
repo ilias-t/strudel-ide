@@ -16,6 +16,8 @@ import { Mixer } from "./mixer";
 import { KnobPanel } from "./knobs";
 import { formatKnob, knobTextWidth, type KnobInfo } from "../engine/knobs";
 import { Timeline } from "./timeline";
+import { SegmentDisplay } from "./segments";
+import { Room } from "./room";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -49,6 +51,14 @@ export function mountStage(): Stage {
   const codeUnsaved = $("code-unsaved");
   const help = $("help-overlay");
   const cueEl = $("cue");
+  const songNo = $("song-no");
+  const bpmDigits = new SegmentDisplay($("bpm-digits"), 3);
+  const barDigits = new SegmentDisplay($("bar-digits"), 4);
+  const beatLeds = [...$("beat-leds").children] as HTMLElement[];
+  const viewEl = $("view");
+  const viewName = $("view-name");
+  const viewLegend = $("view-legend");
+  const room = new Room(stage);
 
   let reveal: (file: string, line: number, column?: number) => RevealResult = () => "none";
   const codeView = new CodeView({
@@ -99,10 +109,13 @@ export function mountStage(): Stage {
   }
   player.onKnobsChange((list) => renderKnobs(list));
 
-  const mixer = new Mixer($("strips"), $("mixer-empty"), $<HTMLButtonElement>("unmute-all"), {
-    toggleTrack: player.toggleTrack,
-    unmuteAll: player.unmuteAll,
-  });
+  const mixer = new Mixer(
+    $("strips"),
+    $("mixer-empty"),
+    $<HTMLButtonElement>("unmute-all"),
+    { toggleTrack: player.toggleTrack, unmuteAll: player.unmuteAll },
+    $("track-count")
+  );
 
   const timeline = new Timeline(
     {
@@ -121,7 +134,7 @@ export function mountStage(): Stage {
   let trackIndex = new Map<string, number>();
   const colorOfTrack = (track: string | undefined) => {
     const i = track === undefined ? undefined : trackIndex.get(track);
-    return i === undefined ? undefined : trackColor(i);
+    return i === undefined ? undefined : trackColor(track!, i);
   };
   codeView.setColorResolver((start, end) => colorOfTrack(rangeTrack.get(start * 2 ** 22 + end)));
 
@@ -148,8 +161,13 @@ export function mountStage(): Stage {
     loadingText.textContent = state.loading ?? "";
     audioHint.hidden = !(state.needsGesture && state.audio !== "running");
     bpmEl.textContent = String(Math.round(state.bpm));
+    bpmDigits.set(String(Math.round(state.bpm)));
+    const songIndex = player.allSongs().findIndex(({ id }) => id === state.songId);
+    songNo.textContent = songIndex < 0 ? "" : String(songIndex + 1).padStart(2, "0");
 
     stage.dataset.code = state.codeView ? "on" : "off";
+    room.setLook(player.songsRecord()[state.songId]?.room ?? "dusk");
+    room.setPlaying(state.playing);
     codeView.setEnabled(state.codeView);
 
     // the code: the current song's text (on disk, or an evaluated editor buffer)
@@ -171,9 +189,37 @@ export function mountStage(): Stage {
     codeStale.hidden = !(state.playing && playing && source && playing.version !== source.version);
 
     trackIndex = new Map((state.tracks ?? []).map((t, i) => [t, i]));
+    renderView(state);
     mixer.render(state);
     timeline.render(state);
     renderError(state.error);
+  }
+
+  /** The visualizer unit's label, and a legend of the colours in the roll */
+  let viewKey = "";
+  function renderView(state: PlayerState) {
+    const tracks = state.tracks ?? [];
+    const key = `${state.visualization}|${tracks.join(",")}`;
+    if (key === viewKey) return;
+    viewKey = key;
+    viewEl.dataset.viz = state.visualization;
+    const b = document.createElement("b");
+    b.textContent = state.visualization === "none" ? "view" : state.visualization;
+    viewName.replaceChildren(b);
+    // one swatch per colour, named after the first track wearing it
+    const seen = new Map<string, string>();
+    tracks.forEach((t, i) => {
+      const c = trackColor(t, i);
+      if (!seen.has(c)) seen.set(c, t);
+    });
+    viewLegend.replaceChildren(
+      ...(state.visualization === "pianoroll" ? [...seen].slice(0, 6) : []).map(([color, name]) => {
+        const span = document.createElement("span");
+        span.style.setProperty("--c", color);
+        span.append(document.createElement("i"), name);
+        return span;
+      })
+    );
   }
 
   function renderSongSelector() {
@@ -253,6 +299,8 @@ export function mountStage(): Stage {
     songSelect.blur(); // give the keyboard back to the shortcuts
   });
   playBtn.addEventListener("click", () => void player.togglePlay());
+  $("song-prev").addEventListener("click", () => void player.stepSong(-1));
+  $("song-next").addEventListener("click", () => void player.stepSong(1));
   followToggle.addEventListener("change", () => player.setFollowEdits(followToggle.checked));
   audioHint.addEventListener("click", () => void engine.getAudioContext().resume());
 
@@ -322,9 +370,22 @@ export function mountStage(): Stage {
   let lastBar = "";
   let lastBeat = "";
 
-  const onHap = (hap: { context: { track?: string; locations?: { start: number; end: number }[] } }) => {
+  type OnsetHap = { value: unknown; context: { track?: string; locations?: { start: number; end: number }[] } };
+  /** Meter level of a hit: gain × velocity, on a gentle curve */
+  const hapLevel = (hap: OnsetHap) => {
+    const v = hap.value as { gain?: unknown; velocity?: unknown } | null;
+    const num = (x: unknown) => (typeof x === "number" && Number.isFinite(x) ? x : 1);
+    const g = v && typeof v === "object" ? num(v.gain) * num(v.velocity) : 1;
+    return Math.min(1, Math.max(0.12, Math.sqrt(Math.max(0, g))));
+  };
+
+  const onHap = (hap: OnsetHap) => {
     const track = hap.context.track;
-    if (track !== undefined) mixer.hit(track);
+    if (track !== undefined) {
+      const level = hapLevel(hap);
+      mixer.hit(track, level);
+      room.hit(track, level, frameNow);
+    }
     const locs = hap.context.locations;
     if (!locs?.length) return;
     const color = colorOfTrack(track) ?? "";
@@ -334,8 +395,12 @@ export function mountStage(): Stage {
     }
   };
 
+  /** this frame's timestamp, for hits found while polling onsets */
+  let frameNow = 0;
+
   function frame(now: number) {
     requestAnimationFrame(frame);
+    frameNow = now;
     player.tick();
     const state = lastState;
     const position = player.songPosition();
@@ -343,8 +408,13 @@ export function mountStage(): Stage {
     const { bar, beat } = player.barBeat(position, sections);
     const barText = String(bar);
     const beatText = String(beat);
-    if (barText !== lastBar) barEl.textContent = lastBar = barText;
-    if (beatText !== lastBeat) beatEl.textContent = lastBeat = beatText;
+    if (barText !== lastBar || beatText !== lastBeat) {
+      barEl.textContent = lastBar = barText;
+      beatEl.textContent = lastBeat = beatText;
+      barDigits.set(`${barText}.${beatText}`);
+      const lit = state?.playing ? beat - 1 : -1;
+      beatLeds.forEach((led, i) => led.classList.toggle("on", i === lit));
+    }
     timeline.frame(position, state?.section ?? null, bar, beat);
     renderCue(state);
 
@@ -352,13 +422,18 @@ export function mountStage(): Stage {
       const sourceOk = sameSource();
       live.pollOnsets((hap) => {
         if (!sourceOk) {
-          if (hap.context.track !== undefined) mixer.hit(hap.context.track);
+          const track = hap.context.track;
+          if (track !== undefined) {
+            mixer.hit(track, hapLevel(hap));
+            room.hit(track, hapLevel(hap), frameNow);
+          }
           return;
         }
         onHap(hap);
       });
     }
-    mixer.frame();
+    mixer.frame(now);
+    room.frame(now);
     codeView.frame(now);
   }
   requestAnimationFrame(frame);

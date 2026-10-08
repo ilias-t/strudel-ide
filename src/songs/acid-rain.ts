@@ -81,6 +81,7 @@ const song: Song = {
   bpm: BPM,
   visualization: "scope", // watch the saw wave fold over when the resonance kicks in
   sections: ARRANGEMENT, // the player's timeline (jump / loop)
+  room: "club", // the stage: a dark club with a hard 909 strobe
 
   createPattern() {
     // ─── 🧰 HELPERS ───────────────────────────────────────────────────────────

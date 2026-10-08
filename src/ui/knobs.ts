@@ -9,8 +9,12 @@
 //   keys        ←/↓ →/↑ one step, PageUp/PageDown 10% of the travel,
 //               Home/End min/max, Delete/Backspace back to the file's value
 //   dblclick    back to the file's value
-// A knob that differs from its file value is "dirty": a dot, a tick at the
-// file value on the arc, and a Write button (dev server only).
+// A knob that differs from its file value is "dirty": a lit dot, an arc from
+// the file's value to the live one, and a Write button (dev server only). The
+// file's value is always marked on the scale.
+//
+// Each knob gets a coloured cap from what its name says it does (filter →
+// cobalt, drive → ember, space → lilac, time → teal, the rest cream).
 
 import { formatKnob, knobPosition, knobTextWidth, knobValueAt, type KnobInfo } from "../engine/knobs";
 
@@ -41,14 +45,44 @@ interface Dial {
 
 /** Arc from 7:30 to 4:30 o'clock (270°), as an SVG path in a 48×48 box */
 const SWEEP = 270;
-const R = 18;
+const R = 21.5;
 const C = 24;
+const CAP_R = 14;
 const polar = (deg: number) => {
   const a = ((deg - 90) * Math.PI) / 180;
   return `${(C + R * Math.cos(a)).toFixed(2)} ${(C + R * Math.sin(a)).toFixed(2)}`;
 };
 const ARC = `M ${polar(-SWEEP / 2)} A ${R} ${R} 0 1 1 ${polar(SWEEP / 2)}`;
 const SVG_NS = "http://www.w3.org/2000/svg";
+
+/** Cap colour by what the knob's name says it does */
+const CAPS: [RegExp, string, boolean][] = [
+  [/res|acid|q$/i, "var(--acid)", true],
+  [/cut|filter|lpf|hpf|bpf|freq|tone|bright|wobble/i, "var(--cobalt)", false],
+  [/drive|shape|dist|crush|kick|pump|duck|punch|gain|level/i, "var(--ember)", false],
+  [/reverb|room|space|size|hiss|shore|wet|wash|pad/i, "var(--lilac)", false],
+  [/delay|echo|time|rate|speed|lfo/i, "var(--teal)", false],
+];
+
+function capFor(name: string): { color: string; dark: boolean } {
+  const hit = CAPS.find(([re]) => re.test(name));
+  return hit ? { color: hit[1], dark: hit[2] } : { color: "var(--cream)", dark: true };
+}
+
+/** Shared highlight gradient for the caps (one per document) */
+function ensureShine() {
+  if (document.getElementById("knob-shine")) return;
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("width", "0");
+  svg.setAttribute("height", "0");
+  svg.setAttribute("aria-hidden", "true");
+  svg.style.position = "absolute";
+  svg.innerHTML =
+    '<defs><radialGradient id="knob-shine" cx="38%" cy="30%" r="75%">' +
+    '<stop offset="0" stop-color="white" stop-opacity=".45"/><stop offset=".45" stop-color="white" stop-opacity="0"/>' +
+    '<stop offset="1" stop-color="black" stop-opacity=".3"/></radialGradient></defs>';
+  document.body.append(svg);
+}
 
 /** Drag distance (px) for the full travel */
 const DRAG_PX = 220;
@@ -104,7 +138,10 @@ export class KnobPanel {
     setAttr(d.dial, "aria-valuenow", String(knob.value));
     setAttr(d.dial, "aria-valuetext", knob.dirty ? `${text} (file: ${formatKnob(knob, knob.def)})` : text);
     if (d.value.textContent !== text) d.value.textContent = text;
-    d.arc.style.strokeDasharray = `${(p * 100).toFixed(2)} 100`;
+    // dirty: the arc runs from the file's value to the live one
+    const h = knobPosition(knob, knob.def);
+    d.arc.style.strokeDasharray = `${(Math.abs(p - h) * 100).toFixed(2)} 200`;
+    d.arc.style.strokeDashoffset = `${(-Math.min(p, h) * 100).toFixed(2)}`;
     d.pointer.style.transform = `rotate(${(-SWEEP / 2 + p * SWEEP).toFixed(2)}deg)`;
     d.home.style.transform = `rotate(${(-SWEEP / 2 + knobPosition(knob, knob.def) * SWEEP).toFixed(2)}deg)`;
     d.write.hidden = !this.canWrite || !knob.dirty;
@@ -129,24 +166,28 @@ export class KnobPanel {
       dial.dataset.testid = "knob-dial";
       dial.title = `${knob.name}: ${formatKnob(knob, knob.min)}–${formatKnob(knob, knob.max)}${knob.log ? " (log)" : ""}\nDrag or scroll (Shift: fine) · arrow keys · double-click: back to the file's value`;
 
+      const { color, dark } = capFor(knob.name);
+      dial.style.setProperty("--cap", color);
+      if (dark) dial.dataset.darkPointer = "true";
+
+      ensureShine();
       const svg = document.createElementNS(SVG_NS, "svg");
       svg.setAttribute("viewBox", "0 0 48 48");
       svg.setAttribute("aria-hidden", "true");
       const track = path(ARC, "knob-track");
+      track.setAttribute("pathLength", "100");
       const arc = path(ARC, "knob-arc");
       arc.setAttribute("pathLength", "100");
       const home = document.createElementNS(SVG_NS, "g");
       home.setAttribute("class", "knob-home");
-      home.append(line(C, C - R - 4, C, C - R + 3));
+      home.append(line(C, C - R, C, C - R + 0.01));
       const pointer = document.createElementNS(SVG_NS, "g");
       pointer.setAttribute("class", "knob-pointer");
-      pointer.append(line(C, C - R + 5, C, C - 6));
-      const cap = document.createElementNS(SVG_NS, "circle");
-      cap.setAttribute("class", "knob-cap");
-      cap.setAttribute("cx", String(C));
-      cap.setAttribute("cy", String(C));
-      cap.setAttribute("r", "12");
-      svg.append(track, arc, cap, home, pointer);
+      pointer.append(line(C, C - CAP_R + 2.5, C, C - CAP_R + 8));
+      const cap = circle(CAP_R, "knob-cap");
+      const shine = circle(CAP_R, "knob-shine");
+      shine.setAttribute("fill", "url(#knob-shine)");
+      svg.append(track, arc, home, cap, shine, pointer);
       dial.append(svg);
 
       const name = document.createElement("span");
@@ -164,7 +205,7 @@ export class KnobPanel {
       const write = document.createElement("button");
       write.className = "knob-write";
       write.dataset.testid = "knob-write";
-      write.textContent = "Write";
+      write.textContent = "write";
       write.title = `Write ${knob.name}'s value into the song file`;
       write.hidden = true;
       write.addEventListener("click", () => void this.write([knob.name]));
@@ -293,6 +334,15 @@ function path(d: string, cls: string) {
   p.setAttribute("d", d);
   p.setAttribute("class", cls);
   return p;
+}
+
+function circle(r: number, cls: string) {
+  const c = document.createElementNS(SVG_NS, "circle");
+  c.setAttribute("cx", String(C));
+  c.setAttribute("cy", String(C));
+  c.setAttribute("r", String(r));
+  c.setAttribute("class", cls);
+  return c;
 }
 
 function line(x1: number, y1: number, x2: number, y2: number) {

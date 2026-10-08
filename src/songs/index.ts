@@ -55,6 +55,11 @@ export interface Song {
   visualization?: VisualizationType | VisualizationConfig; // Visualization config
   /** Sections for the timeline (jump to a section, loop it). Should match the arrangement. */
   sections?: SongSections;
+  /**
+   * The stage's room: "dusk" (default) is a calm studio with soft, lush lamps;
+   * "club" is near-black with hard strobes and short tails, for hard transients.
+   */
+  room?: "dusk" | "club";
   /** Return a single Pattern, or named tracks that get stacked together */
   createPattern(): Pattern | Tracks;
 }

@@ -159,6 +159,7 @@ const song: Song = {
   bpm: BPM,
   visualization: "scope",
   sections: Object.entries(BARS), // the player's timeline (jump / loop)
+  room: "club", // the stage: a dark club with hard, short lights
 
   createPattern() {
     // ─────────────────────────────────────────────────────────────────────────

@@ -24,7 +24,7 @@ import type { Song } from ".";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BPM = 104;
-const TRANSPOSE = 0; // whole song in semitones: -4 = D minor, +3 = A minor
+const TRANSPOSE = knob("transpose", 0, -7, 7, 1); // whole song in semitones: -4 = D minor, +3 = A minor
 const LEAD_SCALE = "F#4:minor"; // melodies are scale degrees: 0 = F#4, 7 = F#5
 const DRUMS = "LinnDrum"; // try "OberheimDMX" or "RolandTR707"
 const TOMS = "SimmonsSDS5"; // the 80s "pew" toms
@@ -375,7 +375,7 @@ const song: Song = {
       .gain(0.28)
       .velocity(fade)
       .pan(sine.range(0.25, 0.75).slow(4)) // drifts across the stereo field
-      .delay(0.35)
+      .delay(knob("arp echo", 0.35, 0, 0.8))
       .delaytime(DOTTED_8TH)
       .delayfeedback(0.45)
       .room(0.35)

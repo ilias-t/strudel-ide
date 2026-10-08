@@ -7,8 +7,8 @@
 //
 // 🧪 Try this (save after each change):
 //   • progression = "<Am7 F^7 C^7 G7>"   (or "<Dm9 G13 C^7 A7>")
-//   • key = 2 to move everything up to D, swing = 1/3 for a full shuffle
-//   • cutoff = 500 for underwater, 6000 for bright
+//   • key = 2 to move everything up to D, swing 0.33 for a full shuffle
+//   • cutoff 500 for underwater, 6000 for bright (or turn the knobs on the stage)
 //   • kick: "bd*4" → "bd(3,8)" (a Euclidean broken beat)
 //   • hats: "*4" → "*2", or add .degradeBy(0.3) to thin them randomly
 //   • arp: add .jux(rev) for stereo ping-pong, or .fast(2) for 16ths
@@ -23,8 +23,8 @@ import type { Song } from ".";
 const bpm = 120;
 const key = 0; // semitones from C: 2 = D, 5 = F, -3 = A
 const progression = "<C^7 Am7 Dm9 G13>"; // one chord per bar (^7 = maj7)
-const swing = 0.15; // 0 = straight 16ths, 1/3 = triplet shuffle
-const cutoff = 2200; // Hz: brightness of the piano + arp
+const swing = knob("swing", 0.15, 0, 0.33, 0.01); // 0 = straight 16ths, 0.33 = triplet shuffle
+const cutoff = knob("cutoff", 2200, 200, 8000, { log: true }); // Hz: brightness of the piano + arp
 
 const song: Song = {
   name: "Untitled",
@@ -75,7 +75,7 @@ const song: Song = {
       .sustain(0)
       .gain(0.17)
       .pan(sine.range(0.3, 0.7).slow(8))
-      .delay(0.35)
+      .delay(knob("echo", 0.35, 0, 0.8))
       .delaytime((60 / bpm) * 0.75) // dotted 8th, in seconds
       .delayfeedback(0.45)
       .orbit(2) // its own effects bus, so the delay doesn't touch the piano

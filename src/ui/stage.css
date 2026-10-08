@@ -1180,3 +1180,226 @@ code {
     animation: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Knobs (src/ui/knobs.ts) + their chips in the code (src/ui/code-view.ts)     */
+/* Self-contained and driven by the theme tokens: a reskin only needs these    */
+/* four variables.                                                             */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+.knobs,
+.knob-chip {
+  --knob-accent: var(--cyan); /* arc, pointer, chip */
+  --knob-dirty: var(--amber); /* differs from the file */
+  --knob-track: var(--line-strong);
+  --knob-face: var(--panel-solid);
+}
+
+.knobs {
+  flex: none;
+  border-top: 1px solid var(--line);
+}
+
+.knobs[hidden],
+.knobs-status[hidden],
+.knobs-write-all[hidden] {
+  display: none;
+}
+
+/* keeps its space, so a knob turning dirty doesn't shift the grid */
+.knob-write[hidden] {
+  display: block;
+  visibility: hidden;
+}
+
+/* production build: no write-back endpoint */
+.knobs[data-can-write="false"] .knob-write {
+  display: none;
+}
+
+.knobs-write-all {
+  color: var(--knob-dirty);
+  border-color: color-mix(in srgb, var(--knob-dirty) 60%, transparent);
+}
+
+.knobs[data-writing="true"] .knobs-write-all,
+.knobs[data-writing="true"] .knob-write {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.knob-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 4px;
+  padding: 8px 8px 10px;
+  max-height: 40vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.knob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px 4px;
+  border-radius: var(--radius);
+  min-width: 0;
+}
+
+.knob-dial {
+  width: 52px;
+  height: 52px;
+  cursor: ns-resize;
+  touch-action: none;
+  border-radius: 50%;
+  outline-offset: 0;
+}
+
+.knob-dial svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.knob-track,
+.knob-arc {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+.knob-track {
+  stroke: var(--knob-track);
+  opacity: 0.55;
+}
+
+.knob-arc {
+  stroke: var(--knob-accent);
+  filter: drop-shadow(0 0 3px var(--knob-accent));
+}
+
+.knob-cap {
+  fill: var(--knob-face);
+  stroke: color-mix(in srgb, var(--knob-accent) 35%, transparent);
+  stroke-width: 1;
+}
+
+.knob-pointer,
+.knob-home {
+  transform-origin: 24px 24px;
+}
+
+.knob-pointer line {
+  stroke: var(--text);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+/* the file's value, marked on the arc while the knob differs from it */
+.knob-home line {
+  stroke: var(--knob-dirty);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0;
+}
+
+.knob[data-dirty="true"] .knob-home line {
+  opacity: 0.9;
+}
+
+.knob-dial:hover .knob-cap,
+.knob[data-active="true"] .knob-cap {
+  stroke: var(--knob-accent);
+}
+
+.knob-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.knob-value {
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.knob[data-dirty="true"] .knob-value {
+  color: var(--knob-dirty);
+}
+
+.knob[data-dirty="true"] .knob-name::before {
+  content: "● ";
+  color: var(--knob-dirty);
+  font-size: 8px;
+  vertical-align: 2px;
+}
+
+.knob-write {
+  height: 18px;
+  padding: 0 8px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--knob-dirty) 60%, transparent);
+  background: transparent;
+  color: var(--knob-dirty);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.knob-write:hover {
+  background: color-mix(in srgb, var(--knob-dirty) 15%, transparent);
+}
+
+.knobs-status {
+  padding: 0 12px 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+
+.knobs-status[data-kind="error"] {
+  color: var(--pink);
+}
+
+/* inline chip after each knob(…) call; its text is generated (never copied) */
+.knob-chip {
+  display: inline-block;
+  margin-left: 0.6ch;
+  padding: 0 6px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--knob-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--knob-accent) 12%, transparent);
+  color: var(--knob-accent);
+  font-size: 0.9em;
+  line-height: 1.35;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  user-select: none;
+  vertical-align: 0.05em;
+}
+
+.knob-chip::after {
+  content: "◉ " attr(data-value);
+}
+
+.knob-chip:not([data-value]),
+.knob-chip[data-value=""] {
+  display: none;
+}
+
+.knob-chip[data-dirty="true"] {
+  color: var(--knob-dirty);
+  border-color: color-mix(in srgb, var(--knob-dirty) 55%, transparent);
+  background: color-mix(in srgb, var(--knob-dirty) 12%, transparent);
+}
+
+.knob-chip:hover {
+  border-color: currentColor;
+}

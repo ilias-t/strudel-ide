@@ -15,6 +15,26 @@ npm run dev
 2. Click **Play**
 3. Edit songs in `src/songs/` — changes hot reload automatically
 
+## Knobs
+
+Like strudel.cc's `slider()`: write `knob(name, value, min, max, step?)`
+wherever a number goes, and turn it on the stage while the music plays.
+
+```typescript
+const cutoff = knob("cutoff", 2200, 200, 8000, { log: true });
+// … .lpf(cutoff), .gain(knob("drums", 0.8, 0, 1)), n(knob("degree", 3, 0, 7, 1))
+```
+
+- Turning a knob changes the sound right away, with no save and no hot-swap.
+  Its value is read each time the pattern is queried, and otherwise it acts
+  like the number literal.
+- The stage keeps the knob's value per song, also across reloads. When it
+  differs from the number in the file, the knob is "dirty", and **Write**
+  (or **Write all**) puts the value into the file. The dev server rewrites the
+  literal (`POST /__strudel/knob`).
+- Editing the number in your editor resets the knob to it.
+- In `npm run check`, a knob plays its default.
+
 ## Editor integration (VS Code / Cursor)
 
 `vscode-extension/` contains an extension that connects your editor to the

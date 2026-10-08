@@ -26,9 +26,9 @@ const PROG = "<0 -1 -2 -3>";
 const CHORD_SHAPE = "[0,2,4,6]";
 
 /** MPC-style swing on every off-beat 16th: 0 = straight, ~0.16 ≈ 58%, 0.33 = full triplet shuffle */
-const SWING = 0.16;
+const SWING = knob("swing", 0.16, 0, 0.33, 0.01);
 /** Sidechain depth: how hard the kick ducks bass + chords (0–1) */
-const PUMP = 0.75;
+const PUMP = knob("pump", 0.75, 0, 1);
 const DRUMS: DrumMachineBank = "RolandTR909";
 
 /** Disco octave bass, relative to the chord root (0 root, 4 fifth, 7 octave) */

@@ -52,6 +52,9 @@ export const FIXTURE_SOUND = "triangle";
 /** Window flag that makes a `queryErrorWhenFlagged` fixture throw at query time */
 export const BOOM_FLAG = "__e2eBoom";
 
+/** The fixture knob's name when FixtureOptions.gainKnob is set */
+export const KNOB_NAME = "level";
+
 export const BUILD_ERROR_MESSAGE = "e2e: createPattern failed on purpose";
 export const QUERY_ERROR_MESSAGE = "e2e: query failed on purpose";
 
@@ -59,6 +62,8 @@ export interface FixtureOptions {
   name?: string;
   bpm?: number;
   gain?: number;
+  /** Use `knob(KNOB_NAME, gainKnob, 0, 1)` as the gain instead of a number (see knobs.spec.ts) */
+  gainKnob?: number;
   sound?: string;
   /** createPattern() throws (on its own line, see lineOf(BUILD_ERROR_MESSAGE)) */
   buildError?: boolean;
@@ -75,6 +80,7 @@ export const DEFAULT_FIXTURE = {
 
 export function fixtureSource(options: FixtureOptions = {}): string {
   const { name, bpm, gain, sound } = { ...DEFAULT_FIXTURE, ...options };
+  const gainExpr = options.gainKnob === undefined ? String(gain) : `knob(${JSON.stringify(KNOB_NAME)}, ${options.gainKnob}, 0, 1)`;
   const queryError = options.queryErrorWhenFlagged
     ? `\n      .withValue((v) => {\n        if (globalThis.${BOOM_FLAG}) throw new Error(${JSON.stringify(QUERY_ERROR_MESSAGE)});\n        return v;\n      })`
     : "";
@@ -91,7 +97,7 @@ const song: Song = {
     ${options.buildError ? `throw new Error(${JSON.stringify(BUILD_ERROR_MESSAGE)});` : "// no error"}
     const lead = note("c3 e3 g3 b3")
       .s(${JSON.stringify(sound)})
-      .gain(${gain})${queryError};
+      .gain(${gainExpr})${queryError};
     return { lead };
   },
 };

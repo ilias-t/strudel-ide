@@ -20,7 +20,7 @@ import type { Song } from ".";
 
 const BPM = 82;
 const BEAT = 60 / BPM; // one quarter note in seconds (for delay times)
-const SWING = 0.3; // how late the off-beat 8ths fall (1/3 = triplet swing)
+const SWING = knob("swing", 0.3, 0, 0.5, 0.01); // how late the off-beat 8ths fall (0.33 = triplet swing)
 
 // Chord symbols are voiced automatically by chord().voicing() (iReal dictionary).
 // "^" = major 7th, so F^9 = Fmaj9.
@@ -101,7 +101,7 @@ const song: Song = {
       .gain(perlin.range(0.16, 0.3))
       .orbit(4);
 
-    const hiss = s("pink").attack(0.02).sustain(1).release(0.05).hpf(2500).lpf(9000).gain(0.035).orbit(4);
+    const hiss = s("pink").attack(0.02).sustain(1).release(0.05).hpf(2500).lpf(9000).gain(knob("hiss", 0.035, 0, 0.12, 0.005)).orbit(4);
 
     const vinylBed = stack(crackleBed, hiss);
     const vinyl = track({

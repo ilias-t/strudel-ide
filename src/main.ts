@@ -71,6 +71,12 @@ window.__strudel = {
   jumpToSection: player.jumpToSection,
   setLoop: player.setLoop,
   positionAt: player.positionAt,
+  knobs: player.knobs,
+  setKnob: player.setKnob,
+  resetKnob: player.resetKnob,
+  grabKnob: player.grabKnob,
+  writeKnobs: player.writeKnobs,
+  onKnobsChange: player.onKnobsChange,
   toggleCodeView: stage.toggleCodeView,
   highlights: stage.highlights,
 };
@@ -141,6 +147,16 @@ declare global {
       jumpToSection: typeof player.jumpToSection;
       setLoop: typeof player.setLoop;
       positionAt: typeof player.positionAt;
+      /** The current song's knob() controls (live value, file default, range, dirty) */
+      knobs: typeof player.knobs;
+      /** Turn a knob (no rebuild, no swap) */
+      setKnob: typeof player.setKnob;
+      resetKnob: typeof player.resetKnob;
+      /** Hold a knob (an editor-side drag): file edits don't reset it meanwhile */
+      grabKnob: typeof player.grabKnob;
+      /** Write live values into the song file (dev server); all dirty knobs by default */
+      writeKnobs: typeof player.writeKnobs;
+      onKnobsChange: typeof player.onKnobsChange;
       toggleCodeView: () => void;
       highlights: () => [number, number][];
     };

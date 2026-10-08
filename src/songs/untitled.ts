@@ -14,9 +14,9 @@ const song: Song = {
     // 🥁 DRUMS
     // ─────────────────────────────────────────────────────────────────────────
 
-    const kick = s("bd*4").bank("RolandTR808").gain(1);
-    const snare = s("~ sd ~ sd").bank("RolandTR808").gain(0.9);
-    const hihat = s("hh*8").bank("RolandTR808").gain(0.5);
+    const kick = s("bd*4").bank("AlesisSR16").gain(1);
+    const snare = s("~ sd ~ sd").bank("AlesisSR16").gain(0.9);
+    const hihat = s("hh*8").bank("AlesisSR16").gain(0.5);
 
     // ─────────────────────────────────────────────────────────────────────────
     // 🎸 BASS

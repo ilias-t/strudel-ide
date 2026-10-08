@@ -21,7 +21,7 @@
     "test:knobs": "node --test test/knobs.test.ts",
     "test:starters": "node --test test/starters.test.ts",
     "test:catalog": "node --test test/catalog.test.mjs",
-    "test:editor": "node --test test/editor-docs.test.ts test/edit-session.test.ts test/editor-source.test.ts",
+    "test:editor": "node --test test/editor-docs.test.ts test/edit-session.test.ts test/editor-source.test.ts test/song-saver.test.ts",
     "test:compile": "node --test test/compile.test.ts",
     "test:store": "node --test test/store.test.ts",
     "test:local": "node --test test/local-request.test.ts",

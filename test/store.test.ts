@@ -301,6 +301,23 @@ describe("revert", () => {
   });
 });
 
+describe("discard", () => {
+  test("removes a saved entry without telling the player anything", () => {
+    const { store, storage, player } = setup();
+    store.saveOverride("jynx", "mine");
+    assert.equal(store.discard("jynx"), true);
+    assert.equal(storage.map.size, 0);
+    assert.equal(store.getMySong("jynx"), null);
+    assert.deepEqual(player.calls, [], "an IDE's live buffer (or the music) stays as it is");
+  });
+
+  test("nothing saved, a bad id or blocked storage: false, never throws", () => {
+    assert.equal(setup().store.discard("ghost"), false);
+    assert.equal(setup().store.discard("../x"), false);
+    assert.equal(setup({ storage: throwingStorage }).store.discard("jynx"), false);
+  });
+});
+
 describe("share and open", () => {
   test("shareUrl keeps path and query, replaces the hash, and decodes back", async () => {
     const { store } = setup();

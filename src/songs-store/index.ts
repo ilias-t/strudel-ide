@@ -109,6 +109,8 @@ export interface SongsStore {
   getMySong(id: string): MySong | null;
   saveOverride(id: string, text: string): SavedSong;
   revert(id: string): boolean;
+  /** Forget a saved entry and nothing else: the player keeps playing what it plays */
+  discard(id: string): boolean;
   shareUrl(id: string, text: string, baseHref?: string): Promise<string>;
   decodeShare(hash: string): Promise<SharedSong | null>;
   loadFromHash(hash?: string, opts?: LoadOptions): Promise<LoadResult | null>;
@@ -263,6 +265,11 @@ export function createSongsStore(deps: SongsStoreDeps): SongsStore {
     }
     // also when it isn't listed yet: removeSong cancels an addSong still compiling (boot)
     return player.removeSong(id) || removed;
+  }
+
+  function discard(id: string): boolean {
+    if (songIdProblem(id)) return false;
+    return removeEntry(id);
   }
 
   // ── share links ──────────────────────────────────────────────────────────
@@ -422,6 +429,7 @@ export function createSongsStore(deps: SongsStoreDeps): SongsStore {
     getMySong,
     saveOverride,
     revert,
+    discard,
     shareUrl,
     decodeShare: decodeSharePayload,
     loadFromHash,
@@ -459,6 +467,8 @@ export const getMySong = (id: string) => store().getMySong(id);
 export const saveOverride = (id: string, text: string) => store().saveOverride(id, text);
 /** Forget a saved song: an override's built-in plays again, a user song leaves the list */
 export const revert = (id: string) => store().revert(id);
+/** Forget a saved entry without touching the player (the editor's buffer went back to the file / the IDE) */
+export const discard = (id: string) => store().discard(id);
 /** A link with the song in its hash (#song=…); path and query of `baseHref` are kept */
 export const shareUrl = (id: string, text: string, baseHref?: string) => store().shareUrl(id, text, baseHref);
 /** The song in a share hash, or null when there's none or it's malformed */

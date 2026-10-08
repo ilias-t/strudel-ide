@@ -220,6 +220,31 @@ export class EditSession {
     this.apply(src);
   }
 
+  /**
+   * The user's saved edit (the songs store's override, e.g. after a reload)
+   * becomes the browser's buffer, editable, replacing whatever was shown.
+   * `evaluated`: the player already plays this text, so nothing is evaluated;
+   * otherwise it is evaluated as typing (after the debounce), so an edit that
+   * doesn't build shows its error inline instead of being lost.
+   */
+  restore(text: string, { evaluated }: { evaluated: boolean }): void {
+    if (this.disposed) return;
+    this.text = text;
+    this.owner = "browser";
+    this.conflict = null;
+    this.resetEval();
+    if (evaluated) {
+      this.remember(contentVersion(text));
+    } else {
+      this.lastEvaluated = null;
+      this.timer = this.timers.set(() => {
+        this.timer = null;
+        void this.run("typing");
+      }, this.debounceMs);
+    }
+    this.emit();
+  }
+
   /** Cancel timers; late eval results are ignored and no callbacks fire */
   dispose(): void {
     this.disposed = true;

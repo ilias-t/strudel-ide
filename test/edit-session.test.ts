@@ -727,3 +727,72 @@ describe("idempotent incoming (rule 6)", () => {
     assert.equal(session.view().readOnly, false);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Rule 7: a saved browser edit (the songs store's override) comes back as the
+// browser's buffer, e.g. after a reload
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("restore (rule 7)", () => {
+  test("a saved edit the player already plays becomes the browser's buffer, with no eval", () => {
+    const { session, timers, calls } = setup(disk("A"));
+    session.restore("A2", { evaluated: true });
+    const v = session.view();
+    assert.equal(v.text, "A2");
+    assert.equal(v.owner, "browser");
+    assert.equal(v.readOnly, false);
+    assert.equal(v.status.kind, "idle");
+    timers.advance(1000);
+    assert.equal(calls.length, 0);
+  });
+
+  test("a saved edit the player couldn't build is evaluated as typing, so its error shows inline", async () => {
+    const { session, timers, calls } = setup(disk("A"));
+    session.restore("A((", { evaluated: false });
+    timers.advance(400);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].text, "A((");
+    assert.equal(calls[0].intent, "typing");
+    calls[0].resolve(fail("Expression expected.", 1));
+    await flush();
+    assert.equal(session.view().status.kind, "error");
+    assert.equal(session.view().marker?.line, 1);
+    assert.equal(session.view().text, "A((");
+  });
+
+  test("its echo is no conflict", () => {
+    const { session } = setup(disk("A"));
+    session.restore("A2", { evaluated: true });
+    session.incoming(echo("A2"));
+    assert.equal(session.view().conflict, null);
+    assert.equal(session.view().owner, "browser");
+  });
+
+  test("a file saved afterwards with other text is a conflict, never a silent overwrite", () => {
+    const { session } = setup(disk("A"));
+    session.restore("A2", { evaluated: true });
+    session.incoming(disk("B"));
+    assert.equal(session.view().text, "A2");
+    assert.equal(session.view().status.action, "load");
+  });
+
+  test("it replaces a read-only IDE buffer and a pending conflict", () => {
+    const { session } = setup(ideLive("I"));
+    session.restore("A2", { evaluated: false });
+    assert.equal(session.view().readOnly, false);
+    assert.equal(session.view().text, "A2");
+    const other = setup(disk("A"));
+    other.session.edit("AB");
+    other.session.incoming(disk("X"));
+    other.session.restore("A2", { evaluated: true });
+    assert.equal(other.session.view().conflict, null);
+  });
+
+  test("does nothing once disposed", () => {
+    const { session, views } = setup(disk("A"));
+    session.dispose();
+    const before = views.length;
+    session.restore("A2", { evaluated: false });
+    assert.equal(views.length, before);
+  });
+});

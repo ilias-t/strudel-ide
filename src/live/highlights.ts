@@ -115,7 +115,9 @@ const num = (x: any): number => (typeof x === "number" ? x : x.valueOf());
 export function createHighlighter(options: HighlighterOptions): Highlighter {
   const { getPattern, getTime, getCps, onRanges, latency = audioOutputLatency } = options;
   const interval = 1000 / (options.maxFps ?? 30);
-  if (options.stripImplicitLocations !== false) installLocationFreeStringParser();
+  if (options.stripImplicitLocations !== false && !installLocationFreeStringParser()) {
+    console.warn("[highlights] strudel globals missing — create the highlighter after initStrudel()");
+  }
 
   // reused buffers: packed ranges of this frame and of the last emitted frame
   let cur = new Float64Array(256);

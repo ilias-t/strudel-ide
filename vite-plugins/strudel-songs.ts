@@ -37,6 +37,7 @@ import type { Plugin } from "vite";
 import { songIdProblem, songFileOf } from "../src/compile/song-id.ts";
 import { MAX_EVAL_CHARS } from "../src/live/protocol.ts";
 import { isSongFile } from "./strudel-locations.ts";
+import { jsonWriteProblem } from "./local-request.ts";
 
 export const SONG_ENDPOINT = "/__strudel/song";
 
@@ -65,20 +66,14 @@ export interface SongWriteTarget {
   file: string;
 }
 
-/** Refuse requests a cross-site page could make (throws SongWriteError 415/403) */
+/**
+ * Refuse requests a cross-site page could make (throws SongWriteError 403/415):
+ * Host must be localhost, Origin (if any) this server's own, body JSON. The
+ * same rule as the knob endpoint and the bridge (local-request.ts).
+ */
 export function checkSongRequest(headers: { contentType?: string; origin?: string; host?: string }): void {
-  const type = headers.contentType?.split(";")[0].trim().toLowerCase();
-  if (type !== "application/json") throw new SongWriteError("Content-Type must be application/json", 415);
-  if (headers.origin === undefined) return;
-  let originHost: string | null = null;
-  try {
-    originHost = new URL(headers.origin).host.toLowerCase();
-  } catch {
-    // "null" (sandboxed/file pages) or garbage
-  }
-  if (!originHost || !headers.host || originHost !== headers.host.toLowerCase()) {
-    throw new SongWriteError(`cross-origin write refused (Origin ${headers.origin})`, 403);
-  }
+  const problem = jsonWriteProblem(headers);
+  if (problem) throw new SongWriteError(problem.message, problem.status);
 }
 
 /** Validate a parsed POST body and resolve the song file it writes (throws SongWriteError 400/403/413) */

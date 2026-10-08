@@ -35,6 +35,7 @@ import ts from "typescript";
 import type { Plugin } from "vite";
 import { isSongFile } from "./strudel-locations.ts";
 import type { StrudelBridgeApi } from "./strudel-bridge.ts";
+import { jsonWriteProblem, requestHeaders } from "./local-request.ts";
 import * as shared from "../src/compile/knobs.ts";
 import { KnobWriteError, numberLiteral, type KnobChange, type KnobWrite } from "../src/compile/knobs.ts";
 
@@ -97,6 +98,9 @@ export default function strudelKnobs(): Plugin {
           res.end(JSON.stringify(body));
         };
         if (req.method !== "POST") return reply(405, { ok: false, error: "POST only" });
+        // localhost pages only, JSON only (no cross-site simple POST, no DNS rebinding)
+        const refused = jsonWriteProblem(requestHeaders(req));
+        if (refused) return reply(refused.status, { ok: false, error: refused.message });
         void (async () => {
           try {
             let payload: { file?: unknown; name?: unknown; value?: unknown; knobs?: unknown };

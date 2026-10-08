@@ -1,0 +1,621 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Library: a unit over the rack column (src/ui/discover/library.ts)
+   Graphite coat, rubber keys for the tabs, a glass strip for the search, and
+   one tall black-glass screen: the list, with glass chips for its keys, and a
+   readout on its last line whose LED lights while something plays. Names that
+   go into code are Geist Mono; everything said about them is Instrument Sans.
+   Tokens from stage.css (:root). No backdrop-filter; [hidden] always wins.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.m-library {
+  padding: 12px 14px 14px;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.m-library.lib-enter {
+  animation: lib-slide-in 0.16s ease-out;
+}
+
+@keyframes lib-slide-in {
+  from {
+    transform: translateX(14px);
+    opacity: 0;
+  }
+}
+
+/* ── head ─────────────────────────────────────────────────────────────────── */
+
+.lib-close kbd {
+  padding: 0 4px;
+  font-size: 9px;
+  line-height: 13px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--silk-soft);
+}
+
+/* ── tabs + search ───────────────────────────────────────────────────────── */
+
+.lib-controls {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.lib-tabs {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.key.lib-tab {
+  height: 28px;
+  padding: 0 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--silk-soft);
+}
+
+/* the selected tab stays down, with its LED-coloured underline lit */
+.key.lib-tab[aria-selected="true"] {
+  color: var(--silk);
+  transform: translateY(1.5px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -2px 0 var(--led-on), 0 0.5px 0 #131315, 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.lib-search {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--glass);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 2px 6px rgba(0, 0, 0, 0.8);
+  color: var(--px);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-stretch: normal;
+  position: relative;
+  z-index: 6; /* glass rises above the room's spill, like .screen */
+}
+
+.lib-search::placeholder {
+  color: var(--px-dim);
+  opacity: 0.75;
+  font-family: var(--ui);
+  font-stretch: 85%;
+  font-size: 12px;
+}
+
+.lib-search:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 2px;
+}
+
+.lib-search::-webkit-search-cancel-button {
+  filter: invert(0.7);
+}
+
+/* ── the screen ──────────────────────────────────────────────────────────── */
+
+.lib-screen {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lib-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 34px;
+  padding: 6px 10px 6px 10px;
+  border-bottom: 1px solid #141415;
+}
+
+.lib-views {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.lib-view {
+  color: var(--px-dim);
+}
+
+.lib-view[aria-pressed="true"] {
+  color: var(--glass);
+  background: var(--px);
+  box-shadow: none;
+}
+
+.lib-count {
+  margin-left: auto;
+  font-family: var(--ui);
+  font-stretch: 85%;
+  font-size: 11px;
+  color: var(--px-dim);
+  white-space: nowrap;
+}
+
+.lib-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-top: 36px; /* rows scrolled into view clear the sticky heading */
+  padding: 0 0 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a2d transparent;
+}
+
+.lib-list:focus {
+  outline: none;
+}
+
+.lib-empty {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 18px 14px;
+  font-family: var(--ui);
+  font-stretch: 85%;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--px-dim);
+}
+
+/* ── group and kind headings (sounds by kind) ────────────────────────────── */
+
+.lib-group-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 10px 12px 5px;
+  background: var(--glass);
+  font-family: var(--ui);
+  font-stretch: 85%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--px);
+  letter-spacing: 0.005em;
+}
+
+.lib-kind-head {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 8px 12px 3px 12px;
+  font-family: var(--ui);
+  font-stretch: 85%;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--px-dim);
+}
+
+.lib-tally {
+  font-family: var(--ui);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--px-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── rows ────────────────────────────────────────────────────────────────── */
+
+.lib-row {
+  display: grid;
+  grid-template-columns: 22px auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+  min-height: 30px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 4px;
+  margin: 0 4px;
+}
+
+.lib-row:hover,
+.lib-row:focus-within {
+  background: #0f0f11;
+}
+
+.lib-name {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--px);
+  white-space: nowrap;
+}
+
+.lib-meta {
+  display: flex;
+  gap: 11px;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--ui);
+  font-stretch: 85%;
+  font-size: 11px;
+  color: var(--px-dim);
+  white-space: nowrap;
+}
+
+.lib-meta > span {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lib-meta > span:first-child {
+  color: #b9b4aa;
+}
+
+/* ▶: a small glass key; while its sound plays, it lights like an LED */
+.lib-play {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 20px;
+  border-radius: 4px;
+  background: #141416;
+  box-shadow: inset 0 0 0 1px #262628;
+  color: var(--px-dim);
+  font-size: 8.5px;
+  line-height: 1;
+  padding-left: 1px;
+}
+
+.lib-play:hover:not(:disabled) {
+  color: var(--px);
+  box-shadow: inset 0 0 0 1px var(--px-dim);
+}
+
+.lib-play[data-playing="true"] {
+  color: var(--glass);
+  background: var(--led-on);
+  box-shadow: 0 0 8px var(--led-on), 0 0 18px color-mix(in srgb, var(--led-on) 45%, transparent);
+}
+
+.lib-play:disabled {
+  cursor: not-allowed;
+  color: var(--px-faint);
+  box-shadow: inset 0 0 0 1px #1a1a1c;
+}
+
+.lib-insert {
+  height: 20px;
+  padding: 0 8px;
+  font-size: 10.5px;
+  color: var(--px-dim);
+}
+
+.lib-insert:hover {
+  color: var(--px);
+}
+
+.lib-insert[aria-busy="true"] {
+  color: var(--px-faint);
+  cursor: progress;
+}
+
+.lib-row[data-playing="true"] .lib-name,
+.lib-example[data-playing="true"] .lib-code {
+  color: color-mix(in srgb, var(--led-on) 55%, var(--px));
+}
+
+.lib-play:focus-visible,
+.lib-insert:focus-visible,
+.lib-part:focus-visible,
+.lib-view:focus-visible,
+.lib-fn-key:focus-visible,
+.lib-cat-key:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+/* ── banks ───────────────────────────────────────────────────────────────── */
+
+.lib-bank {
+  padding-top: 6px;
+  padding-bottom: 7px;
+  row-gap: 6px;
+}
+
+.lib-bank + .lib-bank {
+  box-shadow: 0 -1px 0 #111113;
+}
+
+.lib-parts {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.lib-part {
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--px-dim);
+  background: #111113;
+  box-shadow: inset 0 0 0 1px #222224;
+}
+
+.lib-part:hover {
+  color: var(--px);
+  box-shadow: inset 0 0 0 1px var(--px-dim);
+}
+
+.lib-part[data-match="true"] {
+  color: var(--px);
+  box-shadow: inset 0 0 0 1px var(--px-dim);
+}
+
+.lib-part[data-playing="true"] {
+  color: var(--glass);
+  background: var(--led-on);
+  box-shadow: 0 0 8px var(--led-on);
+}
+
+/* ── functions ───────────────────────────────────────────────────────────── */
+
+.lib-cat + .lib-cat {
+  box-shadow: 0 -1px 0 #111113;
+}
+
+.lib-cat-key {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--glass);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px 8px;
+  text-align: left;
+  font-family: var(--ui);
+  font-stretch: 85%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--px);
+}
+
+.lib-cat-key::before {
+  content: "";
+  align-self: center;
+  width: 0;
+  height: 0;
+  border-left: 4.5px solid var(--px-dim);
+  border-top: 3.5px solid transparent;
+  border-bottom: 3.5px solid transparent;
+  transition: transform 0.12s;
+}
+
+.lib-cat-key[aria-expanded="true"]::before {
+  transform: rotate(90deg);
+}
+
+.lib-cat-key:hover .lib-cat-label {
+  text-decoration: underline;
+  text-decoration-color: var(--px-faint);
+  text-underline-offset: 3px;
+}
+
+.lib-cat-body {
+  padding-bottom: 6px;
+}
+
+.lib-fn {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.lib-fn-key {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  padding: 3px 0;
+  text-align: left;
+}
+
+.lib-fn-key .lib-name {
+  flex: none;
+}
+
+.lib-summary {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--ui);
+  font-stretch: 90%;
+  font-size: 11.5px;
+  color: var(--px-dim);
+}
+
+.lib-tag {
+  flex: none;
+  margin-left: auto;
+  font-family: var(--ui);
+  font-stretch: 85%;
+  font-size: 10.5px;
+  color: var(--px-faint);
+}
+
+.lib-fn-key[aria-expanded="true"] .lib-summary {
+  color: var(--px);
+}
+
+.lib-detail {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 9px;
+  margin: 4px 0 8px;
+  padding: 10px 0 2px 12px;
+  border-left: 1px solid #2a2a2d;
+  font-family: var(--ui);
+  font-stretch: 92%;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--px-dim);
+}
+
+.lib-sigs {
+  display: grid;
+  gap: 2px;
+}
+
+.lib-sig {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--px);
+  overflow-wrap: anywhere;
+}
+
+.lib-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.lib-flag {
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--px-dim);
+  box-shadow: inset 0 0 0 1px #262628;
+}
+
+.lib-flag-warn {
+  color: var(--amber);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--amber) 35%, transparent);
+}
+
+.lib-doc {
+  display: grid;
+  gap: 6px;
+  max-width: 62ch;
+  color: #c9c4b9;
+}
+
+.lib-doc li {
+  list-style: none;
+  padding-left: 12px;
+  position: relative;
+}
+
+.lib-doc li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.68em;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--px-dim);
+}
+
+.lib-doc code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--px);
+}
+
+.lib-doc strong {
+  color: var(--px);
+  font-weight: 600;
+}
+
+.lib-undocumented {
+  color: var(--px-faint);
+}
+
+.lib-params {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 12px;
+}
+
+.lib-params dt {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--px);
+}
+
+.lib-example {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 10px;
+  padding: 6px 10px 6px 0;
+  border-radius: 4px;
+}
+
+.lib-example .lib-play,
+.lib-example .lib-insert {
+  margin-top: 1px;
+}
+
+.lib-code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: #d8d3c8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ── readout: the screen's last line ─────────────────────────────────────── */
+
+.lib-readout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 0 12px;
+  border-top: 1px solid #141415;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--px-dim);
+}
+
+.lib-readout-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lib-readout[data-kind="playing"] {
+  color: var(--px);
+}
+
+.lib-readout[data-kind="error"] {
+  color: var(--ember-px);
+}
+
+.lib-readout[data-kind="error"] .lib-led {
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+}
+
+.lib-loading .spinner {
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m-library.lib-enter {
+    animation: none;
+  }
+  .lib-cat-key::before {
+    transition: none;
+  }
+  .lib-loading .spinner {
+    animation: none;
+  }
+}

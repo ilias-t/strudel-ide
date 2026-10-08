@@ -27,7 +27,7 @@ import { errorFrom } from "./errors";
 import { composeTracks } from "./tracks";
 import { TimeMap, normalizeSections, sectionAt, songLength } from "./timemap";
 import { KEYS, readStorage, writeStorage } from "./storage";
-import { bpmToCps, engine, internals, type Repl } from "./strudel";
+import { bpmToCps, engine, internals, warmOrbits, type Repl } from "./strudel";
 import { applyVisualization, clearVisualization } from "../ui/viz";
 import { audioOutputLatency } from "../live/highlights";
 import type { PlayerError, PlayerState, SectionInfo } from "./types";
@@ -450,6 +450,7 @@ export async function play(): Promise<boolean> {
   // waits on resume(), which hangs without a user gesture — so cap the wait.
   await Promise.race([engine.initAudio().catch(() => {}), sleep(1500)]);
   if (repl.scheduler.started) return true;
+  warmOrbits();
   resetTimeMap();
   return swap({ start: true });
 }
@@ -524,7 +525,10 @@ function requireAudio() {
 }
 
 export function audioRunning() {
-  if (engine.getAudioContext().state === "running") needsGesture = false;
+  if (engine.getAudioContext().state === "running") {
+    needsGesture = false;
+    warmOrbits();
+  }
   changed();
 }
 

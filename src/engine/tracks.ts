@@ -10,6 +10,8 @@
 //                                    only *after* getOrbit(), so the orbit stays
 //                                    alive and `duckorbit` on other tracks never
 //                                    hits "duck target orbit N does not exist"
+//                                    (at a cold start warmOrbits() in strudel.ts
+//                                    has created the busses before the first note)
 //   value.duckorbit removed       → a muted kick stops pumping the pads
 //   context.locations removed     → its tokens don't light up (browser + editor)
 // Nothing is filtered out, so mute/solo is a plain hot-swap: no restart, and

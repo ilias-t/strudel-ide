@@ -78,10 +78,38 @@ interface EngineApi {
   getAudioContext(): AudioContext;
   /** Resumes the AudioContext and loads superdough's AudioWorklets (cached after the first call) */
   initAudio(): Promise<void>;
+  /** superdough(value, time, duration): play one event */
+  superdough(value: Record<string, unknown>, time: number, duration: number): Promise<void>;
   logKey: string;
 }
 
 export const engine = strudelWeb as unknown as EngineApi;
+
+/** Orbits 1…WARM_ORBITS are created up front (see warmOrbits) */
+const WARM_ORBITS = 16;
+let orbitsWarm = false;
+
+/**
+ * Create superdough's orbit busses before the first note. A `duckorbit(n)`
+ * that fires before any sound has played on orbit n logs "duck target orbit n
+ * does not exist": at a cold start the kick usually comes first in the stack,
+ * and with the ducked track muted (or in a section where it rests) orbit n
+ * would never exist. A rest ("~") still reaches getOrbit() and makes no sound,
+ * so one rest per orbit creates them all (two idle GainNodes each). Orbits
+ * live as long as the AudioContext, so this runs once.
+ */
+export function warmOrbits() {
+  if (orbitsWarm) return;
+  try {
+    const ctx = engine.getAudioContext();
+    if (ctx.state !== "running") return; // retried on the next play()
+    const at = ctx.currentTime + 0.02;
+    for (let orbit = 1; orbit <= WARM_ORBITS; orbit++) void engine.superdough({ s: "~", orbit }, at, 0.01);
+    orbitsWarm = true;
+  } catch {
+    // not fatal: the worst case is the warning this prevents
+  }
+}
 
 /** Make a TimeSpan like `like` (same class) from begin/end (numbers or Fractions) */
 export function makeSpan(like: Span, begin: number | Frac, end: number | Frac): Span {

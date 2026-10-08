@@ -149,6 +149,7 @@ const song: Song = {
   name: "Neon Drive",
   bpm: BPM,
   visualization: { type: "pianoroll", options: { cycles: 8, labels: false } },
+  sections: FORM, // the player's timeline (jump / loop)
 
   createPattern() {
     // Song-long timelines everything else hangs off

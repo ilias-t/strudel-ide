@@ -47,6 +47,7 @@ const song: Song = {
   name: "Late Night Study",
   bpm: BPM,
   visualization: { type: "pianoroll", options: { cycles: 8, labels: false } },
+  sections: FORM, // the player's timeline (jump / loop)
 
   createPattern() {
     // ─── 🧰 HELPERS ───────────────────────────────────────────────────────────

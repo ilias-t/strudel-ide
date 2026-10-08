@@ -62,6 +62,7 @@ const song: Song = {
   name: "Acid Rain",
   bpm: BPM,
   visualization: "scope", // watch the saw wave fold over when the resonance kicks in
+  sections: ARRANGEMENT, // the player's timeline (jump / loop)
 
   createPattern() {
     // ─── 🧰 HELPERS ───────────────────────────────────────────────────────────

@@ -22,7 +22,7 @@
 
 import type { CodeEditor } from "../code-editor";
 import { askOpen } from "../ask";
-import { insertionFor, type InsertItem } from "./insert";
+import { defaultInsertSpot, insertionFor, type InsertItem } from "./insert";
 
 export type Feature = "library" | "palette" | "builder";
 export type Drawer = "library" | "builder";
@@ -67,7 +67,11 @@ export interface FeatureOptions {
 /** What feature modules get */
 export interface Discovery {
   host: DiscoveryHost;
-  /** Insert at the editor's caret (entering edit mode first), in the form the context wants (./insert.ts) */
+  /**
+   * Insert at the editor's caret (entering edit mode first), in the form the
+   * context wants (./insert.ts). With no caret placed yet (top of the file) it
+   * goes on its own line above createPattern()'s return. Never in a read-only buffer.
+   */
   insert(item: InsertItem): Promise<boolean>;
   open(feature: Feature, opts?: FeatureOptions): Promise<void>;
   close(feature: Feature): void;
@@ -135,7 +139,17 @@ export function mountDiscovery(host: DiscoveryHost) {
       const ed = await host.editor();
       const sel = ed?.selectionOffsets();
       if (!ed || !sel) return false;
-      const ins = insertionFor(ed.value(), sel.start, item, sel.end);
+      const text = ed.value();
+      // no caret placed yet (a fresh editor has it at the very top): on its own line where the tracks are
+      const spot = sel.start === 0 && sel.end === 0 ? defaultInsertSpot(text) : null;
+      if (spot) {
+        const ins = insertionFor(text, spot.offset, item);
+        const line = `${spot.indent}${ins.text}\n`;
+        return ed.applyEdits([{ start: spot.offset, end: spot.offset, text: line }], {
+          caret: spot.offset + spot.indent.length + ins.caret,
+        });
+      }
+      const ins = insertionFor(text, sel.start, item, sel.end);
       return ed.applyEdits([{ start: sel.start, end: sel.end, text: ins.text }], { caret: sel.start + ins.caret });
     },
     open,

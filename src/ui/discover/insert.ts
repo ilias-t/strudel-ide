@@ -76,6 +76,33 @@ function contextAt(text: string, offset: number): Context {
   return EXPRESSION_KEYWORDS.has(word) ? "expression" : "chain";
 }
 
+/**
+ * Where an insert goes when the caret was never placed (a fresh editor has it
+ * at the top of the file): the start of the line of createPattern()'s last
+ * `return`, where the tracks are defined. The inserted code goes on its own
+ * line there, indented like the return. A heuristic over tokens (no parser):
+ * the last `return` keyword after `createPattern` and before `export default`.
+ */
+export function defaultInsertSpot(text: string): { offset: number; indent: string } | null {
+  const tokens = tokenize(text);
+  let seen = false;
+  let spot: number | null = null;
+  for (const t of tokens) {
+    const word = text.slice(t.start, t.end);
+    if (!seen) {
+      seen = t.kind !== "c" && t.kind !== "s" && word === "createPattern";
+      continue;
+    }
+    if (t.kind === "k" && word === "export") break;
+    if (t.kind === "k" && word === "return") spot = t.start;
+  }
+  if (spot === null) return null;
+  const lineStart = text.lastIndexOf("\n", spot - 1) + 1;
+  const indent = text.slice(lineStart, spot);
+  if (indent.trim()) return null; // not alone on its line
+  return { offset: lineStart, indent };
+}
+
 const str = (s: string) => JSON.stringify(s);
 
 /** The name inside a string, with a space on each side where a neighbour would run into it */

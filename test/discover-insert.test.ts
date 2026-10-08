@@ -3,7 +3,7 @@
 
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { insertionFor, type InsertItem } from "../src/ui/discover/insert.ts";
+import { defaultInsertSpot, insertionFor, type InsertItem } from "../src/ui/discover/insert.ts";
 
 /** Insert at the "|" in `src`; returns the new text with "|" where the caret lands */
 function apply(src: string, item: InsertItem): string {
@@ -103,5 +103,33 @@ describe("a selection is replaced", () => {
     const start = text.indexOf("sd");
     const ins = insertionFor(text, start, bd, start + 2);
     assert.equal(ins.text, "bd");
+  });
+});
+
+describe("no caret placed yet (top of the file)", () => {
+  const song = `// header
+import type { Song } from ".";
+
+const song: Song = {
+  name: "x",
+  createPattern() {
+    const help = () => {
+      return 1;
+    };
+    const kick = s("bd*4");
+    return { kick };
+  },
+};
+
+export default song;
+`;
+  test("goes on its own line above createPattern()'s return, indented like it", () => {
+    const spot = defaultInsertSpot(song);
+    assert.ok(spot);
+    assert.equal(song.slice(spot.offset, spot.offset + 10), "    return");
+    assert.equal(spot.indent, "    ");
+  });
+  test("none without createPattern", () => {
+    assert.equal(defaultInsertSpot("const x = 1;\n"), null);
   });
 });

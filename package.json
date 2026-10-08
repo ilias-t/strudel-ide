@@ -8,9 +8,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.types.json",
     "check:songs": "node scripts/check-songs.mjs",
-    "check": "tsc --noEmit && node scripts/check-songs.mjs"
+    "gen:types": "node scripts/gen-strudel-types.mjs && node scripts/gen-sound-types.mjs",
+    "audit:types": "node scripts/audit-types.mjs",
+    "check": "tsc --noEmit && tsc -p tsconfig.types.json && node scripts/audit-types.mjs --strict --quiet && node scripts/check-songs.mjs"
   },
   "dependencies": {
     "@strudel/web": "^1.1.0"

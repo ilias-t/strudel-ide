@@ -737,7 +737,7 @@ export interface EvalOutcome {
 /** The current song's evaluated buffer, if it is playing one */
 function liveOf(songId: string): { file: string; version: string } | null {
   const live = liveSongs.get(songId);
-  return live?.source.version ? { file: live.source.file, version: live.source.version } : null;
+  return live?.source.live && live.source.version ? { file: live.source.file, version: live.source.version } : null;
 }
 
 /** "src/songs/jynx.ts" → "jynx" */
@@ -781,7 +781,13 @@ export async function evalLive(buffer: LiveBuffer, { play: start = false } = {})
   const previous = liveSongs.get(songId);
   liveSongs.set(songId, {
     song,
-    source: { file: mod.__strudel_file ?? buffer.file, version: mod.__strudel_version ?? buffer.version, text: buffer.text, live: true },
+    source: {
+      file: mod.__strudel_file ?? buffer.file,
+      version: mod.__strudel_version ?? buffer.version,
+      text: buffer.text,
+      // a buffer that says what the file says (e.g. undone back to it) isn't "unsaved"
+      live: buffer.version !== songsModule.songSources[songId]?.version,
+    },
   });
   if (songId !== currentSongId) {
     if (!followEdits && !start) {

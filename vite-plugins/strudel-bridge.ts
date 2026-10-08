@@ -340,6 +340,8 @@ export function liveEvalHandler(live: LiveEval, relay: () => BridgeRelay | null)
         out = { type: "live", file: error.file, version, text: msg.text, error };
       }
       if (latest.get(msg.file) !== id) return; // a newer buffer is on its way
+      // saved while it compiled: the file (Vite HMR) is the newer truth
+      if (out.url && live.activeBuffer(out.file)?.version !== version) return;
       if (msg.play) out.play = true;
       r.toBrowsers(out);
     });

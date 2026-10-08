@@ -92,19 +92,26 @@ export class CodeView {
     void document.fonts?.ready.then(() => this.invalidate());
   }
 
-  /** Show `text` (no-op when unchanged) */
-  setSource(text: string, version?: string) {
+  /**
+   * Show `text` (no-op when unchanged). `otherFile`: a different song, so start
+   * at the top and follow the music; an edit of the same file keeps the scroll.
+   */
+  setSource(text: string, version: string | undefined, otherFile: boolean) {
     if (text === this.text && version === this.version) return;
     this.text = text;
     this.version = version;
+    const scrollTop = this.o.scroller.scrollTop;
+    this.errorLine = null;
     this.render();
     this.clearBoxes();
     this.ranges = [];
     this.rangesDirty = true;
-    this.following = true;
-    this.o.followChip.hidden = true;
-    this.o.scroller.scrollTop = 0;
-    this.setErrorLine(this.errorLine);
+    if (otherFile) {
+      this.setFollowing(true);
+      this.o.scroller.scrollTop = 0;
+    } else {
+      this.o.scroller.scrollTop = scrollTop;
+    }
   }
 
   setEnabled(on: boolean) {

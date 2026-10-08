@@ -92,7 +92,7 @@ export class Timeline {
     if (!sections) {
       const note = document.createElement("div");
       note.className = "tl-bars-only";
-      note.textContent = "No sections in this song. Add sections: FORM to jump and loop.";
+      note.textContent = "No sections in this song. Give it a sections table to jump and loop.";
       this.els.segments.replaceChildren(note);
       return;
     }
@@ -105,11 +105,13 @@ export class Timeline {
       seg.dataset.name = s.name;
       seg.style.flex = `${s.bars} 1 0`;
       seg.title = `${s.name}: bars ${s.start + 1}–${s.start + s.bars}. Click to jump there on the next bar.`;
-      seg.textContent = s.name;
+      const name = document.createElement("span");
+      name.className = "tl-seg-name";
+      name.textContent = s.name;
       const bars = document.createElement("span");
       bars.className = "tl-seg-bars";
-      bars.textContent = String(s.bars);
-      seg.append(bars);
+      bars.textContent = `${s.bars} bars`;
+      seg.append(name, bars);
       frag.append(seg);
       this.segments.push(seg);
       this.total = s.start + s.bars;

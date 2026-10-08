@@ -39,6 +39,7 @@
           <div class="loading" id="loading" role="status">
             <span class="spinner"></span><span class="loading-text">Starting audio engine…</span>
           </div>
+          <div class="cue" id="cue" data-testid="cue" hidden></div>
         </div>
 
         <label class="toggle" title="Switch to the song you save in your editor">
@@ -57,7 +58,7 @@
       <main class="code-pane" id="code-pane" data-testid="code-view" aria-label="Song source">
         <div class="code-head">
           <span class="code-file" id="code-file"></span>
-          <span class="code-stale" id="code-stale" hidden>edited · not playing yet</span>
+          <span class="code-stale" id="code-stale" hidden>not playing this version yet</span>
           <button class="chip follow-chip" id="follow-chip" data-testid="follow-playhead" hidden>Follow the music</button>
         </div>
         <div class="code-scroll" id="code-scroll" tabindex="0">

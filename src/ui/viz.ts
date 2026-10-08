@@ -60,13 +60,13 @@ function neonScope(pattern: Pattern): Pattern {
       ctx.clearRect(0, 0, width, height);
       ctx.save();
       ctx.shadowColor = "rgba(5, 217, 232, 0.9)";
-      ctx.shadowBlur = 18;
+      ctx.shadowBlur = 12;
       web.drawTimeScope(web.analysers[DRAW_ID], {
         ctx,
         color: "rgba(5, 217, 232, 0.85)",
-        thickness: 3 * (window.devicePixelRatio || 1),
-        scale: 0.3,
-        pos: 0.58,
+        thickness: 2 * (window.devicePixelRatio || 1),
+        scale: 0.2,
+        pos: 0.55,
       });
       ctx.restore();
     },

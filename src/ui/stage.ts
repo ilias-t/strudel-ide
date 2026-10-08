@@ -40,6 +40,7 @@ export function mountStage(): Stage {
   const codeFile = $("code-file");
   const codeStale = $("code-stale");
   const help = $("help-overlay");
+  const cueEl = $("cue");
 
   const codeView = new CodeView({
     scroller: $("code-scroll"),
@@ -79,6 +80,8 @@ export function mountStage(): Stage {
   let shownSongId = "";
   let shownSource: { text?: string; version?: string } | null = null;
   let lastError: PlayerError | null = null;
+  let lastRevealed = "";
+  let pausedForError = false;
   let lastState: PlayerState | null = null;
 
   function render(state: PlayerState) {
@@ -106,9 +109,10 @@ export function mountStage(): Stage {
       if (source.version && contentVersion(source.text) !== source.version) {
         console.warn(`[code-view] ${source.file}: text does not match the version the highlights refer to`);
       }
+      const otherFile = state.songId !== shownSongId;
       shownSongId = state.songId;
       shownSource = source;
-      codeView.setSource(source.text, source.version);
+      codeView.setSource(source.text, source.version, otherFile);
       codeFile.textContent = source.file;
       rangeTrack.clear();
     }
@@ -144,7 +148,18 @@ export function mountStage(): Stage {
     errorPanel.hidden = err === null;
     const inThisFile = err?.file && player.currentSource()?.file.endsWith(err.file);
     codeView.setErrorLine(err && inThisFile && err.line ? err.line : null);
-    if (err && err !== lastError && inThisFile && err.line) codeView.revealLine(err.line);
+    // reveal each located error once (the line arrives asynchronously, on the same object)
+    const revealKey = err && inThisFile && err.line ? `${err.message}@${err.line}` : "";
+    if (revealKey && revealKey !== lastRevealed) {
+      // hold the error line in view (following the music would scroll it away)
+      codeView.revealLine(err!.line!);
+      codeView.setFollowing(false);
+      pausedForError = true;
+    } else if (!err && pausedForError) {
+      codeView.setFollowing(true);
+      pausedForError = false;
+    }
+    lastRevealed = revealKey;
     lastError = err;
     if (!err) return;
     errorPanel.dataset.kind = err.kind;
@@ -190,6 +205,7 @@ export function mountStage(): Stage {
   const showHelp = (on: boolean) => {
     help.hidden = !on;
     if (on) $("help-close").focus();
+    else (document.activeElement as HTMLElement | null)?.blur();
   };
   $("help-button").addEventListener("click", () => showHelp(help.hidden));
   $("help-close").addEventListener("click", () => showHelp(false));
@@ -200,16 +216,23 @@ export function mountStage(): Stage {
   const toggleCodeView = () => player.setCodeView(!player.getState().codeView);
 
   // ── keyboard ──────────────────────────────────────────────────────────────
-  const isFormControl = (target: EventTarget | null) =>
-    target instanceof HTMLElement &&
-    (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName));
+  // Text fields and the song picker keep every key. Buttons and toggles keep
+  // only Space/Enter (their own activation); other shortcuts still work after
+  // clicking Play, a mute button, etc.
+  const ownsKey = (target: EventTarget | null, e: KeyboardEvent) => {
+    if (!(target instanceof HTMLElement)) return false;
+    if (target.isContentEditable || /^(TEXTAREA|SELECT)$/.test(target.tagName)) return true;
+    if (target instanceof HTMLInputElement && target.type !== "checkbox") return true;
+    const activator = target.tagName === "BUTTON" || target instanceof HTMLInputElement;
+    return activator && (e.code === "Space" || e.key === "Enter");
+  };
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !help.hidden) {
       showHelp(false);
       return;
     }
-    if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || isFormControl(e.target)) return;
+    if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || ownsKey(e.target, e)) return;
     const digit = /^Digit([0-9])$/.exec(e.code)?.[1];
     if (e.code === "Space") {
       e.preventDefault();
@@ -269,6 +292,7 @@ export function mountStage(): Stage {
     if (barText !== lastBar) barEl.textContent = lastBar = barText;
     if (beatText !== lastBeat) beatEl.textContent = lastBeat = beatText;
     timeline.frame(position, state?.section ?? null, bar, beat);
+    renderCue(state);
 
     if (live && state?.playing) {
       const sourceOk = sameSource();
@@ -284,6 +308,26 @@ export function mountStage(): Stage {
     codeView.frame(now);
   }
   requestAnimationFrame(frame);
+
+  /** Top-bar cue: a countdown to a pending jump, or which section is looping */
+  let lastCue = "";
+  function renderCue(state: PlayerState | null) {
+    let cue = "";
+    let kind = "";
+    if (state?.playing && state.pendingJump && state.sections) {
+      const beats = Math.max(1, Math.ceil((state.pendingJump.atCycle - player.audibleCycle()) * 4));
+      cue = `${state.sections[state.pendingJump.index].name} in ${beats} ${beats === 1 ? "beat" : "beats"}`;
+      kind = "jump";
+    } else if (state?.loop && state.section) {
+      cue = `Looping ${state.section.name}`;
+      kind = "loop";
+    }
+    if (cue === lastCue) return;
+    lastCue = cue;
+    cueEl.hidden = !cue;
+    cueEl.textContent = cue;
+    cueEl.dataset.kind = kind;
+  }
 
   /** Highlights only make sense when the code shown is the code playing */
   function sameSource() {

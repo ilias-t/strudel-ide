@@ -140,3 +140,22 @@ test("the palette's preset role and snippet; sound choices; Esc closes and gives
   await expect(page.getByTestId("add-track")).toBeFocused();
   await expect(page.getByTestId("add-track")).toHaveAttribute("aria-expanded", "false");
 });
+
+test("the stage's shortcuts stay out of the builder: arrows and digits on its keys don't reach the stage", async ({ player, page }) => {
+  await player.boot();
+  expect(await player.select(FIXTURE_ID)).toBe(true);
+  await player.play();
+  await page.getByTestId("add-track").click();
+  await expect(role(page, "kick")).toBeFocused();
+  await page.keyboard.press("ArrowRight"); // would be "next song"
+  await page.keyboard.press("1"); // would mute track 1
+  await page.keyboard.press("l"); // would loop
+  const state = await player.state();
+  expect(state.songId).toBe(FIXTURE_ID);
+  expect(await page.evaluate(() => window.__strudel!.muted())).toEqual([]);
+  expect(state.loop).toBe(false);
+  await expect(page.getByTestId("track-builder")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("track-builder")).toBeHidden();
+  await player.stop();
+});

@@ -76,7 +76,8 @@ them loads until you first open it.
   string, `.bank("…")` / `.lpf()` after an expression, `s("…")` otherwise.
 - **Command palette** (**⌘/Ctrl+K**): fuzzy search over sounds, functions,
   snippets, songs and stage actions (play, loop, jump to a section, edit mode,
-  library, new track…). **Enter** runs or inserts, **Shift+Enter** plays. It
+  library, new track…). **Enter** runs or inserts, **Shift+Enter** plays,
+  **⌥/Alt+Enter** on a snippet opens the track builder with it. It
   wins over the editor's own ⌘K chords, even while you're editing (⌘/ still
   comments a line).
 - **Track builder** (**+ track** on the mixer, or the palette): pick a role

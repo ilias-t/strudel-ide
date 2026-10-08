@@ -190,10 +190,16 @@ export function createTrackBuilder(d: Discovery): FeatureHandle {
     });
     add.addEventListener("click", () => void addTrack());
     root.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape") return;
-      e.preventDefault();
-      e.stopPropagation();
-      close();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+        return;
+      }
+      // the stage's shortcuts stay out of the unit (← → would change the song,
+      // digits mute tracks); B still toggles the library, like in the library
+      if (e.metaKey || e.ctrlKey || e.altKey || e.key === "b" || e.key === "B") return;
+      if (e.key.length === 1 || /^Arrow/.test(e.key)) e.stopPropagation();
     });
   }
 

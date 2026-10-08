@@ -52,7 +52,10 @@ server compiles for the stage.
   editor. The editor link maps bridge commands to the player.
 - **Stage UI** (`src/ui/`). Plain TypeScript, DOM and canvas: code view,
   mixer, timeline, knobs, room lights. The DOM re-renders on player state
-  changes, and one animation-frame loop drives what moves.
+  changes, and one animation-frame loop drives what moves. Discovery (the
+  library, the ⌘K palette and the track builder, `src/ui/discover/`) hangs off
+  one small hooks module; each feature, and the catalog JSON in
+  `src/catalog/`, is a lazy chunk loaded when it first opens.
 - **Editor extension** (`vscode-extension/`). A client of the bridge; see
   [its README](../vscode-extension/README.md#how-it-works) for the protocol.
 - **Scripts** (`scripts/`). Work on the same song files from the terminal:

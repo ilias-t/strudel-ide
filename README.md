@@ -62,6 +62,33 @@ doesn't see them, and clearing site data loses them. To move a song:
 - **download** saves the song as `<id>.ts`, byte for byte, e.g. to drop into
   `src/songs/` of a checkout.
 
+### Finding sounds and functions
+
+Three tools on the stage help when you can't remember what's there. None of
+them loads until you first open it.
+
+- **Library** (**B**, or the **library** key in the code unit's file bar): a
+  unit that slides over the rack column. **Sounds** lists every sound by kind
+  (drums, instruments, synths, fx) or by drum machine bank. **Functions** lists
+  Strudel's functions by category, with signatures, docs and examples. ▶ plays a
+  sound or an example once, while a song plays or while stopped. **insert** puts
+  it at the editor's cursor in the form that fits: the bare name inside a
+  string, `.bank("…")` / `.lpf()` after an expression, `s("…")` otherwise.
+- **Command palette** (**⌘/Ctrl+K**): fuzzy search over sounds, functions,
+  snippets, songs and stage actions (play, loop, jump to a section, edit mode,
+  library, new track…). **Enter** runs or inserts, **Shift+Enter** plays. It
+  wins over the editor's own ⌘K chords, even while you're editing (⌘/ still
+  comments a line).
+- **Track builder** (**+ track** on the mixer, or the palette): pick a role
+  (kick, snare, hats, perc, bass, pads, arp, lead, acid, fx), a snippet for it
+  (▶ to hear it), optionally a bank or sound, and a name (the role by default,
+  so the colour and lamp match). It adds `const <name> = …` above
+  `createPattern()`'s `return` and `<name>` to the returned `{ … }` or
+  `mixdown({ … })`, as one edit: ⌘Z undoes it, and it plays like typing. A
+  song whose track list it doesn't recognise is left untouched.
+
+Inserting needs edit mode: from the read-only view, these switch to it first.
+
 ### In Cursor or VS Code
 
 On a local checkout, run `npm install` and `npm run dev`, then edit

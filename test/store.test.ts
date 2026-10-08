@@ -5,7 +5,12 @@
 // Run: node --test test/store.test.ts   (Node ≥ 22.18 strips TS types)
 
 import assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { Readable } from "node:stream";
+import { afterEach, beforeEach, describe, test } from "node:test";
+import { MAX_SONG_BODY_BYTES, SongWriteError, checkSongRequest, readBody, songWriteTarget, writeSongFile } from "../vite-plugins/strudel-songs.ts";
 import { MAX_EVAL_CHARS } from "../src/live/protocol.ts";
 import { MAX_SHARE_BYTES, decodeShare, encodeShare, inflateCapped } from "../src/songs-store/share.ts";
 import { createSongsStore, type EvalResult, type SongsStoreDeps, type StorePlayer, type StoreStorage } from "../src/songs-store/index.ts";
@@ -484,5 +489,98 @@ describe("download", () => {
     store.download("wobble", SONG);
     assert.deepEqual(clicked, [{ download: "wobble.ts", href: "blob:1" }]);
     assert.equal(await blobs[0].text(), SONG);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dev server endpoint: POST /__strudel/song
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("song file endpoint", () => {
+  const root = "/work/app";
+  const status = (fn: () => unknown) => {
+    try {
+      fn();
+    } catch (err) {
+      if (err instanceof SongWriteError) return err.status;
+      throw err;
+    }
+    return 0;
+  };
+
+  test("a valid write targets src/songs/<id>.ts under the root", () => {
+    assert.deepEqual(songWriteTarget({ id: "wobble", text: SONG, create: true }, root), {
+      id: "wobble",
+      text: SONG,
+      create: true,
+      abs: join(root, "src/songs/wobble.ts"),
+      file: "src/songs/wobble.ts",
+    });
+    assert.equal(songWriteTarget({ id: "wobble", text: "" }, root).create, false, "create defaults to false");
+  });
+
+  test("ids that would escape src/songs or name a non-song file are refused", () => {
+    const ids = ["../x", "..%2fx", "..%2F..%2Fpackage", "..", ".", "a/b", "a\\b", "/etc/passwd", "src/songs/x", "index", "_template", "_x", ".hidden", "x.ts", "", "Wobble", "a".repeat(65), 5, null];
+    for (const id of ids) assert.equal(status(() => songWriteTarget({ id, text: "x" }, root)), 400, String(id));
+  });
+
+  test("text must be a string within MAX_EVAL_CHARS", () => {
+    assert.equal(status(() => songWriteTarget({ id: "a", text: 5 }, root)), 400);
+    assert.equal(status(() => songWriteTarget({ id: "a" }, root)), 400);
+    assert.equal(status(() => songWriteTarget({ id: "a", text: "x".repeat(MAX_EVAL_CHARS + 1) }, root)), 413);
+    assert.equal(status(() => songWriteTarget({ id: "a", text: "x".repeat(MAX_EVAL_CHARS) }, root)), 0);
+    assert.equal(status(() => songWriteTarget({ id: "a", text: "x", create: "yes" }, root)), 400);
+    for (const payload of [null, [], "x", 1]) assert.equal(status(() => songWriteTarget(payload, root)), 400);
+  });
+
+  test("only JSON from this page: content type and Origin are checked", () => {
+    const ok = { contentType: "application/json", host: "localhost:5426" };
+    assert.equal(status(() => checkSongRequest(ok)), 0);
+    assert.equal(status(() => checkSongRequest({ ...ok, contentType: "application/json; charset=utf-8" })), 0);
+    assert.equal(status(() => checkSongRequest({ ...ok, origin: "http://localhost:5426" })), 0, "same origin");
+    assert.equal(status(() => checkSongRequest({ ...ok, origin: "http://LOCALHOST:5426" })), 0, "host is case-insensitive");
+    for (const contentType of [undefined, "text/plain", "application/x-www-form-urlencoded", "multipart/form-data; boundary=x", "application/jsonx"]) {
+      assert.equal(status(() => checkSongRequest({ ...ok, contentType })), 415, String(contentType));
+    }
+    for (const origin of ["https://evil.example", "http://localhost:5427", "http://localhost", "null", "garbage"]) {
+      assert.equal(status(() => checkSongRequest({ ...ok, origin })), 403, origin);
+    }
+    assert.equal(status(() => checkSongRequest({ contentType: "application/json", origin: "http://localhost:5426" })), 403, "Origin without Host");
+  });
+
+  test("the body is capped while reading", async () => {
+    const chunks = (n: number, size: number) => Readable.from(Array.from({ length: n }, () => Buffer.alloc(size, 0x61)));
+    assert.equal((await readBody(chunks(4, 10), 40)).length, 40);
+    await assert.rejects(readBody(chunks(5, 10), 40), (e: SongWriteError) => e.status === 413);
+    assert.equal(await readBody(Readable.from([Buffer.from("é", "utf8").subarray(0, 1), Buffer.from("é", "utf8").subarray(1)]), 40), "é", "UTF-8 split across chunks");
+    assert.ok(MAX_SONG_BODY_BYTES > MAX_EVAL_CHARS * 3);
+  });
+
+  describe("writing", () => {
+    let dir = "";
+    const target = (id: string, text: string, create = false) => songWriteTarget({ id, text, create }, dir);
+    const songs = () => readdirSync(join(dir, "src/songs")).sort();
+
+    beforeEach(() => {
+      dir = mkdtempSync(join(tmpdir(), "strudel-songs-"));
+      mkdirSync(join(dir, "src/songs"), { recursive: true });
+      writeFileSync(join(dir, "src/songs/jynx.ts"), "old");
+    });
+    afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+    test("create writes a new file; an existing one is a 409, untouched", async () => {
+      assert.deepEqual(await writeSongFile(target("wobble", SONG, true)), { file: "src/songs/wobble.ts", created: true });
+      assert.equal(readFileSync(join(dir, "src/songs/wobble.ts"), "utf8"), SONG);
+      await assert.rejects(writeSongFile(target("jynx", "new", true)), (e: SongWriteError) => e.status === 409);
+      assert.equal(readFileSync(join(dir, "src/songs/jynx.ts"), "utf8"), "old");
+      assert.deepEqual(songs(), ["jynx.ts", "wobble.ts"], "no temp files left");
+    });
+
+    test("overwrite replaces an existing file; a missing one is a 404", async () => {
+      assert.deepEqual(await writeSongFile(target("jynx", SONG)), { file: "src/songs/jynx.ts", created: false });
+      assert.equal(readFileSync(join(dir, "src/songs/jynx.ts"), "utf8"), SONG);
+      await assert.rejects(writeSongFile(target("ghost", "x")), (e: SongWriteError) => e.status === 404);
+      assert.deepEqual(songs(), ["jynx.ts"], "no temp files left");
+    });
   });
 });

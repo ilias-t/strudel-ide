@@ -86,6 +86,38 @@ interface EngineApi {
 
 export const engine = strudelWeb as unknown as EngineApi;
 
+/**
+ * Safari's audio destination can report maxChannelCount = 0. superdough sets
+ * `destination.channelCount = destination.maxChannelCount` when it creates
+ * its output, WebKit rejects 0 ("Channel count cannot be 0") and also any
+ * count above maxChannelCount, so superdough's audio controller is never
+ * created and every note fails: total silence. So assignments the
+ * destination rejects are ignored and it keeps the count it has (stereo);
+ * valid ones go through as usual. Call before the first sound.
+ */
+export function guardDestination(ctx: AudioContext = engine.getAudioContext()) {
+  const dest = ctx.destination;
+  if (Object.prototype.hasOwnProperty.call(dest, "channelCount")) return; // already guarded
+  let proto: object | null = Object.getPrototypeOf(dest);
+  let accessor: PropertyDescriptor | undefined;
+  while (proto && !(accessor = Object.getOwnPropertyDescriptor(proto, "channelCount"))) proto = Object.getPrototypeOf(proto);
+  if (!accessor?.get || !accessor.set) return;
+  const { get, set } = accessor;
+  Object.defineProperty(dest, "channelCount", {
+    configurable: true,
+    get() {
+      return get.call(this);
+    },
+    set(value: number) {
+      try {
+        set.call(this, value);
+      } catch {
+        // rejected (0, or above the reported maximum): keep the current count
+      }
+    },
+  });
+}
+
 /** Orbits 1…WARM_ORBITS are created up front (see warmOrbits) */
 const WARM_ORBITS = 16;
 let orbitsWarm = false;
@@ -105,7 +137,10 @@ export function warmOrbits() {
     const ctx = engine.getAudioContext();
     if (ctx.state !== "running") return; // retried on the next play()
     const at = ctx.currentTime + 0.02;
-    for (let orbit = 1; orbit <= WARM_ORBITS; orbit++) void engine.superdough({ s: "~", orbit }, at, 0.01);
+    for (let orbit = 1; orbit <= WARM_ORBITS; orbit++) {
+      // superdough is async: a failure is a rejection, not a throw
+      engine.superdough({ s: "~", orbit }, at, 0.01).catch(() => {});
+    }
     orbitsWarm = true;
   } catch {
     // not fatal: the worst case is the warning this prevents

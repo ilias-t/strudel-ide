@@ -21,7 +21,7 @@
 import { linkEditor, type EditorLink, type EditorLinkStatus } from "./live/editor-link";
 import * as player from "./engine/player";
 import { startLive } from "./engine/live";
-import { engine, loadSamples, type Repl, type Scheduler } from "./engine/strudel";
+import { engine, guardDestination, loadSamples, type Repl, type Scheduler } from "./engine/strudel";
 import { mountStage } from "./ui/stage";
 
 export type { PlayerState, PlayerError } from "./engine/types";
@@ -47,6 +47,8 @@ if (import.meta.hot) {
 // Startup: audio engine + samples (in parallel)
 // ─────────────────────────────────────────────────────────────────────────────
 
+// before anything makes a sound (Safari can report 0 output channels)
+guardDestination();
 const repl = await engine.initStrudel({ onToggle: () => player.changed() });
 player.attachRepl(repl);
 

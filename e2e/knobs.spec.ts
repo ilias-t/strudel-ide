@@ -57,8 +57,9 @@ test("dragging the knob changes the gain live, without a hot-swap", async ({ pla
   await expect(chip).toHaveAttribute("data-value", String(turned.value));
   await expect(chip).toHaveAttribute("data-dirty", "true");
 
-  // keyboard: arrows step, Delete goes back to the file's value
-  await dial.focus();
+  // clicking the chip focuses the knob; then arrows step, Delete goes back to the file's value
+  await chip.click();
+  await expect(dial).toBeFocused();
   await page.keyboard.press("ArrowDown");
   await expect.poll(async () => (await level(player))!.value).toBeCloseTo(turned.value - 0.01, 5);
   await page.keyboard.press("Delete");
@@ -120,7 +121,7 @@ test("live values survive a reload, unless the file changed meanwhile", async ({
   await expect.poll(() => level(player)).toMatchObject({ value: 0.4, def: 0.4, dirty: false });
 });
 
-test("the write-back endpoint refuses unknown knobs, non-literals and non-song files", async ({ player, page }) => {
+test("the write-back endpoint refuses unknown knobs, bad values and non-song files", async ({ player, page }) => {
   const source = readFileSync(FIXTURE_PATH, "utf8");
   const post = (data: object) => page.request.post("/__strudel/knob", { data });
 

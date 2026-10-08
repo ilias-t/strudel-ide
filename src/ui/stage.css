@@ -1202,8 +1202,18 @@ code {
 
 .knobs[hidden],
 .knobs-status[hidden],
-.knob-write[hidden],
 .knobs-write-all[hidden] {
+  display: none;
+}
+
+/* keeps its space, so a knob turning dirty doesn't shift the grid */
+.knob-write[hidden] {
+  display: block;
+  visibility: hidden;
+}
+
+/* production build: no write-back endpoint */
+.knobs[data-can-write="false"] .knob-write {
   display: none;
 }
 

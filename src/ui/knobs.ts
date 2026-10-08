@@ -61,6 +61,7 @@ export class KnobPanel {
 
   constructor(private o: KnobElements, private actions: KnobActions, options: { canWrite: boolean }) {
     this.canWrite = options.canWrite;
+    o.root.dataset.canWrite = String(options.canWrite);
     o.writeAll.addEventListener("click", () => void this.write());
   }
 

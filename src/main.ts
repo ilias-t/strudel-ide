@@ -23,6 +23,7 @@ import * as player from "./engine/player";
 import { startLive } from "./engine/live";
 import { engine, guardDestination, loadSamples, type Repl, type Scheduler } from "./engine/strudel";
 import { mountStage } from "./ui/stage";
+import * as songsStore from "./songs-store";
 
 export type { PlayerState, PlayerError } from "./engine/types";
 
@@ -81,6 +82,13 @@ window.__strudel = {
   onKnobsChange: player.onKnobsChange,
   toggleCodeView: stage.toggleCodeView,
   highlights: stage.highlights,
+  // runtime songs: browser compile (src/compile/, loaded on first use)
+  evalSource: player.evalSource,
+  addSong: player.addSong,
+  removeSong: player.removeSong,
+  revertSource: player.revertSource,
+  currentSource: player.currentSource,
+  store: songsStore,
 };
 
 // VS Code extension link (dev only; no-op without the bridge)
@@ -123,6 +131,13 @@ stage.attachLive(startLive(repl, link.bridge));
 
 // Build the current song once so the mixer and timeline know it before play
 void player.validateCurrent();
+
+// Songs kept in this browser (overrides, user songs) and a share link (#song=…).
+// With nothing stored and no link this does nothing: the compiler isn't loaded.
+void songsStore.initSongsStore(player).then(({ failed, shared }) => {
+  for (const { id, error } of failed) console.warn(`[strudel-ide] stored song ${id} did not load: ${error}`);
+  if (shared && !shared.ok) console.warn(`[strudel-ide] share link: ${shared.error}`);
+});
 
 player.setLoading("Loading samples…");
 
@@ -175,6 +190,17 @@ declare global {
       onKnobsChange: typeof player.onKnobsChange;
       toggleCodeView: () => void;
       highlights: () => [number, number][];
+      /** Compile song text in the browser and hot-swap it in (intent "typing" never sets the player error) */
+      evalSource: typeof player.evalSource;
+      /** Register / unregister a user song compiled from source */
+      addSong: typeof player.addSong;
+      removeSong: typeof player.removeSong;
+      /** Drop a song's evaluated text: back to its own source */
+      revertSource: typeof player.revertSource;
+      /** File, text and version of the current song (what highlights index into) */
+      currentSource: typeof player.currentSource;
+      /** Songs kept in this browser, share links, download, save to file (src/songs-store/) */
+      store: typeof songsStore;
       /** Editor bridge status (set once the link is up) */
       editorLink?: () => EditorLinkStatus;
       /** Open a file position in the editor (bridge, else a vscode://file link) */

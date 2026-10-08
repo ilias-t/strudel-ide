@@ -27,6 +27,14 @@
 // song file until the file is saved. It hot-swaps exactly like a saved edit,
 // and a broken buffer never replaces the last good pattern. Saving the same
 // text afterwards keeps the build that is playing (no second swap).
+//
+// Browser eval (evalSource): the same, but the text is compiled in the page by
+// src/compile/ (a lazily loaded worker running the very transforms the Vite
+// plugins run), so it works on the static host too. `intent: "typing"` never
+// sets the player error: its errors are returned for inline display, and while
+// a typing build plays, its query/trigger errors only go to the console.
+// User songs (addSong/removeSong) are compiled the same way and join the song
+// list next to the built-in songs from src/songs/*.ts.
 
 import { Mix } from "./mix";
 import { errorFrom } from "./errors";
@@ -37,10 +45,18 @@ import { KnobRegistry, installKnobGlobals, type KnobInfo, type SavedKnobs } from
 import { bpmToCps, engine, internals, warmOrbits, type Repl } from "./strudel";
 import { applyVisualization, clearVisualization } from "../ui/viz";
 import { audioOutputLatency } from "../live/highlights";
+import { MAX_EVAL_CHARS, contentVersion } from "../live/protocol";
+import { songFileOf, songIdProblem } from "../compile/song-id";
 import type { PlayerError, PlayerState, SectionInfo } from "./types";
 import type { Song, SongSource, VisualizationConfig, VisualizationType } from "../songs";
 
 type SongsModule = typeof import("../songs");
+
+/** A song's source as the player has it: SongSource plus who evaluated it */
+export interface PlayerSource extends SongSource {
+  /** Set for evaluated text: the browser editor/runtime (evalSource) or the VS Code editor */
+  origin?: "browser" | "editor";
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // State
@@ -83,18 +99,23 @@ interface Build {
   single: Pattern | null;
   tracks: string[] | null;
   viz: VisualizationConfig;
-  source: SongSource | null;
+  source: PlayerSource | null;
+  /** Built from a typing-intent eval: its later query/trigger errors stay out of the error panel */
+  quiet: boolean;
 }
 let build: Build | null = null;
 /** The build that is in the scheduler now */
 let playing: Build | null = null;
 
-/** An evaluated editor buffer standing in for its song file (until the file is saved) */
+/** An evaluated buffer standing in for its song's source (until the file is saved or it is reverted) */
 interface LiveSong {
   song: Song;
-  source: SongSource;
+  source: PlayerSource;
 }
 const liveSongs = new Map<string, LiveSong>();
+
+/** Songs added at runtime (addSong), compiled in the browser; listed after the built-in songs */
+const userSongs = new Map<string, LiveSong>();
 
 /** The last bare (un-visualized, un-guarded) pattern known to work. Fallback for the next swap. */
 let lastGood: Pattern | null = null;
@@ -110,6 +131,16 @@ let pendingJump: { index: number; atCycle: number } | null = null;
 
 export function setSongsModule(mod: SongsModule) {
   songsModule = mod;
+  exposeSongsIndex(mod);
+}
+
+/**
+ * Browser-compiled songs read value imports from "." (the songs index) from
+ * this global (src/compile/compile.ts rewrites them), since a compiled module
+ * can't import the bundled index by URL.
+ */
+function exposeSongsIndex(mod: SongsModule) {
+  (globalThis as { __strudelSongsIndex?: SongsModule }).__strudelSongsIndex = mod;
 }
 
 export function attachRepl(r: Repl) {
@@ -137,28 +168,50 @@ export function setReady() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function currentSong(): Song {
-  return liveSongs.get(currentSongId)?.song ?? songsModule.getSong(currentSongId);
+  return liveSongs.get(currentSongId)?.song ?? userSongs.get(currentSongId)?.song ?? songsModule.getSong(currentSongId);
 }
 
 export function currentSongId_(): string {
   return currentSongId;
 }
 
+/** A song from src/songs/*.ts (not one added at runtime) */
+export function isBuiltInSong(id: string): boolean {
+  return Object.prototype.hasOwnProperty.call(songsModule.songs, id);
+}
+
+/** A song in the list: built-in or added with addSong() */
+export function hasSong(id: string): boolean {
+  return isBuiltInSong(id) || userSongs.has(id);
+}
+
+/** All songs in list order: the built-in songs, then the user songs (in the order they were added) */
 export function allSongs(): { id: string; song: Song }[] {
-  return songsModule.getAllSongs();
+  return [...songsModule.getAllSongs(), ...[...userSongs].map(([id, { song }]) => ({ id, song }))];
 }
 
 export function songsRecord(): Record<string, Song> {
-  return songsModule.songs;
+  if (!userSongs.size) return songsModule.songs;
+  return { ...songsModule.songs, ...Object.fromEntries([...userSongs].map(([id, { song }]) => [id, song])) };
+}
+
+/** A song's own source: the file on disk (built-in) or the text it was added with (user song) */
+function baseSource(id: string): PlayerSource | null {
+  return userSongs.get(id)?.source ?? songsModule.songSources[id] ?? null;
+}
+
+/** File, version and text of a song: its file on disk / added text, or an evaluated buffer (`live`) */
+export function sourceOf(id: string): PlayerSource | null {
+  return liveSongs.get(id)?.source ?? baseSource(id);
 }
 
 /** File, version and text of the current song: the file on disk, or an evaluated buffer (`live`) */
-export function currentSource(): SongSource | null {
-  return liveSongs.get(currentSongId)?.source ?? songsModule.songSources[currentSongId] ?? null;
+export function currentSource(): PlayerSource | null {
+  return sourceOf(currentSongId);
 }
 
 /** File/version the scheduler's pattern was built from (highlight offsets refer to it) */
-export function playingSource(): SongSource | null {
+export function playingSource(): PlayerSource | null {
   return playing?.source ?? null;
 }
 
@@ -306,6 +359,7 @@ export function setError(next: PlayerError | null) {
 function makeError(kind: PlayerError["kind"], err: unknown, songId: string | undefined, keptPrevious: boolean) {
   return errorFrom(kind, err, songId, keptPrevious, (located) => {
     if (error === located) changed();
+    locateWaiters.get(located)?.();
   });
 }
 
@@ -314,6 +368,8 @@ function makeError(kind: PlayerError["kind"], err: unknown, songId: string | und
 document.addEventListener(engine.logKey ?? "strudel.log", (event) => {
   const { message } = (event as CustomEvent<{ message: string }>).detail ?? {};
   if (typeof message !== "string" || !/error/i.test(message)) return;
+  // Half-typed code (typing intent) never pops the error panel
+  if (playing?.quiet) return;
   // Don't overwrite a more important build/query error
   if (error && error.kind !== "trigger") return;
   setError({
@@ -339,7 +395,11 @@ function resolveViz(viz: Song["visualization"]): VisualizationConfig {
  * scheduler: on the first throw, report it and permanently delegate to the
  * previous good pattern.
  */
-function guard(fresh: Pattern, fallback: Pattern | null, songId: string): Pattern {
+function guard(fresh: Pattern, fallback: Pattern | null, songId: string, quiet = false): Pattern {
+  const report = (err: unknown, keptPrevious: boolean) => {
+    if (quiet) console.warn("[strudel-ide] query error (typing, not shown):", err);
+    else setError(makeError("query", err, songId, keptPrevious));
+  };
   const freshQuery = internals(fresh).query.bind(fresh);
   const fallbackQuery = fallback ? internals(fallback).query.bind(fallback) : null;
   let failed = false;
@@ -352,7 +412,7 @@ function guard(fresh: Pattern, fallback: Pattern | null, songId: string): Patter
       } catch (err) {
         failed = true;
         if (lastGood === fresh) lastGood = fallback;
-        queueMicrotask(() => setError(makeError("query", err, songId, fallback !== null)));
+        queueMicrotask(() => report(err, fallback !== null));
       }
     }
     if (!fallbackQuery || fallbackFailed) return [];
@@ -360,7 +420,7 @@ function guard(fresh: Pattern, fallback: Pattern | null, songId: string): Patter
       return fallbackQuery(state);
     } catch (err) {
       fallbackFailed = true;
-      queueMicrotask(() => setError(makeError("query", err, songId, false)));
+      queueMicrotask(() => report(err, false));
       return [];
     }
   });
@@ -372,7 +432,7 @@ function bareOf(b: Build): Pattern {
 }
 
 /** Build the current song. Throws what createPattern() throws. */
-function buildCurrent(): Build {
+function buildCurrent(quiet = false): Build {
   const songId = currentSongId;
   const song = currentSong();
   const { pattern, tracks, parts } = knobRegistry.build(songId, () => songsModule.buildPattern(song));
@@ -384,6 +444,7 @@ function buildCurrent(): Build {
     tracks,
     viz: resolveViz(song.visualization),
     source: currentSource(),
+    quiet,
   };
 }
 
@@ -391,16 +452,18 @@ function buildCurrent(): Build {
  * Hand `b` (with the current mix and time map) to the scheduler. Synchronous up
  * to setPattern, so a jump computed from the scheduler's position lands exactly.
  */
-async function install(b: Build, { start = false } = {}): Promise<boolean> {
+async function install(b: Build, { start = false, out }: { start?: boolean; out?: SwapOutcome } = {}): Promise<boolean> {
   if (!repl) return false;
   const scheduler = repl.scheduler;
   const bare = bareOf(b);
-  const guarded = guard(bare, lastGood, b.songId);
+  const guarded = guard(bare, lastGood, b.songId, b.quiet);
   let playable: Pattern;
   try {
     playable = applyVisualization(timeMap.apply(guarded), b.viz);
   } catch (err) {
-    setError(makeError("build", err, b.songId, scheduler.started));
+    const e = makeError("build", err, b.songId, scheduler.started);
+    if (out) out.error = e;
+    if (!b.quiet) setError(e);
     return false;
   }
   lastGood = bare;
@@ -418,23 +481,31 @@ function relink() {
   void install(playing);
 }
 
+/** Why a swap() failed (also when quiet), for evalSource's result */
+interface SwapOutcome {
+  error: PlayerError | null;
+}
+
 /**
  * Build the current song and hand it to the scheduler. While playing this is a
  * seamless hot-swap (no hush, the cycle position is kept); with `start` it
  * also starts the clock. On any build error the previous pattern keeps playing.
  */
-async function swap({ start = false } = {}): Promise<boolean> {
+async function swap({ start = false, quiet = false, out }: { start?: boolean; quiet?: boolean; out?: SwapOutcome } = {}): Promise<boolean> {
   if (!repl) return false;
   const scheduler = repl.scheduler;
   let next: Build;
   try {
-    next = buildCurrent();
+    next = buildCurrent(quiet);
     // Preflight: query the next cycle (as the time map will) so most
     // query-time errors are caught before the pattern reaches the scheduler.
     const from = timeMap.position(scheduler.started ? scheduler.now() : 0);
     bareOf(next).queryArc(from, from + 1);
   } catch (err) {
-    setError(makeError("build", err, currentSongId, scheduler.started));
+    const e = makeError("build", err, currentSongId, scheduler.started);
+    if (out) out.error = e;
+    // typing intent: returned to the caller, never shown in the error panel
+    if (!quiet) setError(e);
     return false;
   }
   build = next;
@@ -446,7 +517,7 @@ async function swap({ start = false } = {}): Promise<boolean> {
     return true;
   }
 
-  const installed = install(next, { start });
+  const installed = install(next, { start, out });
   // counted synchronously with setPattern (mute/solo/jump relinks don't count)
   if (playing === next) {
     swapCount++;
@@ -468,6 +539,10 @@ export async function play(): Promise<boolean> {
     playWhenReady = true; // e.g. an editor command during startup
     return false;
   }
+  if (repl.scheduler.started) return true;
+  // a stored edit of this song is still compiling (boot): play it, not the built-in
+  const pending = pendingEvals.get(currentSongId);
+  if (pending) await Promise.race([pending, sleep(10_000)]);
   if (repl.scheduler.started) return true;
   requireAudio();
   // Worklet-based sounds (supersaw, shape, ladder filter…) fail on the first
@@ -501,7 +576,8 @@ export function togglePlay() {
 
 /** Make `id` the current song; hot-swaps it in if playing. Unknown ids are ignored. */
 export async function selectSong(id: string): Promise<boolean> {
-  if (!(id in songsModule.songs)) return false;
+  if (!hasSong(id)) return false;
+  bootSongId = null; // an explicit choice: a user song registered later doesn't take over
   if (id !== currentSongId) switchTo(id);
   return swap(); // hot-swap while playing; validate-only while stopped
 }
@@ -520,7 +596,7 @@ function switchTo(id: string) {
 
 /** Select the next (+1) or previous (-1) song in the list */
 export function stepSong(direction: 1 | -1) {
-  const ids = songsModule.getAllSongs().map(({ id }) => id);
+  const ids = allSongs().map(({ id }) => id);
   const index = ids.indexOf(currentSongId);
   return selectSong(ids[(index + direction + ids.length) % ids.length]);
 }
@@ -680,6 +756,7 @@ export function songsUpdated(newModule: SongsModule | undefined) {
   const previous = songsModule;
   const before = currentSong();
   songsModule = newModule;
+  exposeSongsIndex(newModule);
 
   // Only edited song modules are re-instantiated by Vite; unchanged ones come
   // back as the very same objects. That identifies which file(s) you edited.
@@ -688,11 +765,14 @@ export function songsUpdated(newModule: SongsModule | undefined) {
   // A saved file is the truth again: its evaluated buffer steps down. When the
   // file now says exactly what the buffer said, the build that is playing
   // already is this file: point it at the file instead of swapping again.
+  // A user song saved as a file (src/songs/<id>.ts, a new module) steps down
+  // the same way: the built-in song of that id replaces it.
   let alreadyPlaying = false;
   for (const id of edited) {
-    const live = liveSongs.get(id);
+    const live = liveSongs.get(id) ?? userSongs.get(id);
     if (!live) continue;
     liveSongs.delete(id);
+    userSongs.delete(id);
     const disk = newModule.songSources[id];
     if (id === currentSongId && build?.songId === id && build.song === live.song && disk?.version === live.source.version) {
       for (const b of new Set([build, playing])) {
@@ -704,7 +784,7 @@ export function songsUpdated(newModule: SongsModule | undefined) {
     }
   }
 
-  if (!(currentSongId in newModule.songs)) switchTo(initialSongId());
+  if (!hasSong(currentSongId)) switchTo(initialSongId());
   else if (followEdits && edited.length && !edited.includes(currentSongId)) switchTo(edited[0]);
   changed();
 
@@ -715,7 +795,8 @@ export function songsUpdated(newModule: SongsModule | undefined) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Live eval: an unsaved editor buffer, compiled by the dev server
+// Live eval: an unsaved editor buffer, compiled by the dev server (evalLive),
+// or source text compiled in the browser (evalSource, addSong)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** A compiled buffer to apply (the bridge's `live` message) */
@@ -743,7 +824,60 @@ function liveOf(songId: string): { file: string; version: string } | null {
 /** "src/songs/jynx.ts" → "jynx" */
 const songIdOf = (file: string) => file.replace(/^.*\//, "").replace(/\.ts$/, "");
 
+/** Per song: bumped by every eval/add/revert, so a slower, older one can't land after a newer one */
 const evalSeq = new Map<string, number>();
+function nextSeq(songId: string): number {
+  const seq = (evalSeq.get(songId) ?? 0) + 1;
+  evalSeq.set(songId, seq);
+  return seq;
+}
+
+/** Browser evals/adds still compiling, per song (play() waits for the current song's) */
+const pendingEvals = new Map<string, Promise<unknown>>();
+function trackPending<T>(songId: string, run: Promise<T>): Promise<T> {
+  pendingEvals.set(songId, run);
+  void run.finally(() => {
+    if (pendingEvals.get(songId) === run) pendingEvals.delete(songId);
+  });
+  return run;
+}
+
+type ApplyResult = { ok: true; applied: boolean } | { ok: false; error: PlayerError | null };
+
+/**
+ * Put an evaluated song in place of its song's source and hot-swap it in:
+ * select its song if follow-edits is on (or `start`), and swap. A song that
+ * fails to build never replaces the last good pattern: the song keeps playing
+ * what it played, and the error is reported (unless `quiet`).
+ */
+async function applyLiveSong(
+  songId: string,
+  song: Song,
+  source: PlayerSource,
+  { start = false, quiet = false } = {}
+): Promise<ApplyResult> {
+  const previous = liveSongs.get(songId);
+  liveSongs.set(songId, { song, source });
+  if (songId !== currentSongId) {
+    if (!followEdits && !start) {
+      changed();
+      return { ok: true, applied: false };
+    }
+    switchTo(songId);
+  }
+  const out: SwapOutcome = { error: null };
+  if (!(await swap({ quiet, out }))) {
+    // never keep a broken buffer: the song stays what it was
+    if (liveSongs.get(songId)?.song === song) {
+      if (previous) liveSongs.set(songId, previous);
+      else liveSongs.delete(songId);
+    }
+    changed();
+    return { ok: false, error: out.error };
+  }
+  if (start) await play();
+  return { ok: true, applied: true };
+}
 
 /**
  * Hot-swap an evaluated buffer in place of its song file: import the module,
@@ -760,11 +894,10 @@ export async function evalLive(buffer: LiveBuffer, { play: start = false } = {})
     setError(e);
     return { ok: false, applied: false, error: { message: e.message } };
   };
-  if (!(songId in songsModule.songs)) {
+  if (!isBuiltInSong(songId)) {
     return fail(new Error(`${buffer.file} is not in the player's song list yet (a new file? reload the player)`));
   }
-  const seq = (evalSeq.get(songId) ?? 0) + 1;
-  evalSeq.set(songId, seq);
+  const seq = nextSeq(songId);
   let mod: { default?: Song; __strudel_file?: string; __strudel_version?: string };
   try {
     mod = await import(/* @vite-ignore */ buffer.url);
@@ -777,34 +910,21 @@ export async function evalLive(buffer: LiveBuffer, { play: start = false } = {})
   if (!song || typeof song.createPattern !== "function") {
     return fail(new Error(`${buffer.file} must \`export default\` a song with createPattern()`));
   }
-
-  const previous = liveSongs.get(songId);
-  liveSongs.set(songId, {
+  const outcome = await applyLiveSong(
+    songId,
     song,
-    source: {
+    {
       file: mod.__strudel_file ?? buffer.file,
       version: mod.__strudel_version ?? buffer.version,
       text: buffer.text,
       // a buffer that says what the file says (e.g. undone back to it) isn't "unsaved"
       live: buffer.version !== songsModule.songSources[songId]?.version,
+      origin: "editor",
     },
-  });
-  if (songId !== currentSongId) {
-    if (!followEdits && !start) {
-      changed();
-      return { ok: true, applied: false };
-    }
-    switchTo(songId);
-  }
-  if (!(await swap())) {
-    // never keep a broken buffer: the song stays what it was
-    if (previous) liveSongs.set(songId, previous);
-    else liveSongs.delete(songId);
-    changed();
-    return { ok: false, applied: false, error: error ? { message: error.message } : { message: "build failed" } };
-  }
-  if (start) await play();
-  return { ok: true, applied: true };
+    { start }
+  );
+  if (!outcome.ok) return { ok: false, applied: false, error: { message: outcome.error?.message ?? "build failed" } };
+  return outcome;
 }
 
 /** A buffer that didn't compile (the dev server's error): report it, keep playing */
@@ -820,16 +940,197 @@ export function evalFailed(err: { message: string; file?: string; line?: number;
   });
 }
 
+// ── Browser compile ──────────────────────────────────────────────────────────
+
+export interface EvalSourceOptions {
+  /** typing: errors are only returned (inline display), never set as the player error · commit: like a save */
+  intent: "typing" | "commit";
+  /** Who evaluated the text (reported back in currentSource().origin) */
+  origin: "browser" | "editor";
+}
+
+export interface EvalSourceError {
+  message: string;
+  /** 1-based, in the evaluated text */
+  line?: number;
+  column?: number;
+  /** A newer eval (or a revert) of the same song came first: this one was dropped, nothing changed */
+  superseded?: true;
+}
+
+export type EvalSourceResult = { ok: true; version: string } | { ok: false; error: EvalSourceError };
+
+type Compiler = typeof import("../compile/client");
+let compilerModule: Promise<Compiler> | null = null;
+
+/** The browser compiler (src/compile/client.ts), loaded on first use. Never at boot: it brings TypeScript. */
+function loadCompiler(): Promise<Compiler> {
+  return (compilerModule ??= import("../compile/client").catch((err) => {
+    compilerModule = null; // retry next time (e.g. offline)
+    throw err;
+  }));
+}
+
+async function compileSource(text: string, file: string) {
+  try {
+    return await (await loadCompiler()).compileAndEvaluate(text, file);
+  } catch (err) {
+    return { ok: false as const, error: { message: `The compiler failed to load: ${err instanceof Error ? err.message : String(err)}` } };
+  }
+}
+
+const superseded = (): EvalSourceResult => ({ ok: false, error: { message: "superseded by a newer edit", superseded: true } });
+
+/** Wait (briefly) until errors.ts has located a runtime error in the song text */
+const locateWaiters = new WeakMap<PlayerError, () => void>();
+function whenLocated(e: PlayerError, ms = 500): Promise<void> {
+  if (e.line !== undefined) return Promise.resolve();
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    locateWaiters.set(e, () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+}
+
+function toEvalError(e: PlayerError | null): EvalSourceError {
+  if (!e) return { message: "build failed" };
+  const out: EvalSourceError = { message: e.message };
+  if (e.line !== undefined) out.line = e.line;
+  if (e.column !== undefined) out.column = e.column;
+  return out;
+}
+
+function checkText(text: unknown): string | null {
+  if (typeof text !== "string") return "the song text must be a string";
+  if (text.length > MAX_EVAL_CHARS) return `the song is too large (${text.length} > ${MAX_EVAL_CHARS} characters)`;
+  return null;
+}
+
+/**
+ * Compile `text` in the browser and hot-swap it in as song `songId` (built-in
+ * or user song), exactly like a live eval: seamless while playing, the last
+ * good pattern kept on any error. currentSource() then returns
+ * `{ file, text, version: contentVersion(text), live, origin }` (live: the text
+ * differs from the song's own source) and highlights index into `text`.
+ *
+ * intent "typing" never sets the player error (no error panel): errors are
+ * returned for inline display only, and while that build plays its later
+ * query/trigger errors only go to the console. "commit" reports like a save.
+ * Of several evals of one song in flight, only the newest lands.
+ */
+export function evalSource(songId: string, text: string, opts: EvalSourceOptions): Promise<EvalSourceResult> {
+  return trackPending(songId, evalSourceNow(songId, text, opts));
+}
+
+async function evalSourceNow(songId: string, text: string, { intent, origin }: EvalSourceOptions): Promise<EvalSourceResult> {
+  const quiet = intent !== "commit";
+  const file = baseSource(songId)?.file ?? songFileOf(songId);
+  const fail = (e: EvalSourceError): EvalSourceResult => {
+    if (!quiet) {
+      setError({ kind: "build", ...e, songId, file, keptPrevious: !!repl?.scheduler.started });
+    }
+    return { ok: false, error: e };
+  };
+  if (!hasSong(songId)) return fail({ message: `There is no song "${songId}" (addSong() adds new songs)` });
+  const problem = checkText(text);
+  if (problem) return fail({ message: problem });
+
+  const seq = nextSeq(songId);
+  const compiled = await compileSource(text, file);
+  if (evalSeq.get(songId) !== seq) return superseded();
+  if (!hasSong(songId)) return { ok: false, error: { message: `"${songId}" was removed` } };
+  if (!compiled.ok) return fail(compiled.error);
+
+  const version = contentVersion(text);
+  const outcome = await applyLiveSong(songId, compiled.song, {
+    file,
+    version,
+    text,
+    // a text that says what the song's own source says isn't "unsaved"
+    live: version !== baseSource(songId)?.version,
+    origin,
+  }, { quiet });
+  if (outcome.ok) return { ok: true, version };
+  // swap() already reported it (unless quiet); wait for its line in the text
+  if (outcome.error) await whenLocated(outcome.error);
+  return { ok: false, error: toEvalError(outcome.error) };
+}
+
+/** Drop a song's evaluated text: it plays its own source again (the file / the added text). False if it had none. */
+export function revertSource(songId: string): boolean {
+  nextSeq(songId); // an eval still compiling must not land afterwards
+  if (!liveSongs.delete(songId)) return false;
+  if (songId === currentSongId) void swap();
+  changed();
+  return true;
+}
+
+/** The last song played (saved id) isn't registered yet at boot: it may be a user song that addSong() brings */
+let bootSongId: string | null = null;
+
+/**
+ * Register a user song compiled from `text` (browser compile) under `id`, or
+ * replace the one with that id. It joins the song list (picker, next/prev,
+ * window.__strudel.songs()) and plays like a built-in song, as file
+ * `src/songs/<id>.ts`. Built-in ids are refused: evalSource() changes those.
+ */
+export function addSong(id: string, text: string): Promise<EvalSourceResult> {
+  const problem = songIdProblem(id) ?? checkText(text);
+  if (problem) return Promise.resolve({ ok: false, error: { message: problem } });
+  if (isBuiltInSong(id)) {
+    return Promise.resolve({ ok: false, error: { message: `"${id}" is a built-in song (src/songs/${id}.ts): use evalSource() to change it` } });
+  }
+  return trackPending(id, addSongNow(id, text));
+}
+
+async function addSongNow(id: string, text: string): Promise<EvalSourceResult> {
+  const file = songFileOf(id);
+  const seq = nextSeq(id);
+  const compiled = await compileSource(text, file);
+  if (evalSeq.get(id) !== seq) return superseded();
+  if (!compiled.ok) return { ok: false, error: compiled.error };
+  if (isBuiltInSong(id)) return { ok: false, error: { message: `"${id}" became a built-in song meanwhile` } };
+  const version = contentVersion(text);
+  userSongs.set(id, { song: compiled.song, source: { file, version, text, live: false, origin: "browser" } });
+  liveSongs.delete(id);
+  if (bootSongId === id && !repl?.scheduler.started) {
+    bootSongId = null;
+    switchTo(id);
+  }
+  changed();
+  if (id === currentSongId) await swap();
+  return { ok: true, version };
+}
+
+/** Unregister a user song (built-in songs can't be removed). The current song moves on if it was this one. */
+export function removeSong(id: string): boolean {
+  if (!userSongs.has(id)) return false;
+  nextSeq(id);
+  userSongs.delete(id);
+  liveSongs.delete(id);
+  if (id === currentSongId) {
+    switchTo(initialSongId());
+    void swap();
+  }
+  changed();
+  return true;
+}
+
 export function initialSongId(): string {
   const saved = readStorage(KEYS.song);
-  if (saved && saved in songsModule.songs) return saved;
+  if (saved && hasSong(saved)) return saved;
   if ("untitled" in songsModule.songs) return "untitled";
-  return songsModule.getAllSongs()[0]?.id ?? "untitled";
+  return allSongs()[0]?.id ?? "untitled";
 }
 
 /** Pick the initial song and validate it (so the mixer knows its tracks before play) */
 export function initSong() {
   currentSongId = initialSongId();
+  // the last song played was a user song: it is selected once addSong() registers it
+  const saved = readStorage(KEYS.song);
+  bootSongId = saved && saved !== currentSongId ? saved : null;
   knobsChanged();
   mix.load(currentSongId);
 }
@@ -913,8 +1214,16 @@ export interface KnobWriteResult {
  * update then hot-swaps seamlessly and the knobs are no longer dirty.
  */
 export async function writeKnobs(names?: string[]): Promise<KnobWriteResult> {
-  const file = currentSource()?.file;
+  const source = currentSource();
+  const file = source?.file;
   if (!file) return { ok: false, error: "no song file" };
+  if (userSongs.has(currentSongId)) {
+    return { ok: false, error: `${file} isn't a file yet (a song made in the browser): save it to a file first` };
+  }
+  if (source.live && source.origin === "browser") {
+    // the dev server only knows about editor buffers (its 409); this text only exists in the page
+    return { ok: false, error: `${file} plays unsaved edits made in the browser: save them first, then write the knob` };
+  }
   const list = knobs().filter((k) => (names ? names.includes(k.name) : k.dirty));
   if (!list.length) return { ok: true, changes: [] };
   try {

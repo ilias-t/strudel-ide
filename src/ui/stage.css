@@ -831,7 +831,8 @@ code {
 /* edit mode: what happened to the last edit (code-editor.ts / edit-session.ts) */
 .code-status {
   flex: 0 1 auto !important;
-  min-width: 0;
+  /* a short status ("live", "editing…") stays whole in a full file bar; the path gives way first */
+  min-width: 7ch;
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--px-dim);
@@ -879,6 +880,13 @@ code {
   color: var(--glass);
   background: var(--px);
   box-shadow: none;
+}
+/* editing fills the file bar (status, edited, revert…): the library key drops its B badge there */
+.stage[data-code-mode="edit"] .code-library {
+  padding-right: 9px;
+}
+.stage[data-code-mode="edit"] .code-library kbd {
+  display: none;
 }
 .code-library[aria-expanded="true"] {
   color: var(--glass);

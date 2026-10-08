@@ -205,6 +205,8 @@ test("insert from view mode: edit mode turns on, Monaco loads, and items chain a
   await expect.poll(() => editorLoaded(page), { timeout: 30_000 }).toBe(true);
   await expect(page.getByTestId("code-edit")).toHaveAttribute("aria-pressed", "true");
   await expect.poll(() => buffer(page)).toMatch(/\n\s*s\("bd"\)\n\s*return \{ lead \}/);
+  // the editor was just shown: the inserted line is in view, not scrolled past
+  await expect(page.getByTestId("code-editor").locator(".view-line", { hasText: 's("bd")' })).toBeVisible();
   await expect(insertBd, "focus stays in the library").toBeFocused();
   await expect(page.getByTestId("library")).toBeVisible();
 

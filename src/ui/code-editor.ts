@@ -491,7 +491,17 @@ export class CodeEditor implements CodeSurface {
       const a = model.getPositionAt(from);
       const b = model.getPositionAt(to);
       this.editor.setSelection(new monaco.Selection(a.lineNumber, a.column, b.lineNumber, b.column));
-      this.editor.revealRangeInCenterIfOutsideViewport(new monaco.Range(a.lineNumber, a.column, b.lineNumber, b.column));
+      // the editor may have just been shown (an insert from the read-only view):
+      // measure first, and again next frame, or the reveal centres on a 0-px viewport
+      const range = new monaco.Range(a.lineNumber, a.column, b.lineNumber, b.column);
+      this.editor.layout();
+      this.programmaticUntil = performance.now() + 900;
+      this.editor.revealRangeInCenterIfOutsideViewport(range, monaco.editor.ScrollType.Immediate);
+      requestAnimationFrame(() => {
+        if (this.model !== model) return;
+        this.editor.layout();
+        this.editor.revealRangeInCenterIfOutsideViewport(range, monaco.editor.ScrollType.Immediate);
+      });
     }
     return true;
   }

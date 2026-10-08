@@ -170,10 +170,18 @@ test("extension end to end against a fake bridge", async () => {
   await new Promise((r) => setTimeout(r, 50));
   assert.equal(hl(editor).length, 0, "no highlights on a dirty doc");
 
-  // ── evaluate (Cmd+Enter) on a dirty, playing file = save only (HMR updates) ─
+  // ── evaluate (Cmd+Enter) on a dirty, playing file = live eval of the buffer, no save ─
+  await vscode.commands.executeCommand("strudel.evaluate");
+  await until(() => fromEditor.length === 1, "eval");
+  const evalMsg = fromEditor.shift();
+  assert.deepEqual(evalMsg, { type: "eval", file: "src/songs/jynx.ts", text: doc.getText(), version: contentVersion(doc.getText()) });
+  assert.equal(doc.saves, 0);
+  // …with live eval off it saves instead (Vite HMR updates)
+  vscode.config["strudel.liveEval"] = "off";
   await vscode.commands.executeCommand("strudel.evaluate");
   assert.equal(doc.saves, 1);
   assert.equal(fromEditor.length, 0);
+  delete vscode.config["strudel.liveEval"];
   // clean + playing → stop
   await vscode.commands.executeCommand("strudel.evaluate");
   await until(() => fromEditor.length === 1, "stop command");
@@ -350,4 +358,179 @@ export default song;
   assert.equal(vscode.recorded.context.get("strudel.connected"), false);
   await until(() => editorSocket !== null, "reconnect", 5000);
   await until(() => vscode.recorded.context.get("strudel.connected") === true, "reconnected");
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Live eval (unsaved buffers) and knobs, on the same fake bridge
+// ─────────────────────────────────────────────────────────────────────────────
+
+const KNOBBY = `import type { Song } from ".";
+
+const cutoff = knob("cutoff", 2200, 200, 8000, { log: true });
+
+const song: Song = {
+  name: "Knobby",
+  createPattern() {
+    return note("c3 e3 g3").s("sawtooth").lpf(cutoff);
+  },
+};
+
+export default song;
+`;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+async function nextFromEditor() {
+  await until(() => fromEditor.length > 0, "a message from the editor");
+  return fromEditor.shift();
+}
+const hintsOn = (ed: InstanceType<typeof vscode.FakeEditor>) => ed.decorationsOf(vscode.isKnobHint) as unknown as any[];
+
+test("live eval on a typing pause, highlights on the dirty document, eval errors, knob hints, write and stepper", async () => {
+  await until(() => editorSocket !== null && vscode.recorded.context.get("strudel.connected") === true, "connected");
+  const path = join(root, "src", "songs", "knobby.ts");
+  writeFileSync(path, KNOBBY);
+  const doc = new vscode.FakeDocument(path, KNOBBY);
+  vscode.workspace.textDocuments.push(doc);
+  const editor = new vscode.FakeEditor(doc);
+  vscode.window._setEditors([editor], editor);
+  const F = "src/songs/knobby.ts";
+  const knobbyState = { type: "state", playing: true, songId: "knobby", songName: "Knobby", file: F, bpm: 120, cycle: 3, error: null };
+  toEditor({ type: "player", connected: true });
+  toEditor({ type: "songs", songs: [{ id: "knobby", name: "Knobby", file: F }] });
+  toEditor(knobbyState);
+  await until(() => vscode.statusItem.text.startsWith("▶ Knobby"), "knobby playing");
+  fromEditor.splice(0);
+
+  // ── a pause in typing evaluates the buffer, once, with the latest text ─────
+  vscode.config["strudel.liveEvalDelay"] = 150;
+  const g3 = KNOBBY.indexOf("g3");
+  doc.editRange(g3 + 2, 0, " b3");
+  await sleep(80);
+  doc.editRange(g3 + 5, 0, " d4");
+  await sleep(100);
+  assert.equal(fromEditor.length, 0, "no eval while typing");
+  await until(() => fromEditor.length === 1, "eval after the pause");
+  const text1 = doc.getText();
+  const v1 = contentVersion(text1);
+  assert.deepEqual(fromEditor.shift(), { type: "eval", file: F, text: text1, version: v1 });
+  await sleep(250);
+  assert.equal(fromEditor.length, 0, "the same text is evaluated once");
+  assert.equal(doc.saves, 0, "never saved");
+  // from here on, only Ctrl/Cmd+Enter evaluates (keeps the message log predictable)
+  vscode.config["strudel.liveEval"] = "onCommand";
+
+  // ── highlights on the dirty document: the buffer's version matches ────────
+  const c3 = text1.indexOf("c3");
+  const d4 = text1.indexOf("d4");
+  const lineOfOffset = (t: string, o: number) => t.slice(0, o).split("\n").length - 1;
+  toEditor({ type: "highlight", file: F, ranges: [[c3, c3 + 2], [d4, d4 + 2]], version: v1 });
+  await until(() => hl(editor).length === 2, "dirty doc highlighted");
+  assert.deepEqual(lines(hl(editor)), [
+    [lineOfOffset(text1, c3), lineOfOffset(text1, c3)],
+    [lineOfOffset(text1, d4), lineOfOffset(text1, d4)],
+  ]);
+  // the saved file's version doesn't fit the dirty text: nothing
+  toEditor({ type: "highlight", file: F, ranges: [[c3, c3 + 2]], version: contentVersion(KNOBBY) });
+  await until(() => hl(editor).length === 0, "other version not shown");
+  toEditor({ type: "highlight", file: F, ranges: [[c3, c3 + 2], [d4, d4 + 2]], version: v1 });
+  await until(() => hl(editor).length === 2, "back");
+  // typing above the tokens: they stay lit, a line further down (no new message needed)
+  doc.editRange(0, 0, "// hi\n");
+  assert.deepEqual(lines(hl(editor)), [
+    [lineOfOffset(text1, c3) + 1, lineOfOffset(text1, c3) + 1],
+    [lineOfOffset(text1, d4) + 1, lineOfOffset(text1, d4) + 1],
+  ]);
+  const at = doc.getText().indexOf("c3");
+  // typing over a token: just that one goes dark
+  doc.editRange(at, 2, "c2");
+  assert.equal(hl(editor).length, 1);
+  // the next highlight frame (still the evaluated version) is carried the same way
+  toEditor({ type: "highlight", file: F, ranges: [[c3, c3 + 2], [d4, d4 + 2]], version: v1 });
+  await sleep(40);
+  assert.equal(hl(editor).length, 1);
+
+  // ── eval errors → diagnostics on the dirty document; setup problems → message ─
+  toEditor({ ...knobbyState, error: { message: "Syntax error: ')' expected.", file: F, line: 9, column: 5 } });
+  await until(() => vscode.diagnostics.get(path)?.length === 1, "eval error diagnostic");
+  const [diag] = vscode.diagnostics.get(path)!;
+  assert.equal(diag.message, "Syntax error: ')' expected.");
+  assert.deepEqual([diag.range.start.line, diag.range.start.character], [8, 4]);
+  toEditor({ ...knobbyState, error: null });
+  await until(() => vscode.diagnostics.size === 0, "fixed");
+  toEditor({ type: "evalResult", file: F, version: v1, ok: false, error: { message: "No player connected: open the Strudel player in the browser" } });
+  await until(() => /No player connected/.test(vscode.recorded.messages.at(-1)?.text ?? ""), "warning");
+
+  // ── Ctrl/Cmd+Enter evaluates the dirty buffer now ──────────────────────────
+  await vscode.commands.executeCommand("strudel.evaluate");
+  await until(() => fromEditor.length === 1, "eval command");
+  assert.equal(fromEditor.shift().text, doc.getText());
+
+  // ── knob hints after each knob(…) call ─────────────────────────────────────
+  const cutoff = { name: "cutoff", value: 2200, def: 2200, min: 200, max: 8000, step: 10, log: true, dirty: false };
+  toEditor({ type: "knobs", songId: "knobby", file: F, knobs: [cutoff] });
+  await until(() => hintsOn(editor).length === 1, "knob hint");
+  let [hint] = hintsOn(editor);
+  assert.equal(hint.renderOptions.after.contentText, "◉ 2200");
+  assert.equal(hint.renderOptions.after.color.id, "strudel.knobForeground");
+  const callEnd = doc.getText().indexOf("{ log: true })") + "{ log: true })".length;
+  assert.deepEqual([hint.range.start.line, hint.range.start.character], [doc.positionAt(callEnd).line, doc.positionAt(callEnd).character]);
+  toEditor({ type: "knobs", songId: "knobby", file: F, knobs: [{ ...cutoff, value: 1800, dirty: true }] });
+  await until(() => hintsOn(editor)[0]?.renderOptions.after.contentText === "◉ 1800", "hint follows the value");
+  [hint] = hintsOn(editor);
+  assert.equal(hint.renderOptions.after.color.id, "strudel.knobDirtyForeground", "amber while dirty");
+  const calls = editor.setDecorationsCalls;
+  toEditor({ type: "knobs", songId: "knobby", file: F, knobs: [{ ...cutoff, value: 1800, dirty: true }] });
+  await sleep(40);
+  assert.equal(editor.setDecorationsCalls, calls, "unchanged hints are not redrawn");
+  const knobLenses = (await vscode.codeLensProviders[0].provideCodeLenses(doc)).map((l: any) => [l.command.title, l.command.command, l.command.arguments]);
+  assert.deepEqual(
+    knobLenses.filter((l: any) => /knob/i.test(l[1])),
+    [
+      ["◉ cutoff changed · write", "strudel.writeKnob", ["cutoff"]],
+      ["reset", "strudel.resetKnob", ["cutoff"]],
+    ],
+  );
+
+  // ── write on the dirty document: into the buffer, evaluated right away ─────
+  await vscode.commands.executeCommand("strudel.writeKnob", "cutoff");
+  assert.match(doc.getText(), /knob\("cutoff", 1800, 200, 8000/);
+  assert.equal(doc.saves, 0);
+  await until(() => fromEditor.length === 1, "eval of the written buffer");
+  assert.equal(fromEditor.shift().text, doc.getText());
+  // …on a saved document the dev server writes the file
+  await doc.save();
+  await vscode.commands.executeCommand("strudel.writeKnob", "cutoff");
+  await until(() => fromEditor.length === 1, "writeKnobs command");
+  assert.deepEqual(fromEditor.shift(), { type: "command", command: "writeKnobs", knobs: ["cutoff"], file: F });
+  toEditor({ type: "knobWrite", file: F, ok: false, error: "knob(\"cutoff\", …) is only in the unsaved editor buffer" });
+  await until(() => /only in the unsaved editor buffer/.test(vscode.recorded.messages.at(-1)?.text ?? ""), "refusal shown");
+
+  // ── Adjust Knob…: the knob under the cursor, a stepper that stays open ─────
+  const callAt = doc.getText().indexOf('knob("cutoff"');
+  editor.selection = new vscode.Selection(doc.positionAt(callAt + 3), doc.positionAt(callAt + 3));
+  await vscode.commands.executeCommand("strudel.adjustKnob");
+  const qp = vscode.quickPicks.at(-1)!;
+  assert.equal(qp.visible, true);
+  assert.deepEqual(await nextFromEditor(), { type: "command", command: "grabKnob", knob: "cutoff", on: true });
+  assert.match(qp.title, /cutoff = 1800/);
+  await qp.pick("step up");
+  assert.deepEqual(await nextFromEditor(), { type: "command", command: "setKnob", knob: "cutoff", value: 1810 });
+  await qp.pick("step up"); // before the player answered: steps from what was sent
+  assert.deepEqual(await nextFromEditor(), { type: "command", command: "setKnob", knob: "cutoff", value: 1820 });
+  await qp.type("3000");
+  assert.deepEqual(await nextFromEditor(), { type: "command", command: "setKnob", knob: "cutoff", value: 3000 });
+  await qp.type("99999");
+  await sleep(40);
+  assert.equal(fromEditor.length, 0, "out of range: not sent");
+  assert.match(qp.placeholder, /Between 200 and 8000/);
+  toEditor({ type: "knobs", songId: "knobby", file: F, knobs: [{ ...cutoff, value: 3000, dirty: true }] });
+  await until(() => /cutoff = 3000/.test(qp.title), "title follows the player");
+  await qp.pick("reset");
+  assert.deepEqual(await nextFromEditor(), { type: "command", command: "resetKnob", knob: "cutoff" });
+  qp.hide();
+  assert.deepEqual(await nextFromEditor(), { type: "command", command: "grabKnob", knob: "cutoff", on: false });
+  assert.equal(qp.disposed, true);
+
+  delete vscode.config["strudel.liveEval"];
+  delete vscode.config["strudel.liveEvalDelay"];
 });

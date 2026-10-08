@@ -55,7 +55,7 @@ import {
   type Role,
   type ServerInfoMsg,
 } from "../src/live/protocol.ts";
-import { EvalError, createLiveEval, type LiveEval } from "./strudel-live-eval.ts";
+import { LiveEvalError, createLiveEval, type LiveEval } from "./strudel-live-eval.ts";
 
 export interface StrudelBridgeOptions {
   /** Write the discovery file (default true). */
@@ -334,9 +334,9 @@ export function liveEvalHandler(live: LiveEval, relay: () => BridgeRelay | null)
         const compiled = await live.compile(msg.file, msg.text);
         out = { type: "live", file: compiled.file, version, text: msg.text, url: compiled.url };
       } catch (err) {
-        const error: PlayerError = err instanceof EvalError ? err.error : { message: String(err) };
+        const error: PlayerError = err instanceof LiveEvalError ? err.error : { message: String(err) };
         // not a song / too large / not on disk: only the editor hears about it
-        if (!(err instanceof EvalError) || !error.file || error.line === undefined) return reply(evalFailed(msg, error));
+        if (!(err instanceof LiveEvalError) || !error.file || error.line === undefined) return reply(evalFailed(msg, error));
         out = { type: "live", file: error.file, version, text: msg.text, error };
       }
       if (latest.get(msg.file) !== id) return; // a newer buffer is on its way

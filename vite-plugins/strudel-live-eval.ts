@@ -49,7 +49,7 @@ export function liveUrl(file: string, version: string): string {
   return `/${file}?${LIVE_QUERY}=${version}`;
 }
 
-export class EvalError extends Error {
+export class LiveEvalError extends Error {
   readonly error: PlayerError;
   constructor(error: PlayerError) {
     super(error.message);
@@ -59,17 +59,17 @@ export class EvalError extends Error {
 
 /**
  * Normalize and validate an editor's `file`: the Vite-root-relative path of an
- * existing song module, or an EvalError.
+ * existing song module, or a LiveEvalError.
  */
 export function songFileOf(root: string, file: unknown): string {
-  if (typeof file !== "string" || !file) throw new EvalError({ message: "eval: `file` must be a song path" });
+  if (typeof file !== "string" || !file) throw new LiveEvalError({ message: "eval: `file` must be a song path" });
   const abs = path.resolve(root, file);
   const rel = path.relative(root, abs).split(path.sep).join("/");
   if (rel.startsWith("..") || path.isAbsolute(rel) || !isSongFile(abs, root)) {
-    throw new EvalError({ message: `${file} is not a song file (src/songs/<name>.ts)` });
+    throw new LiveEvalError({ message: `${file} is not a song file (src/songs/<name>.ts)` });
   }
   if (!existsSync(abs)) {
-    throw new EvalError({ message: `${rel} is not on disk yet: save it once, then evaluate`, file: rel });
+    throw new LiveEvalError({ message: `${rel} is not on disk yet: save it once, then evaluate`, file: rel });
   }
   return rel;
 }
@@ -170,7 +170,7 @@ export interface CompiledBuffer {
 
 /**
  * The live-eval service of one dev server. `compile()` stores and compiles a
- * buffer (throws EvalError); `load()` and `hotUpdate()` are the plugin hooks.
+ * buffer (throws LiveEvalError); `load()` and `hotUpdate()` are the plugin hooks.
  */
 export function createLiveEval(server: ViteDevServer) {
   const root = server.config.root;
@@ -191,9 +191,9 @@ export function createLiveEval(server: ViteDevServer) {
 
     async compile(fileArg: unknown, text: unknown): Promise<CompiledBuffer> {
       const file = songFileOf(root, fileArg);
-      if (typeof text !== "string") throw new EvalError({ message: "eval: `text` must be a string", file });
+      if (typeof text !== "string") throw new LiveEvalError({ message: "eval: `text` must be a string", file });
       if (text.length > MAX_EVAL_CHARS) {
-        throw new EvalError({ message: `eval: ${file} is too large (${text.length} > ${MAX_EVAL_CHARS} characters)`, file });
+        throw new LiveEvalError({ message: `eval: ${file} is too large (${text.length} > ${MAX_EVAL_CHARS} characters)`, file });
       }
       const version = contentVersion(text);
       const evicted = buffers.put(file, version, text);
@@ -202,13 +202,13 @@ export function createLiveEval(server: ViteDevServer) {
       if (evicted.length) prune(server, abs, (v) => buffers.get(file, v) !== undefined);
 
       const syntax = syntaxError(text, file);
-      if (syntax) throw new EvalError(syntax);
+      if (syntax) throw new LiveEvalError(syntax);
       const url = liveUrl(file, version);
       try {
         // not through the HTTP middleware: its errors would pop Vite's overlay
         await server.transformRequest(url);
       } catch (err) {
-        throw new EvalError(transformError(err, file));
+        throw new LiveEvalError(transformError(err, file));
       }
       return { file, version, url: `${base}${url}` };
     },

@@ -10,7 +10,7 @@ import { join, resolve } from "node:path";
 import { describe, test } from "node:test";
 import ts from "typescript";
 import { KnobRegistry, knobPosition, knobValueAt, parseKnobArgs, snapKnob, type SavedKnobs } from "../src/engine/knobs.ts";
-import { KnobWriteError, rewriteKnobValues, transformKnobs } from "../vite-plugins/strudel-knobs.ts";
+import { KnobWriteError, checkLiveBuffer, rewriteKnobValues, transformKnobs } from "../vite-plugins/strudel-knobs.ts";
 import { isSongFile, loadStrudelNames, transformSong } from "../vite-plugins/strudel-locations.ts";
 
 const root = resolve(import.meta.dirname, "..");
@@ -103,6 +103,22 @@ describe("write-back rewrite", () => {
       (e: KnobWriteError) => e.status === 422 && /not a number literal/.test(e.message)
     );
     assert.throws(() => rewriteKnobValues(code, "x.ts", [{ name: "cutoff", value: NaN }]), /finite/);
+  });
+
+  test("refuses (409) while an unsaved, evaluated buffer of the file plays", () => {
+    const writes = [{ name: "cutoff", value: 1 }];
+    // no buffer, or the buffer is what's on disk: fine
+    checkLiveBuffer(code, "x.ts", writes, null);
+    checkLiveBuffer(code, "x.ts", writes, { text: code });
+    const buffer = code.replace("const c", 'const d = knob("width", 0.5, 0, 1);\nconst c');
+    assert.throws(
+      () => checkLiveBuffer(code, "x.ts", [{ name: "width", value: 0.2 }], { text: buffer }),
+      (e: KnobWriteError) => e.status === 409 && /only in the unsaved editor buffer of x\.ts/.test(e.message)
+    );
+    assert.throws(
+      () => checkLiveBuffer(code, "x.ts", writes, { text: buffer }),
+      (e: KnobWriteError) => e.status === 409 && /unsaved changes that are playing/.test(e.message)
+    );
   });
 });
 

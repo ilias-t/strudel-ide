@@ -20,7 +20,8 @@
 // Clicking a token or line reports its position (onPick), which the stage
 // uses to open that spot in the editor.
 
-import { tokenize, type Token, type TokenKind } from "./tokenize";
+import { tokenize, type TokenKind } from "./tokenize";
+import { findKnobCalls, type KnobCall } from "../live/knob-calls";
 import type { Range } from "../live/highlights";
 
 const PACK = 2 ** 22;
@@ -55,44 +56,6 @@ export interface CodeViewOptions {
   onKnobChip?: (name: string) => void;
   /** A click on the code (not a text selection): offset into the text, 1-based line/column */
   onPick?: (pos: { offset: number; line: number; column: number }) => void;
-}
-
-/** A `knob("name", …)` call in the text: `end` is just past its closing paren */
-export interface KnobCall {
-  name: string;
-  start: number;
-  end: number;
-}
-
-/**
- * Find `knob("name", …)` calls with the tokenizer (not in comments or
- * strings, not `.knob(`), and where each call's parentheses close.
- */
-export function findKnobCalls(text: string, tokens: Token[] = tokenize(text)): KnobCall[] {
-  const calls: KnobCall[] = [];
-  const significant = tokens.filter((t) => t.kind !== "" || text.slice(t.start, t.end).trim() !== "");
-  for (let i = 0; i < significant.length; i++) {
-    const t = significant[i];
-    if (t.kind !== "f" || text.slice(t.start, t.end) !== "knob" || text[t.start - 1] === ".") continue;
-    const open = significant[i + 1];
-    const name = significant[i + 2];
-    if (!open || open.kind !== "p" || text[open.start] !== "(" || !name || name.kind !== "s") continue;
-    let depth = 0;
-    let end = -1;
-    for (let j = i + 1; j < significant.length && end < 0; j++) {
-      const p = significant[j];
-      if (p.kind !== "p") continue;
-      for (let k = p.start; k < p.end; k++) {
-        if (text[k] === "(") depth++;
-        else if (text[k] === ")" && --depth === 0) {
-          end = k + 1;
-          break;
-        }
-      }
-    }
-    if (end > 0) calls.push({ name: text.slice(name.start + 1, name.end - 1), start: t.start, end });
-  }
-  return calls;
 }
 
 export class CodeView {

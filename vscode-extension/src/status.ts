@@ -153,6 +153,10 @@ export function formatStatus(model: LiveModel, now = Date.now(), playerUrl = "ht
     parts.push(`bar ${pos.bar}`);
   }
   if (typeof s.bpm === "number") parts.push(`${Math.round(s.bpm)} BPM`);
+  if (s.live) {
+    parts.push("● unsaved");
+    tips.push("Playing your unsaved editor buffer (live eval). Save the file to keep it.");
+  }
   return {
     kind: s.playing ? "playing" : "stopped",
     text: parts.join(" · "),

@@ -1,8 +1,8 @@
 {
   "name": "strudel-live",
   "displayName": "Strudel Live",
-  "description": "strudel.cc-style live coding for the Strudel IDE: live highlights and hit pulses, play/stop, song position and sections, a mute/solo mixer in the code, errors, and click-to-open from the browser player.",
-  "version": "0.2.0",
+  "description": "strudel.cc-style live coding for the Strudel IDE: evaluate unsaved code (Ctrl/Cmd+Enter or a typing pause), live highlights and hit pulses, knobs in the code, play/stop, song position and sections, a mute/solo mixer in the code, errors, and click-to-open from the browser player.",
+  "version": "0.3.0",
   "publisher": "strudel-ide-local",
   "private": true,
   "license": "UNLICENSED",
@@ -18,7 +18,7 @@
   ],
   "contributes": {
     "commands": [
-      { "command": "strudel.evaluate", "title": "Play / Update / Stop (evaluate)", "category": "Strudel", "icon": "$(play)" },
+      { "command": "strudel.evaluate", "title": "Evaluate: Play / Update / Stop", "category": "Strudel", "icon": "$(play)" },
       { "command": "strudel.toggle", "title": "Toggle Play/Stop", "category": "Strudel" },
       { "command": "strudel.play", "title": "Play", "category": "Strudel" },
       { "command": "strudel.stop", "title": "Stop", "category": "Strudel", "icon": "$(debug-stop)" },
@@ -35,7 +35,11 @@
       { "command": "strudel.toggleLoop", "title": "Toggle Loop Section", "category": "Strudel" },
       { "command": "strudel.showError", "title": "Show Player Error", "category": "Strudel" },
       { "command": "strudel.startDevServer", "title": "Start Dev Server (npm run dev)", "category": "Strudel" },
-      { "command": "strudel.reconnect", "title": "Reconnect to Dev Server", "category": "Strudel" }
+      { "command": "strudel.reconnect", "title": "Reconnect to Dev Server", "category": "Strudel" },
+      { "command": "strudel.adjustKnob", "title": "Adjust Knob…", "category": "Strudel" },
+      { "command": "strudel.writeKnob", "title": "Write Knob to Code…", "category": "Strudel" },
+      { "command": "strudel.writeKnobs", "title": "Write All Changed Knobs to Code", "category": "Strudel" },
+      { "command": "strudel.resetKnob", "title": "Reset Knob to the Code's Value…", "category": "Strudel" }
     ],
     "keybindings": [
       {
@@ -75,6 +79,11 @@
         "key": "ctrl+alt+pageup",
         "mac": "ctrl+alt+[",
         "when": "editorTextFocus && strudel.isSongFile"
+      },
+      {
+        "command": "strudel.adjustKnob",
+        "key": "ctrl+alt+k",
+        "when": "editorTextFocus && strudel.isSongFile"
       }
     ],
     "menus": {
@@ -88,7 +97,11 @@
         { "command": "strudel.jumpToSection", "when": "strudel.playerConnected" },
         { "command": "strudel.nextSection", "when": "strudel.playerConnected" },
         { "command": "strudel.prevSection", "when": "strudel.playerConnected" },
-        { "command": "strudel.toggleLoop", "when": "strudel.playerConnected" }
+        { "command": "strudel.toggleLoop", "when": "strudel.playerConnected" },
+        { "command": "strudel.adjustKnob", "when": "strudel.playerConnected" },
+        { "command": "strudel.writeKnob", "when": "strudel.playerConnected" },
+        { "command": "strudel.writeKnobs", "when": "strudel.playerConnected" },
+        { "command": "strudel.resetKnob", "when": "strudel.playerConnected" }
       ]
     },
     "colors": [
@@ -111,6 +124,16 @@
         "id": "strudel.pulseBorder",
         "description": "Outline of the flash on a mini-notation token each time it is hit.",
         "defaults": { "dark": "#ffffff", "light": "#000000", "highContrast": "contrastActiveBorder", "highContrastLight": "contrastActiveBorder" }
+      },
+      {
+        "id": "strudel.knobForeground",
+        "description": "Inline value hint after a knob(…) call.",
+        "defaults": { "dark": "#9da5b4", "light": "#6a737d", "highContrast": "#ffffff", "highContrastLight": "#000000" }
+      },
+      {
+        "id": "strudel.knobDirtyForeground",
+        "description": "Inline value hint of a knob turned away from the value in the code.",
+        "defaults": { "dark": "#ffb347", "light": "#b35c00", "highContrast": "#ffb347", "highContrastLight": "#8a4500" }
       }
     ],
     "configuration": {
@@ -120,6 +143,23 @@
           "type": "string",
           "default": "",
           "markdownDescription": "Dev server URL, e.g. `http://localhost:3000`. Empty = auto-detect from `node_modules/.strudel/server.json` (written by `npm run dev`), falling back to `http://localhost:3000`."
+        },
+        "strudel.liveEval": {
+          "type": "string",
+          "enum": ["onPause", "onCommand", "off"],
+          "enumDescriptions": [
+            "Evaluate the unsaved song you're editing when you stop typing (strudel.liveEvalDelay), and on Ctrl/Cmd+Enter.",
+            "Evaluate the unsaved buffer only on Ctrl/Cmd+Enter, like strudel.cc.",
+            "No live eval: Ctrl/Cmd+Enter saves the file and Vite hot-swaps it."
+          ],
+          "default": "onPause",
+          "markdownDescription": "Play unsaved changes without saving the file (live eval). Code that doesn't compile or build never replaces what plays, and saving later doesn't swap again. A typing pause only updates the song that's loaded in the player; Ctrl/Cmd+Enter also switches to it."
+        },
+        "strudel.liveEvalDelay": {
+          "type": "number",
+          "default": 600,
+          "minimum": 150,
+          "markdownDescription": "Milliseconds without typing before `onPause` live eval sends the buffer."
         },
         "strudel.highlights.enabled": {
           "type": "boolean",
@@ -145,6 +185,16 @@
           "type": "boolean",
           "default": true,
           "description": "Dim the definitions of tracks that are muted (or silenced by a solo)."
+        },
+        "strudel.knobs.hints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show each knob's live value after its knob(…) call (amber when it differs from the code)."
+        },
+        "strudel.knobs.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show write / reset actions above knobs whose live value differs from the code."
         },
         "strudel.reveal.focusWindow": {
           "type": "string",

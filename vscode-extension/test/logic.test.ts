@@ -13,6 +13,10 @@ import { LineIndex, findCreatePattern, normalizeRanges, toSpans } from "../src/r
 import { Pulses } from "../src/pulses.ts";
 import { barNumber, currentCycle, cyclesPerSecond, formatStatus, songPosition } from "../src/status.ts";
 import { findTracks, isAudible, tokenize } from "../src/tracks.ts";
+import { EditHistory, mapRange } from "../src/edits.ts";
+import { LiveEvaluator, liveEvalMode, type LiveEvalMode } from "../src/live-eval.ts";
+import { dirtyKey, findKnobCalls, knobHints, knobValueEdits, parseKnobInput, stepKnob } from "../src/knobs.ts";
+import type { KnobState } from "../../src/live/protocol.ts";
 
 const state = (over: Partial<StateMsg> = {}): StateMsg => ({
   type: "state",
@@ -238,6 +242,279 @@ describe("command planning", () => {
     assert.deepEqual(planEvaluate(m, other, false), [select(other, "lofi"), cmd("play")]);
     assert.deepEqual(planPlayFile(m, other), [select(other, "lofi"), cmd("play")]);
   });
+
+  test("evaluate with live eval: unsaved text is evaluated, not saved", () => {
+    const m = new LiveModel();
+    m.setBridge("connected");
+    const f = "src/songs/jynx.ts";
+    const live = { live: true, version: "aaaaaaaa" };
+    m.handle(state({ playing: false }));
+    assert.deepEqual(planEvaluate(m, f, true, live), [{ kind: "eval", play: true }], "not playing: eval + play");
+    m.handle(state({ playing: true }));
+    assert.deepEqual(planEvaluate(m, f, true, live), [{ kind: "eval", play: false }], "playing: eval only");
+    assert.deepEqual(planEvaluate(m, f, false, live), [cmd("stop")], "saved and playing: stop");
+    // the player plays another buffer of this file than the (clean) text now: evaluate it
+    m.handle(state({ playing: true, live: { file: f, version: "bbbbbbbb" } }));
+    assert.deepEqual(planEvaluate(m, f, false, live), [{ kind: "eval", play: false }]);
+    assert.deepEqual(planEvaluate(m, f, false, { live: true, version: "bbbbbbbb" }), [cmd("stop")]);
+    assert.deepEqual(planEvaluate(m, f, true, { live: false }), [{ kind: "save" }], "live eval off: save");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("edit history: highlights across typing", () => {
+  const ins = (offset: number, text: string) => [{ offset, length: 0, inserted: text.length }];
+  test("mapRange shifts ranges after an edit and drops the ones it touches", () => {
+    assert.deepEqual(mapRange([10, 12], ins(0, "abc")), [13, 15], "insert before");
+    assert.deepEqual(mapRange([10, 12], ins(20, "abc")), [10, 12], "insert after");
+    assert.equal(mapRange([10, 12], ins(11, "x")), null, "insert inside");
+    assert.equal(mapRange([10, 12], ins(12, "x")), null, "typing right after the token changes it");
+    assert.equal(mapRange([10, 12], ins(10, "x")), null, "…and right before it");
+    assert.deepEqual(mapRange([10, 12], [{ offset: 2, length: 5, inserted: 1 }]), [6, 8], "replace before");
+    assert.equal(mapRange([10, 12], [{ offset: 8, length: 3, inserted: 0 }]), null, "delete overlapping");
+    // one event with several changes (multi-cursor), all against the same text
+    assert.deepEqual(
+      mapRange([10, 12], [
+        { offset: 30, length: 0, inserted: 2 },
+        { offset: 1, length: 0, inserted: 2 },
+      ]),
+      [12, 14],
+    );
+  });
+
+  test("ranges of a marked version follow the edits since; unknown versions give null", () => {
+    const text0 = 'note("c3 e3")';
+    const h = new EditHistory();
+    h.mark("v0");
+    assert.equal(h.isCurrent("v0"), true);
+    const e3 = text0.indexOf("e3");
+    // type `x` at the start, then delete it again: e3 is where it was
+    h.record(ins(0, "x"));
+    assert.deepEqual(h.map("v0", [[e3, e3 + 2]]), [[e3 + 1, e3 + 3]]);
+    h.record([{ offset: 0, length: 1, inserted: 0 }]);
+    assert.deepEqual(h.map("v0", [[e3, e3 + 2]]), [[e3, e3 + 2]]);
+    assert.equal(h.isCurrent("v0"), false);
+    // edit c3: its range drops, e3 stays
+    h.record([{ offset: 6, length: 2, inserted: 2 }]);
+    assert.deepEqual(h.map("v0", [[6, 8], [e3, e3 + 2]]), [[e3, e3 + 2]]);
+    assert.equal(h.map("nope", [[0, 1]]), null);
+    // a newer version (an eval) has no edits since
+    h.mark("v1");
+    assert.deepEqual(h.map("v1", [[6, 8]]), [[6, 8]]);
+    assert.ok(h.knows("v0"));
+  });
+
+  test("bounded: old bases and long histories are dropped", () => {
+    const h = new EditHistory(2, 3);
+    h.mark("a");
+    h.mark("b");
+    h.mark("c");
+    assert.equal(h.knows("a"), false);
+    for (let i = 0; i < 4; i++) h.record(ins(0, "x"));
+    assert.equal(h.knows("b"), false, "too many edits since");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("live eval scheduling", () => {
+  function setup(mode: LiveEvalMode = "onPause", eligible = true) {
+    const timers: { fn: () => void; ms: number; cleared: boolean }[] = [];
+    const sent: { file: string; text: string; version: string; play: boolean }[] = [];
+    let ok = true;
+    const ev = new LiveEvaluator({
+      mode: () => mode,
+      delay: () => 600,
+      eligible: () => eligible,
+      send: (file, text, version, play) => {
+        if (!ok) return false;
+        sent.push({ file, text, version, play });
+        return true;
+      },
+      setTimer: (fn, ms) => {
+        const t = { fn, ms, cleared: false };
+        timers.push(t);
+        return t;
+      },
+      clearTimer: (t) => {
+        (t as { cleared: boolean }).cleared = true;
+      },
+    });
+    const fire = () => {
+      for (const t of timers.splice(0)) if (!t.cleared) t.fn();
+    };
+    let text = "a";
+    let dirty = true;
+    const doc = { file: "src/songs/x.ts", text: () => text, dirty: () => dirty };
+    return {
+      ev,
+      sent,
+      timers,
+      fire,
+      doc,
+      type(t: string) {
+        text = t;
+        dirty = true;
+        ev.changed(doc);
+      },
+      setClean() {
+        dirty = false;
+      },
+      setFailSend(v: boolean) {
+        ok = !v;
+      },
+    };
+  }
+
+  test("debounces: one eval after the pause, with the latest text", () => {
+    const s = setup();
+    s.type("a1");
+    s.type("a12");
+    s.type("a123");
+    assert.equal(s.sent.length, 0);
+    assert.equal(s.timers.filter((t) => !t.cleared).length, 1, "each change restarts the timer");
+    assert.equal(s.timers.at(-1)!.ms, 600);
+    s.fire();
+    assert.deepEqual(s.sent, [{ file: "src/songs/x.ts", text: "a123", version: contentVersion("a123"), play: false }]);
+    // the same text again (e.g. a no-op change) isn't re-sent
+    s.ev.changed(s.doc);
+    s.fire();
+    assert.equal(s.sent.length, 1);
+  });
+
+  test("skips: wrong mode, not the playing song, a clean never-evaluated doc; a failed send retries", () => {
+    for (const mode of ["off", "onCommand"] as const) {
+      const s = setup(mode);
+      s.type("b");
+      s.fire();
+      assert.equal(s.sent.length, 0, mode);
+    }
+    const other = setup("onPause", false);
+    other.type("b");
+    other.fire();
+    assert.equal(other.sent.length, 0, "only the song the player has loaded");
+
+    const s = setup();
+    s.type("c");
+    s.setClean(); // undone back to the saved text
+    s.fire();
+    assert.equal(s.sent.length, 0, "the file on disk is what plays");
+    s.setFailSend(true);
+    s.type("d");
+    s.fire();
+    s.setFailSend(false);
+    s.ev.changed(s.doc);
+    s.fire();
+    assert.equal(s.sent.length, 1, "not marked as sent when it couldn't be sent");
+  });
+
+  test("Ctrl+Enter sends now and cancels the pause; a save forgets", () => {
+    const s = setup();
+    s.type("e");
+    assert.equal(s.ev.pending("src/songs/x.ts"), true);
+    assert.equal(s.ev.evaluate("src/songs/x.ts", "e", true), contentVersion("e"));
+    assert.equal(s.ev.pending("src/songs/x.ts"), false);
+    assert.deepEqual(s.sent.at(-1), { file: "src/songs/x.ts", text: "e", version: contentVersion("e"), play: true });
+    assert.equal(s.ev.lastSent("src/songs/x.ts"), contentVersion("e"));
+    s.ev.saved("src/songs/x.ts");
+    assert.equal(s.ev.lastSent("src/songs/x.ts"), undefined);
+  });
+
+  test("liveEvalMode defaults to onPause", () => {
+    assert.equal(liveEvalMode(undefined), "onPause");
+    assert.equal(liveEvalMode("bogus"), "onPause");
+    assert.equal(liveEvalMode("off"), "off");
+    assert.equal(liveEvalMode("onCommand"), "onCommand");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("knobs in the editor", () => {
+  const knob = (over: Partial<KnobState> = {}): KnobState => ({
+    name: "cutoff",
+    value: 2200,
+    def: 2200,
+    min: 200,
+    max: 8000,
+    step: 10,
+    log: true,
+    dirty: false,
+    ...over,
+  });
+  const SRC = `const cutoff = knob("cutoff", 2200, 200, 8000, { log: true });
+// knob("commented", 1, 0, 2)
+const g = s("bd").gain(knob("drive",-0.5, -1, 1)).pan(knob('w', x, 0, 1)).x.knob("method", 1, 0, 1);
+`;
+
+  test("finds knob() calls and their number literals", () => {
+    const calls = findKnobCalls(SRC);
+    assert.deepEqual(
+      calls.map((c) => [c.name, c.value?.text]),
+      [
+        ["cutoff", "2200"],
+        ["drive", "-0.5"],
+        ["w", undefined],
+      ],
+    );
+    const cutoff = calls[0];
+    assert.equal(SRC.slice(cutoff.start, cutoff.end), `knob("cutoff", 2200, 200, 8000, { log: true })`);
+  });
+
+  test("hints: the live value after each call, dirty when it differs from the code", () => {
+    const calls = findKnobCalls(SRC);
+    const drive = knob({ name: "drive", value: 0.25, def: -0.5, min: -1, max: 1, step: 0.01, log: false, dirty: true });
+    const hints = knobHints(calls, [knob(), drive]);
+    assert.deepEqual(
+      hints.map((h) => [h.name, h.text, h.dirty, h.offset]),
+      [
+        ["cutoff", "◉ 2200", false, calls[0].end],
+        ["drive", "◉ 0.25", true, calls[1].end],
+      ],
+    );
+    assert.match(hints[1].title, /code says -0\.5/);
+    assert.equal(dirtyKey([knob(), knob({ name: "b", dirty: true })]), "b");
+  });
+
+  test("stepping, typed values, and writing into the buffer", () => {
+    assert.equal(stepKnob(knob(), 1), 2210);
+    assert.equal(stepKnob(knob({ value: 8000 }), 1), 8000, "clamped");
+    const up = stepKnob(knob(), 1, true);
+    assert.ok(up > 2210 && up < 2800, `5% of a log knob's travel: ${up}`);
+    assert.equal(stepKnob(knob({ name: "x", value: 0.5, min: 0, max: 1, step: 0.01, log: false }), -1, true), 0.45);
+    assert.deepEqual(parseKnobInput(knob(), " 1234 "), { value: 1230 });
+    assert.deepEqual(parseKnobInput(knob(), "9000"), { error: "Between 200 and 8000" });
+    assert.deepEqual(parseKnobInput(knob(), "abc"), { error: "Type a number" });
+
+    const r = knobValueEdits(SRC, "drive", 0.25);
+    assert.ok("edits" in r);
+    const [e] = r.edits;
+    assert.equal(SRC.slice(e.start, e.end), "-0.5");
+    assert.equal(e.text, "0.25");
+    assert.match(String((knobValueEdits(SRC, "w", 1) as { error: string }).error), /isn't a number literal/);
+    assert.match(String((knobValueEdits(SRC, "nope", 1) as { error: string }).error), /No knob\("nope"/);
+  });
+
+  test("the model keeps the knobs and refreshes lenses only when the dirty set changes", () => {
+    const m = new LiveModel();
+    m.setBridge("connected");
+    m.handle(state());
+    const msg = (knobs: KnobState[]) => ({ type: "knobs" as const, songId: "jynx", file: "src/songs/jynx.ts", knobs });
+    let ch = m.handle(msg([knob()]));
+    assert.equal(ch.knobs, true);
+    assert.equal(ch.lens, true, "first knobs");
+    ch = m.handle(msg([knob({ value: 2300, dirty: true })]));
+    assert.equal(ch.lens, true, "became dirty");
+    ch = m.handle(msg([knob({ value: 2400, dirty: true })]));
+    assert.equal(ch.lens, false, "only the value moved");
+    assert.equal(m.knobsOf("src/songs/jynx.ts")[0].value, 2400);
+    assert.deepEqual(m.knobsOf("src/songs/lofi.ts"), [], "not the current song");
+    assert.ok(m.handle({ type: "knobWrite", file: "src/songs/jynx.ts", ok: false, error: "nope" }).knobWrite);
+    assert.ok(m.handle({ type: "evalResult", file: "src/songs/jynx.ts", version: "aaaaaaaa", ok: true, applied: true }).evalResult);
+    m.handle({ type: "player", connected: false });
+    assert.equal(m.knobs, null, "cleared with the player");
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -271,6 +548,10 @@ describe("status formatting", () => {
     assert.equal(formatStatus(m, 1000).text, "▶ Jynx · bar 33 · 126 BPM");
     // 126 BPM = 0.525 cycles/s; 2 s later = cycle 33.45 → bar 34
     assert.equal(formatStatus(m, 3000).text, "▶ Jynx · bar 34 · 126 BPM");
+    // an evaluated, unsaved buffer is playing
+    m.handle(state({ cycle: 32.4, live: { file: "src/songs/jynx.ts", version: "aaaaaaaa" } }), 1000);
+    assert.equal(formatStatus(m, 1000).text, "▶ Jynx · bar 33 · 126 BPM · ● unsaved");
+    assert.match(formatStatus(m, 1000).tooltip, /unsaved editor buffer/);
     // `position` (song position, jumps applied) wins over the scheduler cycle
     m.handle(state({ cycle: 32.4, position: 4.5 }), 1000);
     assert.equal(formatStatus(m, 1000).text, "▶ Jynx · bar 5 · 126 BPM");

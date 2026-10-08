@@ -1,8 +1,10 @@
 import { defineConfig } from "vite";
 import strudelBridge from "./vite-plugins/strudel-bridge";
+import strudelLocations from "./vite-plugins/strudel-locations";
 
 export default defineConfig({
-  plugins: [strudelBridge()],
+  // mini-notation strings in src/songs/*.ts → m("...", offset) for live highlighting
+  plugins: [strudelLocations(), strudelBridge()],
   // main.ts uses top-level await (audio engine + samples load before the UI)
   build: { target: "es2022", chunkSizeWarningLimit: 1500 },
   server: {

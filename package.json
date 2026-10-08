@@ -8,9 +8,13 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.node.json",
     "check:songs": "node scripts/check-songs.mjs",
-    "check": "tsc --noEmit && node scripts/check-songs.mjs"
+    "test:bridge": "node --test test/bridge.test.ts",
+    "check": "tsc --noEmit && node scripts/check-songs.mjs && tsc -p tsconfig.node.json && npm run test:bridge && npm run ext:check",
+    "ext:build": "node scripts/ext.mjs build",
+    "ext:check": "node scripts/ext.mjs check",
+    "ext:package": "node scripts/ext.mjs package"
   },
   "dependencies": {
     "@strudel/web": "^1.1.0"

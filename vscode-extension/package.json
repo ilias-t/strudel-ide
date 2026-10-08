@@ -1,0 +1,114 @@
+{
+  "name": "strudel-live",
+  "displayName": "Strudel Live",
+  "description": "strudel.cc-style live coding for the Strudel IDE: highlights, play/stop, status and errors from the running browser player.",
+  "version": "0.1.0",
+  "publisher": "strudel-ide-local",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "workspaceContains:src/songs/*.ts"
+  ],
+  "contributes": {
+    "commands": [
+      { "command": "strudel.evaluate", "title": "Play / Update / Stop (evaluate)", "category": "Strudel", "icon": "$(play)" },
+      { "command": "strudel.toggle", "title": "Toggle Play/Stop", "category": "Strudel" },
+      { "command": "strudel.play", "title": "Play", "category": "Strudel" },
+      { "command": "strudel.stop", "title": "Stop", "category": "Strudel", "icon": "$(debug-stop)" },
+      { "command": "strudel.playFile", "title": "Play This File", "category": "Strudel", "icon": "$(play)" },
+      { "command": "strudel.next", "title": "Next Song", "category": "Strudel" },
+      { "command": "strudel.prev", "title": "Previous Song", "category": "Strudel" },
+      { "command": "strudel.openPlayer", "title": "Open Player in Browser", "category": "Strudel" },
+      { "command": "strudel.muteTrack", "title": "Mute/Unmute Track…", "category": "Strudel" },
+      { "command": "strudel.soloTrack", "title": "Solo/Unsolo Track…", "category": "Strudel" },
+      { "command": "strudel.showError", "title": "Show Player Error", "category": "Strudel" },
+      { "command": "strudel.startDevServer", "title": "Start Dev Server (npm run dev)", "category": "Strudel" },
+      { "command": "strudel.reconnect", "title": "Reconnect to Dev Server", "category": "Strudel" }
+    ],
+    "keybindings": [
+      {
+        "command": "strudel.evaluate",
+        "key": "ctrl+enter",
+        "when": "editorTextFocus && strudel.isSongFile && !suggestWidgetVisible"
+      },
+      {
+        "command": "strudel.evaluate",
+        "key": "ctrl+enter",
+        "mac": "cmd+enter",
+        "when": "editorTextFocus && strudel.isSongFile && !suggestWidgetVisible"
+      },
+      {
+        "command": "strudel.stop",
+        "key": "ctrl+.",
+        "when": "editorTextFocus && strudel.isSongFile"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        { "command": "strudel.playFile", "when": "strudel.isSongFile && !strudel.playing", "group": "navigation" },
+        { "command": "strudel.stop", "when": "strudel.isSongFile && strudel.playing", "group": "navigation" }
+      ],
+      "commandPalette": [
+        { "command": "strudel.showError", "when": "strudel.playerConnected" }
+      ]
+    },
+    "colors": [
+      {
+        "id": "strudel.highlightBackground",
+        "description": "Background of mini-notation tokens that are currently sounding.",
+        "defaults": { "dark": "#ffffff1f", "light": "#00000014", "highContrast": "#ffffff26", "highContrastLight": "#0000001a" }
+      },
+      {
+        "id": "strudel.highlightBorder",
+        "description": "Outline of mini-notation tokens that are currently sounding.",
+        "defaults": { "dark": "#ffffffcc", "light": "#000000b3", "highContrast": "contrastActiveBorder", "highContrastLight": "contrastActiveBorder" }
+      }
+    ],
+    "configuration": {
+      "title": "Strudel",
+      "properties": {
+        "strudel.serverUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Dev server URL, e.g. `http://localhost:3000`. Empty = auto-detect from `node_modules/.strudel/server.json` (written by `npm run dev`), falling back to `http://localhost:3000`."
+        },
+        "strudel.highlights.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Outline the mini-notation tokens that are currently playing."
+        },
+        "strudel.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show ▶ Play / ■ Stop above createPattern in song files."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --platform=node --format=cjs --target=node18 --external:vscode --external:bufferutil --external:utf-8-validate --sourcemap --outfile=dist/extension.js",
+    "watch": "npm run build -- --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test test/*.test.ts",
+    "check": "tsc --noEmit && npm test",
+    "package": "npm run build && vsce package --no-dependencies --skip-license --allow-missing-repository -o strudel-live.vsix"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "1.80.0",
+    "@types/ws": "^8.5.0",
+    "@vscode/vsce": "4.0.0",
+    "esbuild": "0.28.2",
+    "typescript": "^5.9.0"
+  }
+}

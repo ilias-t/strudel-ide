@@ -132,7 +132,7 @@ time the pattern is queried.
    kept copy instead.
 
 ⌘/Ctrl+Enter evaluates at once as a *commit*, which reports errors like a
-save. Evals can finish out of order, so each is numbered: per song, the player
+save, and writes the pending autosave at once. Evals can finish out of order, so each is numbered: per song, the player
 only applies the newest eval, add or revert (`nextSeq`), and the session only
 shows the newest result. A session that gives up its buffer (load theirs, a
 save, a revert) also cancels its own eval still compiling, through an

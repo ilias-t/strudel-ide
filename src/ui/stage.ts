@@ -631,8 +631,13 @@ export function mountStage(): Stage {
 
   /** ⌘/Ctrl+Enter: evaluate now; like strudel.cc it also starts the music */
   async function commit() {
-    const session = sessions.get(shownSongId);
+    const id = shownSongId;
+    const session = sessions.get(id);
     if (!session || session.view().readOnly) return;
+    // keep the buffer now, not after the autosave's debounce: the store's boot
+    // replay re-reads a song's kept text right before evaluating it, and must
+    // not find an older one and play it over this commit
+    saver.flush(id);
     const result = await session.commit();
     if (result?.ok && !player.getState().playing) void player.play();
   }

@@ -328,6 +328,15 @@ test("⌘S on the site keeps the edit in this browser at once", async ({ player,
   expect(readFileSync(FIXTURE_PATH, "utf8"), "no file is written").toBe(disk);
 });
 
+test("⌘/Ctrl+Enter keeps the edit at once: a boot replay still running can't evaluate an older kept text", async ({ player, page }) => {
+  await playFixtureAndEdit(player);
+  await typeGainEdit(page);
+  const text = await buffer(page);
+  await page.keyboard.press("ControlOrMeta+Enter"); // before the autosave's debounce
+  expect(await kept(page), "kept with the commit, not 300 ms later").toMatchObject({ kind: "override", text });
+  await expect.poll(() => page.evaluate(() => window.__strudel!.currentSource()?.text)).toBe(text);
+});
+
 test("share copies a link that opens through the stage's dialog", async ({ player, page, browser, baseURL }) => {
   test.setTimeout(60_000);
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: baseURL });

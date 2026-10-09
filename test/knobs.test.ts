@@ -95,6 +95,38 @@ describe("registry", () => {
     assert.deepEqual(saved.song, { send: { value: 0.6, base: 0.3 } }, "persisted against the file's defaults");
   });
 
+  test("restoring a module after an evaluation that didn't land keeps the live value it had", () => {
+    const saved: Record<string, SavedKnobs> = {};
+    const r = new KnobRegistry({ save: (id, s) => (saved[id] = s) });
+    r.beginModule("song");
+    const read = r.reader(r.define("song", spec("level", 0.5)));
+    const file = r.moduleSpecs("song");
+    r.set("song", "level", 0.7); // turned live
+
+    // an evaluated edit changes the literal (the shared entry resets to it), then fails or is aborted
+    r.beginModule("song");
+    r.define("song", spec("level", 0.8));
+    assert.equal(read(), 0.8);
+
+    r.restoreModule("song", file);
+    assert.equal(r.get("song", "level")?.def, 0.5);
+    assert.equal(r.get("song", "level")?.value, 0.7, "the live value from before the edit");
+    assert.equal(read(), 0.7, "the playing pattern reads it");
+    r.flush("song");
+    assert.deepEqual(saved.song, { level: { value: 0.7, base: 0.5 } });
+
+    // an evaluation that lands without touching the literal, a later tweak, then a revert: the tweak stays
+    r.beginModule("song");
+    r.define("song", spec("level", 0.5));
+    r.set("song", "level", 0.9);
+    r.restoreModule("song", file);
+    assert.equal(r.get("song", "level")?.value, 0.9, "a tweak made after the evaluation is the user's");
+    // and a restore with nothing evaluated since doesn't bring an old value back
+    r.set("song", "level", 0.6);
+    r.restoreModule("song", file);
+    assert.equal(r.get("song", "level")?.value, 0.6);
+  });
+
   test("snapping, log travel and argument errors", () => {
     const cutoff = parseKnobArgs(["cutoff", 2200, 200, 8000, { log: true }]);
     assert.equal(cutoff.step, 10);

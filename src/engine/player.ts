@@ -41,7 +41,7 @@ import { errorFrom } from "./errors";
 import { composeTracks } from "./tracks";
 import { TimeMap, normalizeSections, sectionAt, songLength } from "./timemap";
 import { KEYS, readJson, readStorage, writeJson, writeStorage } from "./storage";
-import { KnobRegistry, installKnobGlobals, type KnobInfo, type SavedKnobs } from "./knobs";
+import { KnobRegistry, installKnobGlobals, type KnobInfo, type KnobSpec, type SavedKnobs } from "./knobs";
 import { bpmToCps, engine, internals, warmOrbits, type Repl } from "./strudel";
 import { applyVisualization, clearVisualization } from "../ui/viz";
 import { audioOutputLatency } from "../live/highlights";
@@ -90,6 +90,24 @@ const knobRegistry = new KnobRegistry({
 });
 installKnobGlobals(knobRegistry, engine.pure);
 
+/**
+ * Per song object: the top-level knobs its module declared when it was
+ * evaluated (captured right after: boot, HMR, browser compile). A later
+ * evaluation of the same song id redeclares those entries, and the module that
+ * comes back on a revert (or keeps playing when an evaluated edit doesn't land)
+ * can't re-run its top level, so restoreModuleKnobs() declares them again.
+ */
+const moduleKnobs = new WeakMap<Song, KnobSpec[]>();
+function noteModuleKnobs(songId: string, song: Song) {
+  moduleKnobs.set(song, knobRegistry.moduleSpecs(songId));
+}
+/** Give a song id the top-level knobs of the module it plays now (see moduleKnobs) */
+function restoreModuleKnobs(songId: string) {
+  const song = playingSongOf(songId);
+  const specs = song && moduleKnobs.get(song);
+  if (specs) knobRegistry.restoreModule(songId, specs);
+}
+
 /** The current song's last successful build (also while stopped, for the mixer) */
 interface Build {
   songId: string;
@@ -131,6 +149,8 @@ let pendingJump: { index: number; atCycle: number } | null = null;
 
 export function setSongsModule(mod: SongsModule) {
   songsModule = mod;
+  // the songs index imports every song module eagerly: their top levels just ran
+  for (const [id, song] of Object.entries(mod.songs)) noteModuleKnobs(id, song);
   exposeSongsIndex(mod);
 }
 
@@ -771,6 +791,7 @@ export function songsUpdated(newModule: SongsModule | undefined) {
   // Only edited song modules are re-instantiated by Vite; unchanged ones come
   // back as the very same objects. That identifies which file(s) you edited.
   const edited = Object.keys(newModule.songs).filter((id) => newModule.songs[id] !== previous.songs[id]);
+  for (const id of edited) noteModuleKnobs(id, newModule.songs[id]);
 
   // A saved file is the truth again: its evaluated buffer steps down. When the
   // file now says exactly what the buffer said, the build that is playing
@@ -888,6 +909,7 @@ async function applyLiveSong(
     if (liveSongs.get(songId)?.song === song) {
       if (previous) liveSongs.set(songId, previous);
       else liveSongs.delete(songId);
+      restoreModuleKnobs(songId);
     }
     changed();
     return { ok: false, error: out.error };
@@ -1056,9 +1078,17 @@ async function evalSourceNow(songId: string, text: string, { intent, origin }: E
 
   const seq = nextSeq(songId);
   const compiled = await compileSource(text, file);
-  if (evalSeq.get(songId) !== seq) return superseded();
+  // its top level ran and declared its knobs: unless it lands, the playing song's come back
+  if (compiled.ok) noteModuleKnobs(songId, compiled.song);
+  if (evalSeq.get(songId) !== seq) {
+    restoreModuleKnobs(songId);
+    return superseded();
+  }
   if (!hasSong(songId)) return { ok: false, error: { message: `"${songId}" was removed` } };
-  if (!compiled.ok) return fail(compiled.error);
+  if (!compiled.ok) {
+    restoreModuleKnobs(songId); // it may have thrown at top level after a knob() call
+    return fail(compiled.error);
+  }
 
   const version = contentVersion(text);
   const outcome = await applyLiveSong(songId, compiled.song, {
@@ -1079,6 +1109,7 @@ async function evalSourceNow(songId: string, text: string, { intent, origin }: E
 export function revertSource(songId: string): boolean {
   nextSeq(songId); // an eval still compiling must not land afterwards
   if (!liveSongs.delete(songId)) return false;
+  restoreModuleKnobs(songId); // the module that comes back can't re-run its top-level knob() calls
   if (songId === currentSongId) void swap();
   changed();
   return true;
@@ -1106,9 +1137,19 @@ async function addSongNow(id: string, text: string): Promise<EvalSourceResult> {
   const file = songFileOf(id);
   const seq = nextSeq(id);
   const compiled = await compileSource(text, file);
-  if (evalSeq.get(id) !== seq) return superseded();
-  if (!compiled.ok) return { ok: false, error: compiled.error };
-  if (isBuiltInSong(id)) return { ok: false, error: { message: `"${id}" became a built-in song meanwhile` } };
+  if (compiled.ok) noteModuleKnobs(id, compiled.song);
+  if (evalSeq.get(id) !== seq) {
+    restoreModuleKnobs(id);
+    return superseded();
+  }
+  if (!compiled.ok) {
+    restoreModuleKnobs(id);
+    return { ok: false, error: compiled.error };
+  }
+  if (isBuiltInSong(id)) {
+    restoreModuleKnobs(id);
+    return { ok: false, error: { message: `"${id}" became a built-in song meanwhile` } };
+  }
   const version = contentVersion(text);
   const previous = userSongs.get(id);
   const previousLive = liveSongs.get(id);
@@ -1127,6 +1168,7 @@ async function addSongNow(id: string, text: string): Promise<EvalSourceResult> {
         if (previous) userSongs.set(id, previous);
         else userSongs.delete(id);
         if (previousLive) liveSongs.set(id, previousLive);
+        restoreModuleKnobs(id);
       }
       changed();
       if (out.error) await whenLocated(out.error);

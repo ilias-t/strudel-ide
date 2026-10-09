@@ -256,3 +256,51 @@ test("knobs flow both ways: knobs messages out, setKnob/resetKnob/grabKnob/write
   expect(statSync(FIXTURE_PATH).mtimeMs, "nothing written").toBe(mtime);
   player.clearErrors(); // the browser logs the refused (409) requests
 });
+
+/** The fixture knob as window.__strudel.knobs() reports it */
+function fixtureKnob(player: Player) {
+  return player.page.evaluate((name) => window.__strudel!.knobs().find((k) => k.name === name) ?? null, KNOB_NAME);
+}
+
+test("a buffer that doesn't build gives back the top-level knobs of the evaluated buffer that plays", async ({ player }) => {
+  await playFixture(player, { topKnob: 0.5 });
+  const ed = await connect();
+  expect(await ed.eval(FIXTURE_FILE, fixtureSource({ topKnob: 0.8 }))).toMatchObject({ ok: true, applied: true });
+  await expect.poll(() => fixtureKnob(player)).toMatchObject({ def: 0.8, value: 0.8 });
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.8 });
+
+  // its top level runs (knob literal 0.9), then createPattern() throws: the last buffer keeps playing, with its knob
+  expect((await ed.eval(FIXTURE_FILE, fixtureSource({ topKnob: 0.9, buildError: true }))).ok).toBe(false);
+  await player.waitForError((e) => e.message.includes(BUILD_ERROR_MESSAGE), "build error");
+  expect(await fixtureKnob(player), "the playing buffer's knob").toMatchObject({ def: 0.8, value: 0.8, dirty: false });
+  expect(await player.probe()).toMatchObject({ gain: 0.8 });
+  player.clearErrors(); // the build error is logged on purpose
+});
+
+test("a buffer that throws at its top level after a knob() leaves the playing song's knob alone", async ({ player }) => {
+  await playFixture(player, { topKnob: 0.5 });
+  const ed = await connect();
+  await expect.poll(() => fixtureKnob(player)).toMatchObject({ def: 0.5, value: 0.5 });
+  const line = `const LEVEL = knob(${JSON.stringify(KNOB_NAME)}, 0.8, 0, 1);`;
+  const buffer = fixtureSource({ topKnob: 0.8 });
+  expect(buffer).toContain(line);
+  const throwing = buffer.replace(line, `${line}\nif (LEVEL !== undefined) throw new Error("e2e: top level failed on purpose");`);
+  expect((await ed.eval(FIXTURE_FILE, throwing)).ok).toBe(false);
+  await player.waitForError((e) => e.message.includes("top level failed on purpose"), "import error");
+  expect(await fixtureKnob(player), "the file's knob").toMatchObject({ def: 0.5, value: 0.5, dirty: false });
+  expect(await player.probe()).toMatchObject({ gain: 0.5 });
+  player.clearErrors(); // the import error is logged on purpose
+});
+
+test("evaluating an earlier buffer again (the same module) plays that buffer's top-level knob", async ({ player }) => {
+  await playFixture(player, { topKnob: 0.5 });
+  const ed = await connect();
+  const a = fixtureSource({ topKnob: 0.8 });
+  expect(await ed.eval(FIXTURE_FILE, a)).toMatchObject({ ok: true, applied: true });
+  expect(await ed.eval(FIXTURE_FILE, fixtureSource({ topKnob: 0.9 }))).toMatchObject({ ok: true, applied: true });
+  await expect.poll(() => fixtureKnob(player)).toMatchObject({ def: 0.9, value: 0.9 });
+  // undone back to the first buffer: same version, so the browser reuses its module (its top level doesn't run again)
+  expect(await ed.eval(FIXTURE_FILE, a)).toMatchObject({ ok: true, applied: true, version: contentVersion(a) });
+  await expect.poll(() => fixtureKnob(player), { message: "the first buffer's knob" }).toMatchObject({ def: 0.8, value: 0.8 });
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.8 });
+});

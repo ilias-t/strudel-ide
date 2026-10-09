@@ -94,7 +94,7 @@ installKnobGlobals(knobRegistry, engine.pure);
 
 /**
  * Per song object: the top-level knobs its module declared when it was
- * evaluated (captured right after: boot, HMR, browser compile). A later
+ * evaluated (captured right after: boot, HMR, live eval, browser compile). A later
  * evaluation of the same song id redeclares those entries, and the module that
  * comes back on a revert (or keeps playing when an evaluated edit doesn't land)
  * can't re-run its top level, so restoreModuleKnobs() declares them again.
@@ -945,14 +945,26 @@ export async function evalLive(buffer: LiveBuffer, { play: start = false } = {})
   try {
     mod = await import(/* @vite-ignore */ buffer.url);
   } catch (err) {
+    restoreModuleKnobs(songId); // it may have thrown at top level after a knob() call
     return fail(err);
   }
-  // imports can finish out of order: only the newest buffer of a song counts
-  if (evalSeq.get(songId) !== seq) return { ok: false, applied: false, error: { message: "superseded by a newer buffer" } };
   const song = mod.default;
-  if (!song || typeof song.createPattern !== "function") {
+  const valid = !!song && typeof song.createPattern === "function";
+  // A module's top level runs on its first import only: the same buffer again
+  // (same version, same URL) is the same module, and its knobs are the ones it
+  // declared then (restored below once it plays). A first import just declared them.
+  const reused = valid && moduleKnobs.has(song);
+  if (valid && !reused) noteModuleKnobs(songId, song);
+  // imports can finish out of order: only the newest buffer of a song counts
+  if (evalSeq.get(songId) !== seq) {
+    restoreModuleKnobs(songId);
+    return { ok: false, applied: false, error: { message: "superseded by a newer buffer" } };
+  }
+  if (!valid) {
+    restoreModuleKnobs(songId);
     return fail(new Error(`${buffer.file} must \`export default\` a song with createPattern()`));
   }
+  if (reused) knobRegistry.restoreModule(songId, moduleKnobs.get(song)!.map((spec) => ({ ...spec })));
   const outcome = await applyLiveSong(
     songId,
     song,

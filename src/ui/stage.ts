@@ -290,8 +290,9 @@ export function mountStage(): Stage {
     );
   }
 
-  /** Each song's id and the name it plays under now (an edit may rename it) */
-  const songList = () => player.allSongs().map(({ id, song }) => ({ id, name: player.playingSongOf(id)?.name ?? song.name }));
+  /** Each song's id and the name it plays under now (an edit may rename it); ⚠ marks a song that didn't build */
+  const songList = () =>
+    player.allSongs().map(({ id, song }) => ({ id, name: (player.songProblem(id) ? "⚠ " : "") + (player.playingSongOf(id)?.name ?? song.name) }));
   const songListKey = () => songList().map(({ id, name }) => `${id}\u0000${name}`).join("\u0001");
   let shownSongList = "";
 
@@ -463,9 +464,15 @@ export function mountStage(): Stage {
     return mine.text === player.sourceOf(id)?.text ? null : mine.text;
   }
 
+  /** The text of a user song that didn't build (the player holds it in a placeholder), else null */
+  const brokenText = (id: string) => (player.songProblem(id) ? player.sourceOf(id)?.text ?? null : null);
+
   /** A saved edit comes back as the browser's buffer (after a reload, or before the store's replay lands) */
   function restoreSaved(songId: string, session: EditSession) {
     if (session.view().owner === "browser" || saver.pending(songId)) return;
+    const broken = brokenText(songId);
+    // a song that didn't build plays a silent placeholder: evaluate its text as typing, so its error shows inline
+    if (broken !== null) return session.restore(broken, { evaluated: false });
     const text = savedEdit(songId);
     if (text === null) return;
     // the store's boot replay may still be compiling it: that eval is ours, don't evaluate twice
@@ -1088,7 +1095,7 @@ export function mountStage(): Stage {
       // a saved edit that doesn't build: evaluate it as typing, so its error shows inline in the editor
       for (const { id } of failed) {
         const session = sessions.get(id);
-        const text = savedEdit(id);
+        const text = savedEdit(id) ?? brokenText(id);
         if (session && text !== null && session.view().text === text && session.view().status.kind === "idle") {
           session.restore(text, { evaluated: false });
         }

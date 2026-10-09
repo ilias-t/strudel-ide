@@ -38,8 +38,8 @@ export interface StorePlayer {
   isBuiltInSong(id: string): boolean;
   /** Built-in or user song */
   hasSong(id: string): boolean;
-  /** Compile and register a user song in the song list */
-  addSong(id: string, text: string): Promise<EvalResult>;
+  /** Compile and register a user song in the song list (keepBroken: one that doesn't build is listed as a placeholder holding its text) */
+  addSong(id: string, text: string, opts?: { keepBroken?: boolean }): Promise<EvalResult>;
   /** User songs only */
   removeSong(id: string): boolean;
   /** Hot-swap source into an existing song */
@@ -63,7 +63,9 @@ export interface MySong {
 /** saveOverride's result: `persisted` is false when storage is unavailable (private mode, quota, blocked) */
 export type SavedSong = MySong & { persisted: boolean };
 
-export type LoadResult = { ok: true; id: string } | { ok: false; error: string; /** the person said no (confirm) */ declined?: true };
+export type LoadResult =
+  | { ok: true; id: string; /** opened, but it doesn't build: the player lists it as a placeholder holding its text */ error?: string }
+  | { ok: false; error: string; /** the person said no (confirm) */ declined?: true };
 
 export interface InitOptions {
   /** Asked before a share link in the URL is opened (see LoadOptions.confirm) */
@@ -311,13 +313,16 @@ export function createSongsStore(deps: SongsStoreDeps): SongsStore {
       return { ok: false, error: "The shared song was not opened.", declined: true };
     }
     const id = pickId(shared.id, shared.text);
+    let problem: string | null = null;
     if (!player.hasSong(id)) {
-      const result = await player.addSong(id, shared.text);
-      if (!result.ok) return { ok: false, error: errorText(result.error) };
+      // a song that doesn't build still opens (a placeholder holds its text, to fix): only one never listed fails
+      const result = await player.addSong(id, shared.text, { keepBroken: true });
+      if (!result.ok && !player.hasSong(id)) return { ok: false, error: errorText(result.error) };
+      if (!result.ok) problem = errorText(result.error);
       registered.set(id, shared.text);
     }
     await player.selectSong(id);
-    return { ok: true, id };
+    return problem === null ? { ok: true, id } : { ok: true, id, error: problem };
   }
 
   // ── files ────────────────────────────────────────────────────────────────
@@ -406,8 +411,8 @@ export function createSongsStore(deps: SongsStoreDeps): SongsStore {
         if (p.isBuiltInSong(id)) {
           result = await p.evalSource(id, entry.text, { intent: "commit", origin: "browser" });
         } else {
-          result = await p.addSong(id, entry.text);
-          if (result.ok) registered.set(id, entry.text);
+          result = await p.addSong(id, entry.text, { keepBroken: true });
+          if (result.ok || p.hasSong(id)) registered.set(id, entry.text);
         }
         // reverted while it compiled: the player dropped it (its sequence guard), nothing failed
         if (!result.ok && !readEntry(id)) continue;

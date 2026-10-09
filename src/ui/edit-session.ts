@@ -16,7 +16,9 @@
 //            the file is saved with exactly the buffer's text.
 //
 // Every eval gets a sequence number and only the newest issued one is applied,
-// so a slow typing result can't overwrite a later commit's.
+// so a slow typing result can't overwrite a later commit's. An eval the
+// session gives up (the buffer was replaced from outside, or disposed) also
+// has its AbortSignal aborted, so the engine doesn't apply it either.
 
 import type { EvalError, EvalIntent, EvalResult } from "./editor-types.ts";
 import { contentVersion } from "../live/protocol.ts";
@@ -61,12 +63,20 @@ export interface SessionTimers {
 
 export interface EditSessionOptions {
   initial: IncomingSource;
-  /** Usually editor-source's evalEdit bound to the song. null: no engine */
-  evaluate: (text: string, intent: EvalIntent) => Promise<EvalResult | null>;
+  /**
+   * Usually editor-source's evalEdit bound to the song. null: no engine.
+   * `signal` aborts when the session gives the eval up: the engine must not apply it then.
+   */
+  evaluate: (text: string, intent: EvalIntent, signal: AbortSignal) => Promise<EvalResult | null>;
   /** Quiet time after the last edit before a typing eval (default 400) */
   debounceMs?: number;
   timers?: SessionTimers;
   onChange: (view: SessionView) => void;
+  /**
+   * The buffer's owner changed (called before onChange, with the view already
+   * updated). Leaving "browser" means the browser's edit was given up or saved.
+   */
+  onOwnerChange?: (owner: Owner, previous: Owner) => void;
   /** "Cursor" / "VS Code" for status texts (default "your editor") */
   ideName?: () => string;
 }
@@ -99,6 +109,8 @@ export class EditSession {
 
   private text: string;
   private owner: Owner;
+  /** The owner onOwnerChange last reported (the initial one to start with) */
+  private reportedOwner: Owner;
   private conflict: IncomingSource | null = null;
   private last: { text: string; version: string | undefined; live: boolean };
 
@@ -112,6 +124,8 @@ export class EditSession {
   /** seq of the newest eval while its result is outstanding */
   private inFlight: number | null = null;
   private lastEvaluated: string | null = null;
+  /** One per eval whose result is outstanding: aborted when the session gives them up */
+  private readonly evals = new Set<AbortController>();
   /** Versions this session evaluated, oldest first (their echoes are ignored) */
   private readonly sent: string[] = [];
   private disposed = false;
@@ -122,7 +136,7 @@ export class EditSession {
     this.timers = opts.timers ?? defaultTimers;
     const { initial } = opts;
     this.text = initial.text;
-    this.owner = initial.live ? "ide" : "mirror";
+    this.owner = this.reportedOwner = initial.live ? "ide" : "mirror";
     this.last = { text: initial.text, version: initial.version, live: !!initial.live };
   }
 
@@ -245,10 +259,11 @@ export class EditSession {
     this.emit();
   }
 
-  /** Cancel timers; late eval results are ignored and no callbacks fire */
+  /** Cancel timers and abort evals in flight; late eval results are ignored and no callbacks fire */
   dispose(): void {
     this.disposed = true;
     this.cancelTimer();
+    this.abortEvals();
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -264,9 +279,10 @@ export class EditSession {
     return changed;
   }
 
-  /** The buffer was replaced from outside: drop pending and in-flight evals and their marker */
+  /** The buffer was replaced from outside: drop pending and in-flight evals (the engine's too) and their marker */
   private resetEval() {
     this.cancelTimer();
+    this.abortEvals();
     this.seq++;
     this.inFlight = null;
     this.result = IDLE;
@@ -282,11 +298,15 @@ export class EditSession {
     this.lastEvaluated = text;
     this.remember(contentVersion(text));
     this.emit();
+    const controller = new AbortController();
+    this.evals.add(controller);
     let result: EvalResult | null;
     try {
-      result = await this.opts.evaluate(text, intent);
+      result = await this.opts.evaluate(text, intent, controller.signal);
     } catch (err) {
       result = { ok: false, error: { message: err instanceof Error ? err.message : String(err) } };
+    } finally {
+      this.evals.delete(controller);
     }
     if (this.disposed || seq !== this.seq) return result; // superseded
     this.inFlight = null;
@@ -327,6 +347,11 @@ export class EditSession {
     if (this.sent.length > SENT_LIMIT) this.sent.shift();
   }
 
+  private abortEvals() {
+    for (const controller of this.evals) controller.abort();
+    this.evals.clear();
+  }
+
   private cancelTimer() {
     if (this.timer !== null) {
       this.timers.clear(this.timer);
@@ -335,6 +360,12 @@ export class EditSession {
   }
 
   private emit() {
-    if (!this.disposed) this.opts.onChange(this.view());
+    if (this.disposed) return;
+    if (this.owner !== this.reportedOwner) {
+      const previous = this.reportedOwner;
+      this.reportedOwner = this.owner;
+      this.opts.onOwnerChange?.(this.owner, previous);
+    }
+    this.opts.onChange(this.view());
   }
 }

@@ -34,6 +34,18 @@ describe("editor source", () => {
     assert.deepEqual(seen, [["jynx", "TEXT", { intent: "typing", origin: "browser" }]]);
   });
 
+  test("passes the caller's abort signal on to the engine (and leaves it out of the recorded calls)", async () => {
+    const seen: unknown[] = [];
+    const { source } = setup(async (_songId, _text, opts) => {
+      seen.push(opts.signal);
+      return { ok: true, version: "abc" };
+    });
+    const controller = new AbortController();
+    await source.evalEdit("jynx", "TEXT", "commit", controller.signal);
+    assert.deepEqual(seen, [controller.signal]);
+    assert.equal("signal" in source.calls()[0], false);
+  });
+
   test("without an engine the call is only recorded and resolves null", async () => {
     const { source } = setup();
     assert.equal(source.hasEngine(), false);

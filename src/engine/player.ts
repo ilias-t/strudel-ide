@@ -986,6 +986,11 @@ export interface EvalSourceOptions {
   intent: "typing" | "commit";
   /** Who evaluated the text (reported back in currentSource().origin) */
   origin: "browser" | "editor";
+  /**
+   * Cancels this one call: aborted before its compile finishes, nothing is
+   * applied (a superseded result). Other evals of the song are unaffected.
+   */
+  signal?: AbortSignal;
 }
 
 export interface EvalSourceError {
@@ -1063,7 +1068,7 @@ export function evalSource(songId: string, text: string, opts: EvalSourceOptions
   return trackPending(songId, evalSourceNow(songId, text, opts));
 }
 
-async function evalSourceNow(songId: string, text: string, { intent, origin }: EvalSourceOptions): Promise<EvalSourceResult> {
+async function evalSourceNow(songId: string, text: string, { intent, origin, signal }: EvalSourceOptions): Promise<EvalSourceResult> {
   const quiet = intent !== "commit";
   const file = baseSource(songId)?.file ?? songFileOf(songId);
   const fail = (e: EvalSourceError): EvalSourceResult => {
@@ -1080,11 +1085,15 @@ async function evalSourceNow(songId: string, text: string, { intent, origin }: E
   const compiled = await compileSource(text, file);
   // its top level ran and declared its knobs: unless it lands, the playing song's come back
   if (compiled.ok) noteModuleKnobs(songId, compiled.song);
-  if (evalSeq.get(songId) !== seq) {
+  // a newer eval of this song came first, or the caller gave this one up (no await from here to the swap)
+  if (evalSeq.get(songId) !== seq || signal?.aborted) {
     restoreModuleKnobs(songId);
     return superseded();
   }
-  if (!hasSong(songId)) return { ok: false, error: { message: `"${songId}" was removed` } };
+  if (!hasSong(songId)) {
+    restoreModuleKnobs(songId);
+    return { ok: false, error: { message: `"${songId}" was removed` } };
+  }
   if (!compiled.ok) {
     restoreModuleKnobs(songId); // it may have thrown at top level after a knob() call
     return fail(compiled.error);

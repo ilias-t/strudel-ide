@@ -14,8 +14,11 @@ export interface EditorSourceCall {
 }
 
 export interface EditorSource {
-  /** Evaluate the browser editor's text. null = no engine path yet: the call is only recorded. Never rejects. */
-  evalEdit(songId: string, text: string, intent: EvalIntent): Promise<EvalResult | null>;
+  /**
+   * Evaluate the browser editor's text. null = no engine path yet: the call is only recorded. Never rejects.
+   * An aborted `signal` tells the engine not to apply it (the caller gave it up).
+   */
+  evalEdit(songId: string, text: string, intent: EvalIntent, signal?: AbortSignal): Promise<EvalResult | null>;
   hasEngine(): boolean;
   /** Recent calls, newest last (bounded) */
   calls(): readonly EditorSourceCall[];
@@ -46,7 +49,7 @@ export function createEditorSource(opts: EditorSourceOptions): EditorSource {
   return {
     hasEngine: () => engine() !== undefined,
     calls: () => calls.slice(),
-    async evalEdit(songId, text, intent) {
+    async evalEdit(songId, text, intent, signal) {
       calls.push({ songId, text, intent, origin: "browser", at: now() });
       if (calls.length > limit) calls.splice(0, calls.length - limit);
       const fn = engine();
@@ -58,7 +61,7 @@ export function createEditorSource(opts: EditorSourceOptions): EditorSource {
         return null;
       }
       try {
-        return await fn(songId, text, { intent, origin: "browser" });
+        return await fn(songId, text, signal ? { intent, origin: "browser", signal } : { intent, origin: "browser" });
       } catch (err) {
         return { ok: false, error: { message: err instanceof Error ? err.message : String(err) } };
       }

@@ -398,8 +398,11 @@ export function mountStage(): Stage {
     }
     const session = new EditSession({
       initial: incomingOf(source, true),
-      evaluate: (text, intent) => evalEdit(songId, text, intent),
+      evaluate: (text, intent, signal) => evalEdit(songId, text, intent, signal),
       ideName: () => ideName,
+      onOwnerChange: (_owner, previous) => {
+        if (previous === "browser") dropKeptEdit(songId);
+      },
       onChange: (view) => {
         if (songId === shownSongId && editor && surface === editor) applyView(editor, view);
       },
@@ -413,7 +416,19 @@ export function mountStage(): Stage {
   // ── edits kept in this browser (src/songs-store, src/ui/song-saver.ts) ────
   // Invariant: a song has a saved edit exactly while the browser owns its
   // buffer. Typing saves it; going back to the file / the IDE (load theirs, a
-  // save of the same text, revert) drops it.
+  // save of the same text, revert) drops it: every owner change away from the
+  // browser does (dropKeptEdit), pending autosave included.
+
+  /**
+   * The browser stopped owning a built-in song's buffer (load theirs, a save of
+   * the same text): its kept edit goes, and a pending autosave must not bring
+   * it back. A user song's stored text is the song itself: it stays.
+   */
+  function dropKeptEdit(id: string) {
+    if (!player.isBuiltInSong(id)) return;
+    saver.cancel(id);
+    songsStore.discard(id);
+  }
 
   /** A built-in song's own text (its file): what revert brings back */
   const originalText = (id: string) => player.fileSource(id)?.text;

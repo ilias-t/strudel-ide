@@ -20,10 +20,11 @@ export type EvalResult = { ok: true; version: string } | { ok: false; error: Eva
 /**
  * Compile `text` as song `songId` and hot-swap it on success. With
  * `intent: "typing"` it never sets the player's error panel (the caller shows
- * the returned error inline).
+ * the returned error inline). An aborted `signal` cancels this one call: if it
+ * aborts before the compile finishes, nothing is applied (a superseded result).
  */
 export type EvalSource = (
   songId: string,
   text: string,
-  opts: { intent: EvalIntent; origin: EvalOrigin }
+  opts: { intent: EvalIntent; origin: EvalOrigin; signal?: AbortSignal }
 ) => Promise<EvalResult>;

@@ -203,10 +203,14 @@ test("a share link whose song doesn't build opens as a placeholder with its text
   const errors: string[] = [];
   other.on("pageerror", (e) => errors.push(e.message));
   other.on("console", (msg) => msg.type() === "error" && errors.push(msg.text()));
+  const warnings: string[] = [];
+  other.on("console", (msg) => msg.type() === "warning" && warnings.push(msg.text()));
   await other.goto(url);
   await other.getByTestId("share-dialog-confirm").click({ timeout: 30_000 });
   await other.waitForFunction(() => window.__strudel?.getState().ready === true, null, { timeout: 30_000 });
   await expect.poll(() => other.evaluate(() => window.__strudel!.getState().songId)).toBe("broken-share");
+  // opened, but it doesn't build: the boot logs why
+  await expect.poll(() => warnings.filter((w) => w.startsWith("[strudel-ide] share link:")).length, { message: "the share link's error is logged" }).toBe(1);
   expect(await other.evaluate(() => window.__strudel!.currentSource())).toMatchObject({ file: "src/songs/broken-share.ts", text: broken });
   await expect(other.locator('#song-select option[value="broken-share"]')).toHaveText("⚠ Broken Share");
   expect(await other.evaluate(() => window.__strudel!.getState().error)).toBeNull();

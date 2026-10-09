@@ -346,3 +346,64 @@ test("loading the IDE's newer edits cancels the browser's eval still compiling: 
   expect(await page.evaluate(() => window.__strudelEditor!.value())).toBe(theirs);
   await page.evaluate(() => window.__strudelEditor!.setEngineForTests(null));
 });
+
+test("loading the IDE's edits after the browser's eval landed plays theirs", async ({ player, page }) => {
+  await playFixture(player);
+  await enterEdit(page);
+  ide = await EditorClient.connect(test.info().project.use.baseURL!);
+  await ide.waitFor((m) => m.type === "player" && m.connected === true, "player connected");
+
+  // the browser owns the IDE's buffer, then the IDE evaluates newer edits: a conflict
+  expect(await ide.eval(FIXTURE_FILE, fixtureSource({ gain: 0.3 }))).toMatchObject({ ok: true });
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor!.session()?.readOnly)).toBe(true);
+  await page.getByTestId("code-takeover").click();
+  const theirs = fixtureSource({ gain: 0.2 });
+  expect(await ide.eval(FIXTURE_FILE, theirs)).toMatchObject({ ok: true });
+  await expect(page.getByTestId("code-load")).toBeVisible();
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.2 });
+
+  // the browser types anyway, and its eval lands: the player plays the browser's text
+  await caretAfter(page, "// padding line");
+  await page.keyboard.type(" (mine)");
+  const mine = (await page.evaluate(() => window.__strudelEditor!.value()))!;
+  await expect.poll(() => page.evaluate(() => window.__strudel!.currentSource()?.text)).toBe(mine);
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.3 });
+  await expect(page.getByTestId("code-load")).toBeVisible();
+
+  // load theirs: the editor shows theirs, read-only, and the player plays it
+  await page.getByTestId("code-load").click();
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor!.value())).toBe(theirs);
+  expect(await page.evaluate(() => window.__strudelEditor!.session()?.owner)).toBe("ide");
+  await expect.poll(() => page.evaluate(() => window.__strudel!.currentSource()?.text), { message: "theirs plays" }).toBe(theirs);
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.2 });
+});
+
+test("loading a saved file after the browser's eval landed plays the file", async ({ player, page }) => {
+  await playFixture(player);
+  await enterEdit(page);
+  await caretAfter(page, "// padding line");
+  await page.keyboard.type(" (mine)");
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor!.session()?.owner)).toBe("browser");
+  const mine = (await page.evaluate(() => window.__strudelEditor!.value()))!;
+  await expect.poll(() => page.evaluate(() => window.__strudel!.currentSource()?.text)).toBe(mine);
+
+  // the file is saved elsewhere: it plays, and the browser is offered to load it
+  const saved = writeFixture({ gain: 0.2 });
+  await expect.poll(() => page.evaluate(() => window.__strudel!.currentSource()?.text)).toBe(saved);
+  await expect(page.getByTestId("code-load")).toBeVisible();
+
+  // the browser types on, and its eval lands over the file
+  await page.keyboard.type(" again");
+  const again = (await page.evaluate(() => window.__strudelEditor!.value()))!;
+  expect(again).toContain("(mine) again");
+  await expect.poll(() => page.evaluate(() => window.__strudel!.currentSource()?.text)).toBe(again);
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.5 });
+
+  // load: the editor follows the file again, and the file plays
+  await page.getByTestId("code-load").click();
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor!.value())).toBe(saved);
+  expect(await page.evaluate(() => window.__strudelEditor!.session()?.owner)).toBe("mirror");
+  await expect.poll(() => page.evaluate(() => window.__strudel!.currentSource()?.text), { message: "the file plays" }).toBe(saved);
+  expect((await player.state()).live, "no evaluated buffer").toBeNull();
+  await expect.poll(() => player.probe()).toMatchObject({ gain: 0.2 });
+});

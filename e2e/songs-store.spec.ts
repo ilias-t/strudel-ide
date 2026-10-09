@@ -308,3 +308,42 @@ test("booting with nothing stored loads no compiler", async ({ player, page }) =
   const compiler = requests.filter((p) => /\/src\/compile\/(client|worker|compile|evaluate)\.ts$|\/typescript\b|typescript\.js/.test(p));
   expect(compiler).toEqual([]);
 });
+
+test("loading theirs on a user song keeps their text as the song: it survives a reload", async ({ player, page }) => {
+  test.setTimeout(90_000);
+  await player.boot();
+  const id = "kept-tune";
+  const text = fixtureSource({ name: "Kept Tune", gain: 0.2 });
+  await page.evaluate(([id, text]) => window.__strudel!.store.saveOverride(id, text), [id, text] as const);
+  expect(await page.evaluate(([id, text]) => window.__strudel!.addSong(id, text), [id, text] as const)).toMatchObject({ ok: true });
+  expect(await player.select(id)).toBe(true);
+  await enterEdit(page);
+
+  // the browser edits it: its buffer, kept and evaluated
+  await page.evaluate(() => {
+    const e = window.__strudelEditor!;
+    e.focus(e.value()!.indexOf("// padding line") + "// padding line".length);
+  });
+  await page.keyboard.type(" (mine)");
+  const mine = (await page.evaluate(() => window.__strudelEditor!.value()))!;
+  expect(mine).toContain("// padding line (mine)");
+  await expect.poll(async () => (await sourceOf(player))?.text, { message: "the browser's edit plays" }).toBe(mine);
+  await expect.poll(() => page.evaluate((id) => window.__strudel!.store.getMySong(id)?.text, id)).toBe(mine);
+
+  // another text of the song arrives from outside: a conflict, then "load" takes it
+  const theirs = fixtureSource({ name: "Kept Tune", gain: 0.3 });
+  expect(await page.evaluate(([id, text]) => window.__strudel!.addSong(id, text), [id, theirs] as const)).toMatchObject({ ok: true });
+  await expect(page.getByTestId("code-load")).toBeVisible();
+  await page.getByTestId("code-load").click();
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor!.value())).toBe(theirs);
+  await expect.poll(async () => (await sourceOf(player))?.text).toBe(theirs);
+  await expect
+    .poll(() => page.evaluate((id) => window.__strudel!.store.getMySong(id)?.text ?? null, id), { message: "their text is kept as the song" })
+    .toBe(theirs);
+
+  await page.reload();
+  await waitReady(player);
+  await expect.poll(() => player.songIds()).toContain(id);
+  await expect.poll(async () => (await player.state()).songId).toBe(id);
+  expect(await sourceOf(player)).toMatchObject({ file: `src/songs/${id}.ts`, text: theirs });
+});

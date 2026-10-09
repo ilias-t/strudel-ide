@@ -819,10 +819,23 @@ export function mountStage(): Stage {
   });
   loadKey.addEventListener("click", () => {
     const id = shownSongId;
+    const session = sessions.get(id);
+    const theirs = session?.view().conflict;
+    if (!session || !theirs) return;
     // the browser's edits are given up for theirs: a reload must not bring them back
-    saver.cancel(id);
-    songsStore.discard(id);
-    sessions.get(id)?.loadIncoming();
+    if (player.isBuiltInSong(id)) {
+      saver.cancel(id);
+      songsStore.discard(id);
+    } else {
+      // a user song's stored text is the song itself: theirs is the song now (like ⌘S)
+      saver.keep(id, theirs.text);
+    }
+    session.loadIncoming();
+    // the browser's eval may have landed after theirs arrived: the player plays what the editor shows
+    if (player.sourceOf(id)?.text !== theirs.text) {
+      if (theirs.live) void player.evalSource(id, theirs.text, { intent: "commit", origin: "editor" });
+      else player.revertSource(id);
+    }
     renderEdited();
   });
   // a double-click in the read-only code starts editing right there

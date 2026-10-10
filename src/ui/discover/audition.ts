@@ -21,6 +21,7 @@
 import { bpmToCps, engine, warmOrbits } from "../../engine/strudel";
 import * as player from "../../engine/player";
 import { AuditionBus } from "./audition-bus";
+import { previewable } from "./previewable";
 
 export interface AuditionRecord {
   id: number;
@@ -144,14 +145,8 @@ function fail(rec: AuditionRecord, error: string): AuditionRecord {
   return rec;
 }
 
-/** Calls a preview must never make: they reach past the pattern into the running engine or the page */
-const UNSAFE =
-  /\b(setcps|setcpm|setCps|setCpm|hush|samples|soundAlias|aliasBank|register|evalScope|initAudio|initStrudel|loadOrc|loadCsound|fetch|import|await|document|window|globalThis|eval|Function|localStorage)\b|\.(osc|midi|midin|serial|csound|mqtt|dough|scope|tscope|fscope|pianoroll|punchcard|spiral|pitchwheel|spectrum|wordfall|markcss|draw|animate|onPaint|onFrame|onTrigger|log|logValues)\s*\(|\$:|_\w+\s*\(/;
-
-/** Whether previewCode() will try `code` (the library greys out ▶ otherwise) */
-export function previewable(code: string): boolean {
-  return code.trim().length > 0 && !UNSAFE.test(code);
-}
+// previewable(): which code may run here (pure, in its own module for Node tests)
+export { previewable } from "./previewable";
 
 interface QueryHap {
   whole?: { begin: { valueOf(): number }; end: { valueOf(): number } };

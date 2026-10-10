@@ -9,8 +9,6 @@
 //     only the second
 //   - a sample that fails to load is "couldn't load this sample", with no
 //     console error
-//   - a new preview silences a synth still sounding (cut groups are the
-//     sampler's only), and a stop silences what plays
 // Audio itself can't be heard here: the audition record (window.__strudelDiscover)
 // holds the values handed to superdough, with the duration it was given.
 // Sample files are served by the test (a short generated WAV) so nothing
@@ -201,22 +199,4 @@ test("a sample that 404s: \"couldn't load this sample\", and only the browser's 
   // Chromium reports the 404 itself (once: superdough caches the failed load); the app logs nothing
   expect(player.errors).toEqual(["Failed to load resource: the server responded with a status of 404 (Not Found)"]);
   player.clearErrors();
-});
-
-/** The audition voices sounding or fading now (src/ui/discover/audition-voices.ts), tagged with their record's id */
-const voices = (page: Page) =>
-  page.evaluate(async (url) => ((await import(/* @vite-ignore */ url)) as AuditionModule).auditionVoices(), AUDITION);
-
-test("a new preview silences a synth still sounding (superdough's cut group only chokes samples)", async ({ player, page }) => {
-  await player.boot();
-  const sine = await audition(page, "sine", { pitched: true, preview: true });
-  expect(await voices(page)).toContainEqual({ tag: sine, gain: 1, cut: false });
-  await page.waitForTimeout(200); // well inside the sine's ~0.7 s
-  const square = await audition(page, "square", { pitched: true, preview: true });
-  // the sine fades out in a few ms (and leaves once stopped); the square plays on
-  await expect.poll(async () => (await voices(page)).filter((v) => v.gain > 0.01).map((v) => v.tag), { timeout: 2000 }).toEqual([square]);
-  expect((await voices(page)).find((v) => v.tag === sine)?.cut ?? true).toBe(true);
-  // stopping it silences it too
-  await page.evaluate(async (url) => ((await import(/* @vite-ignore */ url)) as AuditionModule).stopAudition(), AUDITION);
-  await expect.poll(async () => (await voices(page)).filter((v) => v.gain > 0.01), { timeout: 2000 }).toEqual([]);
 });

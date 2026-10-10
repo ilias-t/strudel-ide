@@ -118,8 +118,7 @@ only the stage's own editor and its localStorage are left.
   the song or edit mode by the time it's planned. Auditions play straight into
   the engine's output, beside the scheduler and on an orbit of their own, so
   the song plays on untouched; each one is bounded (about a second, with a
-  release), so a long sample never rings on, and a new one (or a stop) fades
-  out whatever is still sounding, synths included (`audition-voices.ts`).
+  release), so a long sample never rings on.
 - **Editor extension** (`vscode-extension/`). A client of the bridge; see
   [its README](../vscode-extension/README.md#how-it-works) for the protocol.
 - **Scripts** (`scripts/`). Work on the same song files from the terminal:

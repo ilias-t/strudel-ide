@@ -13,6 +13,7 @@ import { describe, test } from "node:test";
 import * as core from "@strudel/core";
 import * as mini from "@strudel/mini";
 import * as tonal from "@strudel/tonal";
+// @ts-expect-error -- a JSDoc-typed .mjs helper with no .d.ts (check-songs' and test/catalog.test.mjs' rule for known sounds)
 import { knownSoundsFromCatalog, soundKey } from "../scripts/lib/catalog/known-sounds.mjs";
 import type { CompletionsCatalog, FunctionsCatalog, Intent, SoundsCatalog } from "../src/ui/discover/catalog.ts";
 import { previewable } from "../src/ui/discover/previewable.ts";

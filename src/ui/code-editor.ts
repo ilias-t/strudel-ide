@@ -263,6 +263,8 @@ export class CodeEditor implements CodeSurface {
       // strings too: sound names in s("…"), banks in .bank("…")
       quickSuggestions: { other: true, comments: false, strings: true },
       quickSuggestionsDelay: 80,
+      // the document's words would fill in when a string has nothing to offer (s("bdd:")): noise
+      wordBasedSuggestions: "off",
       accessibilitySupport: "auto",
       ariaLabel: "Song source (edit mode). Ctrl or Cmd+Enter plays the edit.",
       unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
@@ -273,7 +275,8 @@ export class CodeEditor implements CodeSurface {
     this.errorDecos = this.editor.createDecorationsCollection();
     this.syntaxDecos = this.editor.createDecorationsCollection();
     this.slotDecos = this.editor.createDecorationsCollection();
-    // Strudel support: calm warnings for names that won't play, with quick fixes (src/ui/complete/)
+    // Strudel support (src/ui/complete/): completions inside strings and ranked methods after a dot,
+    // hovers with ▶, sound previews while browsing, calm warnings with quick fixes
     this.disposables.push(registerStrudelLanguage(monaco, this.editor));
 
     // ⌘/Ctrl+Enter: evaluate now (Monaco would insert a line)

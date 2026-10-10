@@ -3,466 +3,2032 @@
   "pages": {
     "/functions/intro/": {
       "title": "JavaScript API",
-      "anchors": [
-        "pattern-functions",
-        "limits-of-mini-notation",
-        "combining-patterns"
+      "headings": [
+        {
+          "id": "pattern-functions",
+          "level": 1,
+          "text": "Pattern Functions"
+        },
+        {
+          "id": "limits-of-mini-notation",
+          "level": 2,
+          "text": "Limits of Mini Notation"
+        },
+        {
+          "id": "combining-patterns",
+          "level": 2,
+          "text": "Combining Patterns"
+        }
       ]
     },
     "/functions/value-modifiers/": {
       "title": "Control Parameters",
-      "anchors": [
-        "control-parameters",
-        "parameter-functions",
-        "plain-vs-parameterized-values",
-        "wrapping-parameter-functions",
-        "plain-value-modification",
-        "param-value-modification",
-        "operators",
-        "add",
-        "sub",
-        "mul",
-        "div",
-        "round",
-        "floor",
-        "ceil",
-        "range",
-        "rangex",
-        "range2",
-        "ratio",
-        "as",
-        "custom-parameters"
+      "headings": [
+        {
+          "id": "control-parameters",
+          "level": 1,
+          "text": "Control Parameters"
+        },
+        {
+          "id": "parameter-functions",
+          "level": 1,
+          "text": "Parameter Functions"
+        },
+        {
+          "id": "plain-vs-parameterized-values",
+          "level": 2,
+          "text": "Plain vs Parameterized Values"
+        },
+        {
+          "id": "wrapping-parameter-functions",
+          "level": 2,
+          "text": "Wrapping Parameter Functions"
+        },
+        {
+          "id": "plain-value-modification",
+          "level": 2,
+          "text": "Plain Value Modification"
+        },
+        {
+          "id": "param-value-modification",
+          "level": 2,
+          "text": "Param Value Modification"
+        },
+        {
+          "id": "operators",
+          "level": 1,
+          "text": "Operators"
+        },
+        {
+          "id": "add",
+          "level": 2,
+          "text": "add"
+        },
+        {
+          "id": "sub",
+          "level": 2,
+          "text": "sub"
+        },
+        {
+          "id": "mul",
+          "level": 2,
+          "text": "mul"
+        },
+        {
+          "id": "div",
+          "level": 2,
+          "text": "div"
+        },
+        {
+          "id": "round",
+          "level": 2,
+          "text": "round"
+        },
+        {
+          "id": "floor",
+          "level": 2,
+          "text": "floor"
+        },
+        {
+          "id": "ceil",
+          "level": 2,
+          "text": "ceil"
+        },
+        {
+          "id": "range",
+          "level": 2,
+          "text": "range"
+        },
+        {
+          "id": "rangex",
+          "level": 2,
+          "text": "rangex"
+        },
+        {
+          "id": "range2",
+          "level": 2,
+          "text": "range2"
+        },
+        {
+          "id": "ratio",
+          "level": 2,
+          "text": "ratio"
+        },
+        {
+          "id": "as",
+          "level": 2,
+          "text": "as"
+        },
+        {
+          "id": "custom-parameters",
+          "level": 1,
+          "text": "Custom Parameters"
+        }
       ]
     },
     "/learn/accumulation/": {
       "title": "Accumulation Modifiers",
-      "anchors": [
-        "accumulation-modifiers",
-        "superimpose",
-        "layer",
-        "off",
-        "echo",
-        "echowith",
-        "stut"
+      "headings": [
+        {
+          "id": "accumulation-modifiers",
+          "level": 1,
+          "text": "Accumulation Modifiers"
+        },
+        {
+          "id": "superimpose",
+          "level": 2,
+          "text": "superimpose"
+        },
+        {
+          "id": "layer",
+          "level": 2,
+          "text": "layer"
+        },
+        {
+          "id": "off",
+          "level": 2,
+          "text": "off"
+        },
+        {
+          "id": "echo",
+          "level": 2,
+          "text": "echo"
+        },
+        {
+          "id": "echowith",
+          "level": 2,
+          "text": "echoWith"
+        },
+        {
+          "id": "stut",
+          "level": 2,
+          "text": "stut"
+        }
       ]
     },
     "/learn/conditional-modifiers/": {
       "title": "Conditional Modifiers",
-      "anchors": [
-        "conditional-modifiers",
-        "lastof",
-        "firstof",
-        "when",
-        "chunk",
-        "chunkback",
-        "fastchunk",
-        "arp",
-        "arpwith-",
-        "struct",
-        "mask",
-        "reset",
-        "restart",
-        "hush",
-        "invert",
-        "pick",
-        "pickmod",
-        "pickf",
-        "pickmodf",
-        "pickrestart",
-        "pickmodrestart",
-        "pickreset",
-        "pickmodreset",
-        "inhabit",
-        "inhabitmod",
-        "squeeze"
+      "headings": [
+        {
+          "id": "conditional-modifiers",
+          "level": 1,
+          "text": "Conditional Modifiers"
+        },
+        {
+          "id": "lastof",
+          "level": 2,
+          "text": "lastOf"
+        },
+        {
+          "id": "firstof",
+          "level": 2,
+          "text": "firstOf"
+        },
+        {
+          "id": "when",
+          "level": 2,
+          "text": "when"
+        },
+        {
+          "id": "chunk",
+          "level": 2,
+          "text": "chunk"
+        },
+        {
+          "id": "chunkback",
+          "level": 3,
+          "text": "chunkBack"
+        },
+        {
+          "id": "fastchunk",
+          "level": 3,
+          "text": "fastChunk"
+        },
+        {
+          "id": "arp",
+          "level": 2,
+          "text": "arp"
+        },
+        {
+          "id": "arpwith-",
+          "level": 2,
+          "text": "arpWith 🧪"
+        },
+        {
+          "id": "struct",
+          "level": 2,
+          "text": "struct"
+        },
+        {
+          "id": "mask",
+          "level": 2,
+          "text": "mask"
+        },
+        {
+          "id": "reset",
+          "level": 2,
+          "text": "reset"
+        },
+        {
+          "id": "restart",
+          "level": 2,
+          "text": "restart"
+        },
+        {
+          "id": "hush",
+          "level": 2,
+          "text": "hush"
+        },
+        {
+          "id": "invert",
+          "level": 2,
+          "text": "invert"
+        },
+        {
+          "id": "pick",
+          "level": 2,
+          "text": "pick"
+        },
+        {
+          "id": "pickmod",
+          "level": 2,
+          "text": "pickmod"
+        },
+        {
+          "id": "pickf",
+          "level": 2,
+          "text": "pickF"
+        },
+        {
+          "id": "pickmodf",
+          "level": 2,
+          "text": "pickmodF"
+        },
+        {
+          "id": "pickrestart",
+          "level": 2,
+          "text": "pickRestart"
+        },
+        {
+          "id": "pickmodrestart",
+          "level": 2,
+          "text": "pickmodRestart"
+        },
+        {
+          "id": "pickreset",
+          "level": 2,
+          "text": "pickReset"
+        },
+        {
+          "id": "pickmodreset",
+          "level": 2,
+          "text": "pickmodReset"
+        },
+        {
+          "id": "inhabit",
+          "level": 2,
+          "text": "inhabit"
+        },
+        {
+          "id": "inhabitmod",
+          "level": 2,
+          "text": "inhabitmod"
+        },
+        {
+          "id": "squeeze",
+          "level": 2,
+          "text": "squeeze"
+        }
       ]
     },
     "/learn/effects/": {
       "title": "Audio effects",
-      "anchors": [
-        "audio-effects",
-        "signal-chain",
-        "orbits",
-        "continuous-changes",
-        "filters",
-        "lpf",
-        "lpq",
-        "hpf",
-        "hpq",
-        "bpf",
-        "bpq",
-        "ftype",
-        "vowel",
-        "amplitude-modulation",
-        "am",
-        "tremolosync",
-        "tremolodepth",
-        "tremoloskew",
-        "tremolophase",
-        "tremoloshape",
-        "amplitude-envelope",
-        "attack",
-        "decay",
-        "sustain",
-        "release",
-        "adsr",
-        "filter-envelope",
-        "lpattack",
-        "lpdecay",
-        "lpsustain",
-        "lprelease",
-        "lpenv",
-        "pitch-envelope",
-        "pattack",
-        "pdecay",
-        "prelease",
-        "penv",
-        "pcurve",
-        "panchor",
-        "dynamics",
-        "gain",
-        "velocity",
-        "compressor",
-        "postgain",
-        "xfade",
-        "panning",
-        "jux",
-        "juxby",
-        "pan",
-        "waveshaping",
-        "coarse",
-        "crush",
-        "distort",
-        "global-effects",
-        "local-vs-global-effects",
-        "orbit",
-        "delay",
-        "delay-1",
-        "delaytime",
-        "delayfeedback",
-        "reverb",
-        "room",
-        "roomsize",
-        "roomfade",
-        "roomlp",
-        "roomdim",
-        "iresponse",
-        "phaser",
-        "phaser-1",
-        "phaserdepth",
-        "phasercenter",
-        "phasersweep",
-        "duck",
-        "duckorbit",
-        "duckattack",
-        "duckdepth"
+      "headings": [
+        {
+          "id": "audio-effects",
+          "level": 1,
+          "text": "Audio Effects"
+        },
+        {
+          "id": "signal-chain",
+          "level": 1,
+          "text": "Signal chain"
+        },
+        {
+          "id": "orbits",
+          "level": 2,
+          "text": "Orbits"
+        },
+        {
+          "id": "continuous-changes",
+          "level": 2,
+          "text": "Continuous changes"
+        },
+        {
+          "id": "filters",
+          "level": 1,
+          "text": "Filters"
+        },
+        {
+          "id": "lpf",
+          "level": 2,
+          "text": "lpf"
+        },
+        {
+          "id": "lpq",
+          "level": 2,
+          "text": "lpq"
+        },
+        {
+          "id": "hpf",
+          "level": 2,
+          "text": "hpf"
+        },
+        {
+          "id": "hpq",
+          "level": 2,
+          "text": "hpq"
+        },
+        {
+          "id": "bpf",
+          "level": 2,
+          "text": "bpf"
+        },
+        {
+          "id": "bpq",
+          "level": 2,
+          "text": "bpq"
+        },
+        {
+          "id": "ftype",
+          "level": 2,
+          "text": "ftype"
+        },
+        {
+          "id": "vowel",
+          "level": 2,
+          "text": "vowel"
+        },
+        {
+          "id": "amplitude-modulation",
+          "level": 1,
+          "text": "Amplitude Modulation"
+        },
+        {
+          "id": "am",
+          "level": 2,
+          "text": "am"
+        },
+        {
+          "id": "tremolosync",
+          "level": 2,
+          "text": "tremolosync"
+        },
+        {
+          "id": "tremolodepth",
+          "level": 2,
+          "text": "tremolodepth"
+        },
+        {
+          "id": "tremoloskew",
+          "level": 2,
+          "text": "tremoloskew"
+        },
+        {
+          "id": "tremolophase",
+          "level": 2,
+          "text": "tremolophase"
+        },
+        {
+          "id": "tremoloshape",
+          "level": 2,
+          "text": "tremoloshape"
+        },
+        {
+          "id": "amplitude-envelope",
+          "level": 1,
+          "text": "Amplitude Envelope"
+        },
+        {
+          "id": "attack",
+          "level": 2,
+          "text": "attack"
+        },
+        {
+          "id": "decay",
+          "level": 2,
+          "text": "decay"
+        },
+        {
+          "id": "sustain",
+          "level": 2,
+          "text": "sustain"
+        },
+        {
+          "id": "release",
+          "level": 2,
+          "text": "release"
+        },
+        {
+          "id": "adsr",
+          "level": 2,
+          "text": "adsr"
+        },
+        {
+          "id": "filter-envelope",
+          "level": 1,
+          "text": "Filter Envelope"
+        },
+        {
+          "id": "lpattack",
+          "level": 2,
+          "text": "lpattack"
+        },
+        {
+          "id": "lpdecay",
+          "level": 2,
+          "text": "lpdecay"
+        },
+        {
+          "id": "lpsustain",
+          "level": 2,
+          "text": "lpsustain"
+        },
+        {
+          "id": "lprelease",
+          "level": 2,
+          "text": "lprelease"
+        },
+        {
+          "id": "lpenv",
+          "level": 2,
+          "text": "lpenv"
+        },
+        {
+          "id": "pitch-envelope",
+          "level": 1,
+          "text": "Pitch Envelope"
+        },
+        {
+          "id": "pattack",
+          "level": 2,
+          "text": "pattack"
+        },
+        {
+          "id": "pdecay",
+          "level": 2,
+          "text": "pdecay"
+        },
+        {
+          "id": "prelease",
+          "level": 2,
+          "text": "prelease"
+        },
+        {
+          "id": "penv",
+          "level": 2,
+          "text": "penv"
+        },
+        {
+          "id": "pcurve",
+          "level": 2,
+          "text": "pcurve"
+        },
+        {
+          "id": "panchor",
+          "level": 2,
+          "text": "panchor"
+        },
+        {
+          "id": "dynamics",
+          "level": 1,
+          "text": "Dynamics"
+        },
+        {
+          "id": "gain",
+          "level": 2,
+          "text": "gain"
+        },
+        {
+          "id": "velocity",
+          "level": 2,
+          "text": "velocity"
+        },
+        {
+          "id": "compressor",
+          "level": 2,
+          "text": "compressor"
+        },
+        {
+          "id": "postgain",
+          "level": 2,
+          "text": "postgain"
+        },
+        {
+          "id": "xfade",
+          "level": 2,
+          "text": "xfade"
+        },
+        {
+          "id": "panning",
+          "level": 1,
+          "text": "Panning"
+        },
+        {
+          "id": "jux",
+          "level": 2,
+          "text": "jux"
+        },
+        {
+          "id": "juxby",
+          "level": 2,
+          "text": "juxBy"
+        },
+        {
+          "id": "pan",
+          "level": 2,
+          "text": "pan"
+        },
+        {
+          "id": "waveshaping",
+          "level": 1,
+          "text": "Waveshaping"
+        },
+        {
+          "id": "coarse",
+          "level": 2,
+          "text": "coarse"
+        },
+        {
+          "id": "crush",
+          "level": 2,
+          "text": "crush"
+        },
+        {
+          "id": "distort",
+          "level": 2,
+          "text": "distort"
+        },
+        {
+          "id": "global-effects",
+          "level": 1,
+          "text": "Global Effects"
+        },
+        {
+          "id": "local-vs-global-effects",
+          "level": 2,
+          "text": "Local vs Global Effects"
+        },
+        {
+          "id": "orbit",
+          "level": 2,
+          "text": "orbit"
+        },
+        {
+          "id": "delay",
+          "level": 2,
+          "text": "Delay"
+        },
+        {
+          "id": "delay-1",
+          "level": 3,
+          "text": "delay"
+        },
+        {
+          "id": "delaytime",
+          "level": 3,
+          "text": "delaytime"
+        },
+        {
+          "id": "delayfeedback",
+          "level": 3,
+          "text": "delayfeedback"
+        },
+        {
+          "id": "reverb",
+          "level": 2,
+          "text": "Reverb"
+        },
+        {
+          "id": "room",
+          "level": 3,
+          "text": "room"
+        },
+        {
+          "id": "roomsize",
+          "level": 3,
+          "text": "roomsize"
+        },
+        {
+          "id": "roomfade",
+          "level": 3,
+          "text": "roomfade"
+        },
+        {
+          "id": "roomlp",
+          "level": 3,
+          "text": "roomlp"
+        },
+        {
+          "id": "roomdim",
+          "level": 3,
+          "text": "roomdim"
+        },
+        {
+          "id": "iresponse",
+          "level": 3,
+          "text": "iresponse"
+        },
+        {
+          "id": "phaser",
+          "level": 2,
+          "text": "Phaser"
+        },
+        {
+          "id": "phaser-1",
+          "level": 3,
+          "text": "phaser"
+        },
+        {
+          "id": "phaserdepth",
+          "level": 3,
+          "text": "phaserdepth"
+        },
+        {
+          "id": "phasercenter",
+          "level": 3,
+          "text": "phasercenter"
+        },
+        {
+          "id": "phasersweep",
+          "level": 3,
+          "text": "phasersweep"
+        },
+        {
+          "id": "duck",
+          "level": 2,
+          "text": "Duck"
+        },
+        {
+          "id": "duckorbit",
+          "level": 3,
+          "text": "duckorbit"
+        },
+        {
+          "id": "duckattack",
+          "level": 3,
+          "text": "duckattack"
+        },
+        {
+          "id": "duckdepth",
+          "level": 3,
+          "text": "duckdepth"
+        }
       ]
     },
     "/learn/factories/": {
       "title": "Creating Patterns",
-      "anchors": [
-        "creating-patterns",
-        "cat",
-        "seq",
-        "stack",
-        "stepcat",
-        "arrange",
-        "polymeter",
-        "polymetersteps",
-        "silence",
-        "run",
-        "binary",
-        "binaryn"
+      "headings": [
+        {
+          "id": "creating-patterns",
+          "level": 1,
+          "text": "Creating Patterns"
+        },
+        {
+          "id": "cat",
+          "level": 2,
+          "text": "cat"
+        },
+        {
+          "id": "seq",
+          "level": 2,
+          "text": "seq"
+        },
+        {
+          "id": "stack",
+          "level": 2,
+          "text": "stack"
+        },
+        {
+          "id": "stepcat",
+          "level": 2,
+          "text": "stepcat"
+        },
+        {
+          "id": "arrange",
+          "level": 2,
+          "text": "arrange"
+        },
+        {
+          "id": "polymeter",
+          "level": 2,
+          "text": "polymeter"
+        },
+        {
+          "id": "polymetersteps",
+          "level": 2,
+          "text": "polymeterSteps"
+        },
+        {
+          "id": "silence",
+          "level": 2,
+          "text": "silence"
+        },
+        {
+          "id": "run",
+          "level": 2,
+          "text": "run"
+        },
+        {
+          "id": "binary",
+          "level": 2,
+          "text": "binary"
+        },
+        {
+          "id": "binaryn",
+          "level": 2,
+          "text": "binaryN"
+        }
       ]
     },
     "/learn/input-output/": {
       "title": "MIDI, OSC & MQTT",
-      "anchors": [
-        "midi-osc-and-mqtt",
-        "midi",
-        "midininputname",
-        "midikeysinputname",
-        "midioutputnameoptions",
-        "midiportoutputname",
-        "midichannumber",
-        "midicmdcommand",
-        "control-ccn--ccv",
-        "midimaps",
-        "defaultmidimap",
-        "prognum-program-change",
-        "sysex-sysexid--sysexdata-system-exclusive-message",
-        "midibend--miditouch",
-        "oscsuperdirtstrudeldirt",
-        "prequisites",
-        "usage",
-        "patternosc",
-        "superdirt-params",
-        "mqtt",
-        "usage-1"
+      "headings": [
+        {
+          "id": "midi-osc-and-mqtt",
+          "level": 1,
+          "text": "MIDI, OSC and MQTT"
+        },
+        {
+          "id": "midi",
+          "level": 1,
+          "text": "MIDI"
+        },
+        {
+          "id": "midininputname",
+          "level": 2,
+          "text": "midin(inputName?)"
+        },
+        {
+          "id": "midikeysinputname",
+          "level": 2,
+          "text": "midikeys(inputName?)"
+        },
+        {
+          "id": "midioutputnameoptions",
+          "level": 2,
+          "text": "midi(outputName?,options?)"
+        },
+        {
+          "id": "midiportoutputname",
+          "level": 3,
+          "text": "midiport(outputName)"
+        },
+        {
+          "id": "midichannumber",
+          "level": 2,
+          "text": "midichan(number)"
+        },
+        {
+          "id": "midicmdcommand",
+          "level": 2,
+          "text": "midicmd(command)"
+        },
+        {
+          "id": "control-ccn--ccv",
+          "level": 2,
+          "text": "control, ccn && ccv"
+        },
+        {
+          "id": "midimaps",
+          "level": 2,
+          "text": "midimaps"
+        },
+        {
+          "id": "defaultmidimap",
+          "level": 2,
+          "text": "defaultmidimap"
+        },
+        {
+          "id": "prognum-program-change",
+          "level": 2,
+          "text": "progNum (Program Change)"
+        },
+        {
+          "id": "sysex-sysexid--sysexdata-system-exclusive-message",
+          "level": 2,
+          "text": "sysex, sysexid && sysexdata (System Exclusive Message)"
+        },
+        {
+          "id": "midibend--miditouch",
+          "level": 2,
+          "text": "midibend && miditouch"
+        },
+        {
+          "id": "oscsuperdirtstrudeldirt",
+          "level": 1,
+          "text": "OSC/SuperDirt/StrudelDirt"
+        },
+        {
+          "id": "prequisites",
+          "level": 2,
+          "text": "Prequisites"
+        },
+        {
+          "id": "usage",
+          "level": 2,
+          "text": "Usage"
+        },
+        {
+          "id": "patternosc",
+          "level": 3,
+          "text": "Pattern.osc"
+        },
+        {
+          "id": "superdirt-params",
+          "level": 2,
+          "text": "SuperDirt Params"
+        },
+        {
+          "id": "mqtt",
+          "level": 1,
+          "text": "MQTT"
+        },
+        {
+          "id": "usage-1",
+          "level": 2,
+          "text": "Usage"
+        }
       ]
     },
     "/learn/lfo/": {
       "title": "Low-frequency oscillators (LFO)",
-      "anchors": [
-        "low-frequency-oscillators-lfo",
-        "signals-vs-lfos",
-        "applying-an-lfo",
-        "moving-away-from-the-default",
-        "control",
-        "rate",
-        "sync",
-        "relative-depth",
-        "absolute-depth",
-        "dc-offset",
-        "shape",
-        "skewing-some-shapes",
-        "curve",
-        "referencing-your-lfos-with-id",
-        "fx-index",
-        "modulating-other-lfos-with-sub-control"
+      "headings": [
+        {
+          "id": "low-frequency-oscillators-lfo",
+          "level": 1,
+          "text": "Low frequency oscillators (LFO)"
+        },
+        {
+          "id": "signals-vs-lfos",
+          "level": 2,
+          "text": "Signals vs LFOs"
+        },
+        {
+          "id": "applying-an-lfo",
+          "level": 2,
+          "text": "Applying an LFO"
+        },
+        {
+          "id": "moving-away-from-the-default",
+          "level": 2,
+          "text": "Moving away from the default"
+        },
+        {
+          "id": "control",
+          "level": 2,
+          "text": "Control"
+        },
+        {
+          "id": "rate",
+          "level": 2,
+          "text": "Rate"
+        },
+        {
+          "id": "sync",
+          "level": 2,
+          "text": "Sync"
+        },
+        {
+          "id": "relative-depth",
+          "level": 2,
+          "text": "Relative Depth"
+        },
+        {
+          "id": "absolute-depth",
+          "level": 2,
+          "text": "Absolute Depth"
+        },
+        {
+          "id": "dc-offset",
+          "level": 2,
+          "text": "DC offset"
+        },
+        {
+          "id": "shape",
+          "level": 2,
+          "text": "Shape"
+        },
+        {
+          "id": "skewing-some-shapes",
+          "level": 2,
+          "text": "Skewing some shapes"
+        },
+        {
+          "id": "curve",
+          "level": 2,
+          "text": "Curve"
+        },
+        {
+          "id": "referencing-your-lfos-with-id",
+          "level": 2,
+          "text": "Referencing your lfos with id"
+        },
+        {
+          "id": "fx-index",
+          "level": 2,
+          "text": "FX index"
+        },
+        {
+          "id": "modulating-other-lfos-with-sub-control",
+          "level": 2,
+          "text": "Modulating other LFOs with Sub-control"
+        }
       ]
     },
     "/learn/mini-notation/": {
       "title": "Mini Notation",
-      "anchors": [
-        "mini-notation",
-        "note",
-        "example",
-        "mini-notation-format",
-        "sequences-of-events-in-a-cycle",
-        "multiplication",
-        "division",
-        "angle-brackets",
-        "subdividing-time-with-bracket-nesting",
-        "rests",
-        "parallel--polyphony",
-        "elongation",
-        "replication",
-        "randomness",
-        "mini-notation-review",
-        "euclidian-rhythms",
-        "beats",
-        "segments",
-        "offsets",
-        "mini-notation-exercise"
+      "headings": [
+        {
+          "id": "mini-notation",
+          "level": 1,
+          "text": "Mini-notation"
+        },
+        {
+          "id": "note",
+          "level": 2,
+          "text": "Note"
+        },
+        {
+          "id": "example",
+          "level": 2,
+          "text": "Example"
+        },
+        {
+          "id": "mini-notation-format",
+          "level": 2,
+          "text": "Mini Notation Format"
+        },
+        {
+          "id": "sequences-of-events-in-a-cycle",
+          "level": 2,
+          "text": "Sequences of events in a cycle"
+        },
+        {
+          "id": "multiplication",
+          "level": 2,
+          "text": "Multiplication"
+        },
+        {
+          "id": "division",
+          "level": 2,
+          "text": "Division"
+        },
+        {
+          "id": "angle-brackets",
+          "level": 2,
+          "text": "Angle Brackets"
+        },
+        {
+          "id": "subdividing-time-with-bracket-nesting",
+          "level": 2,
+          "text": "Subdividing time with bracket nesting"
+        },
+        {
+          "id": "rests",
+          "level": 2,
+          "text": "Rests"
+        },
+        {
+          "id": "parallel--polyphony",
+          "level": 2,
+          "text": "Parallel / polyphony"
+        },
+        {
+          "id": "elongation",
+          "level": 2,
+          "text": "Elongation"
+        },
+        {
+          "id": "replication",
+          "level": 2,
+          "text": "Replication"
+        },
+        {
+          "id": "randomness",
+          "level": 2,
+          "text": "Randomness"
+        },
+        {
+          "id": "mini-notation-review",
+          "level": 2,
+          "text": "Mini-notation review"
+        },
+        {
+          "id": "euclidian-rhythms",
+          "level": 2,
+          "text": "Euclidian rhythms"
+        },
+        {
+          "id": "beats",
+          "level": 3,
+          "text": "Beats"
+        },
+        {
+          "id": "segments",
+          "level": 3,
+          "text": "Segments"
+        },
+        {
+          "id": "offsets",
+          "level": 3,
+          "text": "Offsets"
+        },
+        {
+          "id": "mini-notation-exercise",
+          "level": 2,
+          "text": "Mini-notation exercise"
+        }
       ]
     },
     "/learn/random-modifiers/": {
       "title": "Random Modifiers",
-      "anchors": [
-        "random-modifiers",
-        "choose",
-        "wchoose",
-        "choosecycles",
-        "wchoosecycles",
-        "degradeby",
-        "degrade",
-        "undegradeby",
-        "undegrade",
-        "sometimesby",
-        "sometimes",
-        "somecyclesby",
-        "somecycles",
-        "often",
-        "rarely",
-        "almostnever",
-        "almostalways",
-        "never",
-        "always"
+      "headings": [
+        {
+          "id": "random-modifiers",
+          "level": 1,
+          "text": "Random Modifiers"
+        },
+        {
+          "id": "choose",
+          "level": 2,
+          "text": "choose"
+        },
+        {
+          "id": "wchoose",
+          "level": 2,
+          "text": "wchoose"
+        },
+        {
+          "id": "choosecycles",
+          "level": 2,
+          "text": "chooseCycles"
+        },
+        {
+          "id": "wchoosecycles",
+          "level": 2,
+          "text": "wchooseCycles"
+        },
+        {
+          "id": "degradeby",
+          "level": 2,
+          "text": "degradeBy"
+        },
+        {
+          "id": "degrade",
+          "level": 2,
+          "text": "degrade"
+        },
+        {
+          "id": "undegradeby",
+          "level": 2,
+          "text": "undegradeBy"
+        },
+        {
+          "id": "undegrade",
+          "level": 2,
+          "text": "undegrade"
+        },
+        {
+          "id": "sometimesby",
+          "level": 2,
+          "text": "sometimesBy"
+        },
+        {
+          "id": "sometimes",
+          "level": 2,
+          "text": "sometimes"
+        },
+        {
+          "id": "somecyclesby",
+          "level": 2,
+          "text": "someCyclesBy"
+        },
+        {
+          "id": "somecycles",
+          "level": 2,
+          "text": "someCycles"
+        },
+        {
+          "id": "often",
+          "level": 2,
+          "text": "often"
+        },
+        {
+          "id": "rarely",
+          "level": 2,
+          "text": "rarely"
+        },
+        {
+          "id": "almostnever",
+          "level": 2,
+          "text": "almostNever"
+        },
+        {
+          "id": "almostalways",
+          "level": 2,
+          "text": "almostAlways"
+        },
+        {
+          "id": "never",
+          "level": 2,
+          "text": "never"
+        },
+        {
+          "id": "always",
+          "level": 2,
+          "text": "always"
+        }
       ]
     },
     "/learn/samples/": {
       "title": "Samples",
-      "anchors": [
-        "samples",
-        "default-samples",
-        "sound-banks",
-        "selecting-sounds",
-        "loading-custom-samples",
-        "loading-samples-from-file-urls",
-        "loading-samples-from-a-strudeljson-file",
-        "generating-strudeljson",
-        "github-shortcut",
-        "from-disk-via-import-sounds-folder",
-        "from-disk-via-strudelsampler",
-        "specifying-pitch",
-        "shabda",
-        "sampler-effects",
-        "begin",
-        "end",
-        "loop",
-        "loopbegin",
-        "loopend",
-        "cut",
-        "clip",
-        "loopat",
-        "fit",
-        "chop",
-        "striate",
-        "slice",
-        "splice",
-        "scrub",
-        "speed"
+      "headings": [
+        {
+          "id": "samples",
+          "level": 1,
+          "text": "Samples"
+        },
+        {
+          "id": "default-samples",
+          "level": 1,
+          "text": "Default Samples"
+        },
+        {
+          "id": "sound-banks",
+          "level": 1,
+          "text": "Sound Banks"
+        },
+        {
+          "id": "selecting-sounds",
+          "level": 1,
+          "text": "Selecting Sounds"
+        },
+        {
+          "id": "loading-custom-samples",
+          "level": 1,
+          "text": "Loading Custom Samples"
+        },
+        {
+          "id": "loading-samples-from-file-urls",
+          "level": 2,
+          "text": "Loading samples from file URLs"
+        },
+        {
+          "id": "loading-samples-from-a-strudeljson-file",
+          "level": 2,
+          "text": "Loading Samples from a strudel.json file"
+        },
+        {
+          "id": "generating-strudeljson",
+          "level": 2,
+          "text": "Generating strudel.json"
+        },
+        {
+          "id": "github-shortcut",
+          "level": 2,
+          "text": "Github Shortcut"
+        },
+        {
+          "id": "from-disk-via-import-sounds-folder",
+          "level": 2,
+          "text": "From Disk via “Import Sounds Folder”"
+        },
+        {
+          "id": "from-disk-via-strudelsampler",
+          "level": 2,
+          "text": "From Disk via @strudel/sampler"
+        },
+        {
+          "id": "specifying-pitch",
+          "level": 2,
+          "text": "Specifying Pitch"
+        },
+        {
+          "id": "shabda",
+          "level": 2,
+          "text": "Shabda"
+        },
+        {
+          "id": "sampler-effects",
+          "level": 1,
+          "text": "Sampler Effects"
+        },
+        {
+          "id": "begin",
+          "level": 3,
+          "text": "begin"
+        },
+        {
+          "id": "end",
+          "level": 3,
+          "text": "end"
+        },
+        {
+          "id": "loop",
+          "level": 3,
+          "text": "loop"
+        },
+        {
+          "id": "loopbegin",
+          "level": 3,
+          "text": "loopBegin"
+        },
+        {
+          "id": "loopend",
+          "level": 3,
+          "text": "loopEnd"
+        },
+        {
+          "id": "cut",
+          "level": 3,
+          "text": "cut"
+        },
+        {
+          "id": "clip",
+          "level": 3,
+          "text": "clip"
+        },
+        {
+          "id": "loopat",
+          "level": 3,
+          "text": "loopAt"
+        },
+        {
+          "id": "fit",
+          "level": 3,
+          "text": "fit"
+        },
+        {
+          "id": "chop",
+          "level": 3,
+          "text": "chop"
+        },
+        {
+          "id": "striate",
+          "level": 3,
+          "text": "striate"
+        },
+        {
+          "id": "slice",
+          "level": 3,
+          "text": "slice"
+        },
+        {
+          "id": "splice",
+          "level": 3,
+          "text": "splice"
+        },
+        {
+          "id": "scrub",
+          "level": 3,
+          "text": "scrub"
+        },
+        {
+          "id": "speed",
+          "level": 3,
+          "text": "speed"
+        }
       ]
     },
     "/learn/signals/": {
       "title": "Signals",
-      "anchors": [
-        "continuous-signals",
-        "saw",
-        "sine",
-        "cosine",
-        "tri",
-        "square",
-        "rand",
-        "ranges-from--1-to-1",
-        "perlin",
-        "irand",
-        "brand",
-        "brandby",
-        "mousex",
-        "mousey"
+      "headings": [
+        {
+          "id": "continuous-signals",
+          "level": 1,
+          "text": "Continuous Signals"
+        },
+        {
+          "id": "saw",
+          "level": 2,
+          "text": "saw"
+        },
+        {
+          "id": "sine",
+          "level": 2,
+          "text": "sine"
+        },
+        {
+          "id": "cosine",
+          "level": 2,
+          "text": "cosine"
+        },
+        {
+          "id": "tri",
+          "level": 2,
+          "text": "tri"
+        },
+        {
+          "id": "square",
+          "level": 2,
+          "text": "square"
+        },
+        {
+          "id": "rand",
+          "level": 2,
+          "text": "rand"
+        },
+        {
+          "id": "ranges-from--1-to-1",
+          "level": 2,
+          "text": "Ranges from -1 to 1"
+        },
+        {
+          "id": "perlin",
+          "level": 2,
+          "text": "perlin"
+        },
+        {
+          "id": "irand",
+          "level": 2,
+          "text": "irand"
+        },
+        {
+          "id": "brand",
+          "level": 2,
+          "text": "brand"
+        },
+        {
+          "id": "brandby",
+          "level": 2,
+          "text": "brandBy"
+        },
+        {
+          "id": "mousex",
+          "level": 2,
+          "text": "mouseX"
+        },
+        {
+          "id": "mousey",
+          "level": 2,
+          "text": "mouseY"
+        }
       ]
     },
     "/learn/stepwise/": {
       "title": "Stepwise patterning",
-      "anchors": [
-        "stepwise-patterning-experimental",
-        "introduction",
-        "pacing-the-steps",
-        "stepwise-functions",
-        "pace",
-        "stepcat",
-        "stepalt",
-        "expand",
-        "contract",
-        "extend",
-        "take",
-        "drop",
-        "polymeter",
-        "shrink",
-        "grow",
-        "tour",
-        "zip"
+      "headings": [
+        {
+          "id": "stepwise-patterning-experimental",
+          "level": 1,
+          "text": "Stepwise patterning (experimental)"
+        },
+        {
+          "id": "introduction",
+          "level": 2,
+          "text": "Introduction"
+        },
+        {
+          "id": "pacing-the-steps",
+          "level": 2,
+          "text": "Pacing the steps"
+        },
+        {
+          "id": "stepwise-functions",
+          "level": 2,
+          "text": "Stepwise functions"
+        },
+        {
+          "id": "pace",
+          "level": 3,
+          "text": "pace"
+        },
+        {
+          "id": "stepcat",
+          "level": 3,
+          "text": "stepcat"
+        },
+        {
+          "id": "stepalt",
+          "level": 3,
+          "text": "stepalt"
+        },
+        {
+          "id": "expand",
+          "level": 3,
+          "text": "expand"
+        },
+        {
+          "id": "contract",
+          "level": 3,
+          "text": "contract"
+        },
+        {
+          "id": "extend",
+          "level": 3,
+          "text": "extend"
+        },
+        {
+          "id": "take",
+          "level": 3,
+          "text": "take"
+        },
+        {
+          "id": "drop",
+          "level": 3,
+          "text": "drop"
+        },
+        {
+          "id": "polymeter",
+          "level": 3,
+          "text": "polymeter"
+        },
+        {
+          "id": "shrink",
+          "level": 3,
+          "text": "shrink"
+        },
+        {
+          "id": "grow",
+          "level": 3,
+          "text": "grow"
+        },
+        {
+          "id": "tour",
+          "level": 3,
+          "text": "tour"
+        },
+        {
+          "id": "zip",
+          "level": 3,
+          "text": "zip"
+        }
       ]
     },
     "/learn/synths/": {
       "title": "Synths",
-      "anchors": [
-        "synths",
-        "basic-waveforms",
-        "noise",
-        "additive-synthesis",
-        "partials",
-        "phases",
-        "vibrato",
-        "vib",
-        "vibmod",
-        "fm-synthesis",
-        "fm",
-        "fmh",
-        "fmattack",
-        "fmdecay",
-        "fmsustain",
-        "fmenv",
-        "wavetable-synthesis",
-        "zzfx"
+      "headings": [
+        {
+          "id": "synths",
+          "level": 1,
+          "text": "Synths"
+        },
+        {
+          "id": "basic-waveforms",
+          "level": 2,
+          "text": "Basic Waveforms"
+        },
+        {
+          "id": "noise",
+          "level": 2,
+          "text": "Noise"
+        },
+        {
+          "id": "additive-synthesis",
+          "level": 3,
+          "text": "Additive Synthesis"
+        },
+        {
+          "id": "partials",
+          "level": 4,
+          "text": "Partials"
+        },
+        {
+          "id": "phases",
+          "level": 4,
+          "text": "Phases"
+        },
+        {
+          "id": "vibrato",
+          "level": 2,
+          "text": "Vibrato"
+        },
+        {
+          "id": "vib",
+          "level": 3,
+          "text": "vib"
+        },
+        {
+          "id": "vibmod",
+          "level": 3,
+          "text": "vibmod"
+        },
+        {
+          "id": "fm-synthesis",
+          "level": 2,
+          "text": "FM Synthesis"
+        },
+        {
+          "id": "fm",
+          "level": 3,
+          "text": "fm"
+        },
+        {
+          "id": "fmh",
+          "level": 3,
+          "text": "fmh"
+        },
+        {
+          "id": "fmattack",
+          "level": 3,
+          "text": "fmattack"
+        },
+        {
+          "id": "fmdecay",
+          "level": 3,
+          "text": "fmdecay"
+        },
+        {
+          "id": "fmsustain",
+          "level": 3,
+          "text": "fmsustain"
+        },
+        {
+          "id": "fmenv",
+          "level": 3,
+          "text": "fmenv"
+        },
+        {
+          "id": "wavetable-synthesis",
+          "level": 2,
+          "text": "Wavetable Synthesis"
+        },
+        {
+          "id": "zzfx",
+          "level": 2,
+          "text": "ZZFX"
+        }
       ]
     },
     "/learn/time-modifiers/": {
       "title": "Time Modifiers",
-      "anchors": [
-        "time-modifiers",
-        "slow",
-        "fast",
-        "early",
-        "late",
-        "clip--legato",
-        "euclid",
-        "euclidrot",
-        "euclidlegato",
-        "rev",
-        "palindrome",
-        "iter",
-        "iterback",
-        "ply",
-        "segment",
-        "compress",
-        "zoom",
-        "linger",
-        "fastgap",
-        "inside",
-        "outside",
-        "cpm",
-        "ribbon",
-        "swingby",
-        "swing"
+      "headings": [
+        {
+          "id": "time-modifiers",
+          "level": 1,
+          "text": "Time Modifiers"
+        },
+        {
+          "id": "slow",
+          "level": 2,
+          "text": "slow"
+        },
+        {
+          "id": "fast",
+          "level": 2,
+          "text": "fast"
+        },
+        {
+          "id": "early",
+          "level": 2,
+          "text": "early"
+        },
+        {
+          "id": "late",
+          "level": 2,
+          "text": "late"
+        },
+        {
+          "id": "clip--legato",
+          "level": 2,
+          "text": "clip / legato"
+        },
+        {
+          "id": "euclid",
+          "level": 2,
+          "text": "euclid"
+        },
+        {
+          "id": "euclidrot",
+          "level": 3,
+          "text": "euclidRot"
+        },
+        {
+          "id": "euclidlegato",
+          "level": 3,
+          "text": "euclidLegato"
+        },
+        {
+          "id": "rev",
+          "level": 2,
+          "text": "rev"
+        },
+        {
+          "id": "palindrome",
+          "level": 2,
+          "text": "palindrome"
+        },
+        {
+          "id": "iter",
+          "level": 2,
+          "text": "iter"
+        },
+        {
+          "id": "iterback",
+          "level": 3,
+          "text": "iterBack"
+        },
+        {
+          "id": "ply",
+          "level": 2,
+          "text": "ply"
+        },
+        {
+          "id": "segment",
+          "level": 2,
+          "text": "segment"
+        },
+        {
+          "id": "compress",
+          "level": 2,
+          "text": "compress"
+        },
+        {
+          "id": "zoom",
+          "level": 2,
+          "text": "zoom"
+        },
+        {
+          "id": "linger",
+          "level": 2,
+          "text": "linger"
+        },
+        {
+          "id": "fastgap",
+          "level": 2,
+          "text": "fastGap"
+        },
+        {
+          "id": "inside",
+          "level": 2,
+          "text": "inside"
+        },
+        {
+          "id": "outside",
+          "level": 2,
+          "text": "outside"
+        },
+        {
+          "id": "cpm",
+          "level": 2,
+          "text": "cpm"
+        },
+        {
+          "id": "ribbon",
+          "level": 2,
+          "text": "ribbon"
+        },
+        {
+          "id": "swingby",
+          "level": 2,
+          "text": "swingBy"
+        },
+        {
+          "id": "swing",
+          "level": 2,
+          "text": "swing"
+        }
       ]
     },
     "/learn/tonal/": {
       "title": "Tonal Functions",
-      "anchors": [
-        "tonal-functions",
-        "voicing",
-        "scalename",
-        "transposesemitones",
-        "scaletransposesteps",
-        "rootnotesoctave--2"
+      "headings": [
+        {
+          "id": "tonal-functions",
+          "level": 1,
+          "text": "Tonal Functions"
+        },
+        {
+          "id": "voicing",
+          "level": 3,
+          "text": "voicing()"
+        },
+        {
+          "id": "scalename",
+          "level": 3,
+          "text": "scale(name)"
+        },
+        {
+          "id": "transposesemitones",
+          "level": 3,
+          "text": "transpose(semitones)"
+        },
+        {
+          "id": "scaletransposesteps",
+          "level": 3,
+          "text": "scaleTranspose(steps)"
+        },
+        {
+          "id": "rootnotesoctave--2",
+          "level": 3,
+          "text": "rootNotes(octave = 2)"
+        }
       ]
     },
     "/learn/visual-feedback/": {
       "title": "Visual Feedback",
-      "anchors": [
-        "visual-feedback",
-        "mini-notation-highlighting",
-        "global-vs-inline-visuals",
-        "punchcard--pianoroll",
-        "spiral",
-        "scope",
-        "pitchwheel",
-        "spectrum",
-        "markcss"
+      "headings": [
+        {
+          "id": "visual-feedback",
+          "level": 1,
+          "text": "Visual Feedback"
+        },
+        {
+          "id": "mini-notation-highlighting",
+          "level": 2,
+          "text": "Mini Notation Highlighting"
+        },
+        {
+          "id": "global-vs-inline-visuals",
+          "level": 2,
+          "text": "Global vs Inline Visuals"
+        },
+        {
+          "id": "punchcard--pianoroll",
+          "level": 2,
+          "text": "Punchcard / Pianoroll"
+        },
+        {
+          "id": "spiral",
+          "level": 2,
+          "text": "Spiral"
+        },
+        {
+          "id": "scope",
+          "level": 2,
+          "text": "Scope"
+        },
+        {
+          "id": "pitchwheel",
+          "level": 2,
+          "text": "Pitchwheel"
+        },
+        {
+          "id": "spectrum",
+          "level": 2,
+          "text": "Spectrum"
+        },
+        {
+          "id": "markcss",
+          "level": 2,
+          "text": "markcss"
+        }
+      ]
+    },
+    "/learn/xen/": {
+      "title": "Xenharmonic Functions",
+      "headings": [
+        {
+          "id": "xenharmonic-functions-experimental",
+          "level": 1,
+          "text": "Xenharmonic Functions (experimental)"
+        },
+        {
+          "id": "tunescale",
+          "level": 3,
+          "text": "tune(scale)"
+        },
+        {
+          "id": "xenscaleorratios",
+          "level": 3,
+          "text": "xen(scaleOrRatios)"
+        }
       ]
     },
     "/understand/cycles/": {
       "title": "Understanding Cycles",
-      "anchors": [
-        "understanding-cycles",
-        "cycles-and-bpm",
-        "setting-cpm",
-        "cycles-and-bars",
-        "time-signatures"
+      "headings": [
+        {
+          "id": "understanding-cycles",
+          "level": 1,
+          "text": "Understanding Cycles"
+        },
+        {
+          "id": "cycles-and-bpm",
+          "level": 2,
+          "text": "Cycles and BPM"
+        },
+        {
+          "id": "setting-cpm",
+          "level": 2,
+          "text": "Setting CPM"
+        },
+        {
+          "id": "cycles-and-bars",
+          "level": 2,
+          "text": "Cycles and Bars"
+        },
+        {
+          "id": "time-signatures",
+          "level": 2,
+          "text": "Time Signatures"
+        }
       ]
     },
     "/understand/pitch/": {
       "title": "Understanding Pitch",
-      "anchors": [
-        "understanding-pitch",
-        "frequency-vs-pitch-perception",
-        "from-hz-to-semitones",
-        "from-semitones-to-midi-numbers",
-        "from-midi-numbers-to-notes",
-        "open-questions",
-        "definition"
+      "headings": [
+        {
+          "id": "understanding-pitch",
+          "level": 1,
+          "text": "Understanding Pitch"
+        },
+        {
+          "id": "frequency-vs-pitch-perception",
+          "level": 2,
+          "text": "Frequency vs Pitch Perception"
+        },
+        {
+          "id": "from-hz-to-semitones",
+          "level": 2,
+          "text": "From Hz to Semitones"
+        },
+        {
+          "id": "from-semitones-to-midi-numbers",
+          "level": 2,
+          "text": "From Semitones to MIDI numbers"
+        },
+        {
+          "id": "from-midi-numbers-to-notes",
+          "level": 2,
+          "text": "From MIDI numbers to notes"
+        },
+        {
+          "id": "open-questions",
+          "level": 2,
+          "text": "Open Questions"
+        },
+        {
+          "id": "definition",
+          "level": 2,
+          "text": "Definition"
+        }
       ]
     },
     "/understand/voicings/": {
       "title": "Understanding Chord Voicings",
-      "anchors": [
-        "understanding-chords-and-voicings",
-        "what-is-a-chord",
-        "labeling-chords",
-        "triads",
-        "voicings",
-        "voice-leading",
-        "chord-symbols",
-        "the-voicing-function",
-        "voicing-dictionaries",
-        "the-default-dictionary",
-        "anchor",
-        "mode",
-        "n",
-        "example"
+      "headings": [
+        {
+          "id": "understanding-chords-and-voicings",
+          "level": 1,
+          "text": "Understanding Chords and Voicings"
+        },
+        {
+          "id": "what-is-a-chord",
+          "level": 2,
+          "text": "What is a chord"
+        },
+        {
+          "id": "labeling-chords",
+          "level": 2,
+          "text": "Labeling Chords"
+        },
+        {
+          "id": "triads",
+          "level": 3,
+          "text": "Triads"
+        },
+        {
+          "id": "voicings",
+          "level": 2,
+          "text": "Voicings"
+        },
+        {
+          "id": "voice-leading",
+          "level": 2,
+          "text": "Voice Leading"
+        },
+        {
+          "id": "chord-symbols",
+          "level": 2,
+          "text": "Chord Symbols"
+        },
+        {
+          "id": "the-voicing-function",
+          "level": 2,
+          "text": "The voicing function"
+        },
+        {
+          "id": "voicing-dictionaries",
+          "level": 2,
+          "text": "Voicing Dictionaries"
+        },
+        {
+          "id": "the-default-dictionary",
+          "level": 2,
+          "text": "The default dictionary"
+        },
+        {
+          "id": "anchor",
+          "level": 2,
+          "text": "anchor"
+        },
+        {
+          "id": "mode",
+          "level": 2,
+          "text": "mode"
+        },
+        {
+          "id": "n",
+          "level": 2,
+          "text": "n"
+        },
+        {
+          "id": "example",
+          "level": 2,
+          "text": "Example"
+        }
+      ]
+    },
+    "/workshop/first-notes/": {
+      "title": "First Notes",
+      "headings": [
+        {
+          "id": "first-notes",
+          "level": 1,
+          "text": "First Notes"
+        },
+        {
+          "id": "numbers-and-notes",
+          "level": 2,
+          "text": "numbers and notes"
+        },
+        {
+          "id": "changing-the-sound",
+          "level": 2,
+          "text": "changing the sound"
+        },
+        {
+          "id": "longer-sequences",
+          "level": 2,
+          "text": "Longer Sequences"
+        },
+        {
+          "id": "scales",
+          "level": 2,
+          "text": "Scales"
+        },
+        {
+          "id": "repeat--elongate",
+          "level": 2,
+          "text": "Repeat & Elongate"
+        },
+        {
+          "id": "recap",
+          "level": 2,
+          "text": "Recap"
+        },
+        {
+          "id": "examples",
+          "level": 2,
+          "text": "Examples"
+        },
+        {
+          "id": "playing-multiple-patterns",
+          "level": 2,
+          "text": "Playing multiple patterns"
+        }
+      ]
+    },
+    "/workshop/first-sounds/": {
+      "title": "First Sounds",
+      "headings": [
+        {
+          "id": "first-sounds",
+          "level": 1,
+          "text": "First Sounds"
+        },
+        {
+          "id": "code-fields",
+          "level": 2,
+          "text": "Code Fields"
+        },
+        {
+          "id": "sounds",
+          "level": 2,
+          "text": "Sounds"
+        },
+        {
+          "id": "drum-sounds",
+          "level": 2,
+          "text": "Drum Sounds"
+        },
+        {
+          "id": "sequences",
+          "level": 2,
+          "text": "Sequences"
+        },
+        {
+          "id": "recap",
+          "level": 2,
+          "text": "Recap"
+        },
+        {
+          "id": "examples",
+          "level": 2,
+          "text": "Examples"
+        }
       ]
     }
   }

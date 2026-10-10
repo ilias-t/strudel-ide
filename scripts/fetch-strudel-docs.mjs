@@ -8,8 +8,11 @@
 // then `npm run gen:catalog`. The snapshot is committed; links to headings strudel.cc has since
 // renamed fall back to the page (see scripts/lib/catalog/ for how the generator uses it).
 //
-// Output: { base, pages: { "/learn/effects/": { title, anchors: ["audio-effects", "lpf", …] } } }
-// Pages in path order, anchors in page order (each heading id once).
+// Output: { base, pages: { "/learn/effects/": { title, headings: [{ id, level, text }, …] } } }
+//   id: the anchor ("delay-1"); level: 1–6 (h1…h6); text: the heading as shown ("delay", "Delay",
+//   "scale(name)", "clip / legato"). The text tells a function's heading (its name, as code) from a
+//   section's ("Delay", "Shape" on the LFO page, "Note" on the mini-notation page).
+// Pages in path order, headings in page order (each id once).
 
 import { writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -38,9 +41,12 @@ const PAGES = [
   "/learn/time-modifiers/",
   "/learn/tonal/",
   "/learn/visual-feedback/",
+  "/learn/xen/",
   "/understand/cycles/",
   "/understand/pitch/",
   "/understand/voicings/",
+  "/workshop/first-notes/",
+  "/workshop/first-sounds/",
 ];
 
 const decode = (s) =>
@@ -59,11 +65,15 @@ for (const path of PAGES) {
   if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
   const html = await res.text();
   const title = decode(html.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? path).replace(/\s*(?:[|·-]|🌀)\s*Strudel\s*$/u, "");
-  const anchors = [];
-  for (const m of html.matchAll(/<h[1-6][^>]*\bid="([^"]+)"/g)) if (!anchors.includes(m[1])) anchors.push(m[1]);
-  if (!anchors.length) throw new Error(`${path}: no heading anchors (did the page layout change?)`);
-  pages[path] = { title, anchors };
-  console.log(`${path}: ${anchors.length} anchors`);
+  const headings = [];
+  for (const m of html.matchAll(/<h([1-6])[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g)) {
+    if (headings.some((h) => h.id === m[2])) continue;
+    // the text before the heading's own link icon
+    headings.push({ id: m[2], level: Number(m[1]), text: decode(m[3].replace(/<a\b[\s\S]*$/, "")) });
+  }
+  if (!headings.length) throw new Error(`${path}: no heading anchors (did the page layout change?)`);
+  pages[path] = { title, headings };
+  console.log(`${path}: ${headings.length} headings`);
 }
 
 writeFileSync(out, JSON.stringify({ base: BASE, pages }, null, 2) + "\n");

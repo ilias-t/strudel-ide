@@ -361,3 +361,25 @@ test("the catalog arriving while a search result has the keyboard: it keeps it, 
   await page.keyboard.press("?");
   await expect(sheet(page)).toBeHidden();
 });
+
+test("the catalog arriving keeps the keyboard on the same kind of row when ids repeat (euclid: a mini-notation row and a function)", async ({ player, page }) => {
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route(/\/src\/catalog\/(sounds|completions|intents)\.json/, async (route) => {
+    await held;
+    await route.continue();
+  });
+  await player.boot();
+  await page.locator("body").press("?");
+  await search(page).fill("euclid");
+  const results = page.getByTestId("cheat-results");
+  await expect(results.locator("[data-kind=mini][data-id=euclid]")).toHaveCount(1);
+  const fnPlay = results.locator("[data-kind=function][data-id=euclid]").getByTestId("cheat-play");
+  await fnPlay.focus();
+  await expect(fnPlay).toBeFocused();
+  const arrived = Promise.all(["sounds", "completions", "intents"].map((n) => page.waitForResponse((r) => r.url().includes("/src/catalog/" + n + ".json"))));
+  release();
+  await arrived;
+  await page.waitForTimeout(300);
+  await expect(fnPlay).toBeFocused();
+});

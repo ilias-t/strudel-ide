@@ -329,12 +329,18 @@ export function createCheatSheet(d: Discovery): FeatureHandle {
   function rerender() {
     const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const region = active ? [results, ...panels.values()].find((r) => r.contains(active)) : undefined;
-    const held = active && region ? { id: active.closest("[data-id]")?.getAttribute("data-id"), key: active.dataset.testid } : null;
+    const row = active?.closest("[data-id]");
+    // ids repeat across kinds ("euclid" is a mini-notation row and a function): match the kind too
+    const held = active && region ? { id: row?.getAttribute("data-id"), kind: row?.getAttribute("data-kind"), key: active.dataset.testid } : null;
     render();
     if (!held || (active!.isConnected && card.contains(active))) return;
     const view = query.trim() ? results : panels.get(tab)!;
     const again =
-      held.id && held.key ? view.querySelector<HTMLElement>(`[data-id="${CSS.escape(held.id)}"] [data-testid="${CSS.escape(held.key)}"]`) : null;
+      held.id && held.key
+        ? view.querySelector<HTMLElement>(
+            `${held.kind ? `[data-kind="${CSS.escape(held.kind)}"]` : ""}[data-id="${CSS.escape(held.id)}"] [data-testid="${CSS.escape(held.key)}"]`
+          )
+        : null;
     if (!again) return card.focus({ preventScroll: true });
     again.focus({ preventScroll: true });
     again.scrollIntoView({ block: "nearest" });

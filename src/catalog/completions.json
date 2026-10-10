@@ -1,4507 +1,787 @@
-{
-  "functions": {
-    "accelerate": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "superdirt"
-    },
-    "activeLabel": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual",
-      "aliasOf": "label"
-    },
-    "ad": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "add": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "addVoicings": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "adsr": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "aliasBank": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "almostAlways": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "almostNever": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "always": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "amp": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "superdirt"
-    },
-    "analyze": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "anchor": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "and": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "angle": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual",
-      "aliasOf": "from"
-    },
-    "animate": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "appBoth": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "appLeft": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "appRight": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "appWhole": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "apply": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "applyN": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "ar": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "arp": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "arpWith": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "arrange": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "as": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "asNumber": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "asym": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "att": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "attack"
-    },
-    "attack": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "att"
-      ]
-    },
-    "band": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "bandf": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "bpf",
-      "synonyms": [
-        "bp"
-      ]
-    },
-    "bandq": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "bpq"
-    },
-    "bank": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "bbexpr": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "byteBeatExpression"
-    },
-    "bbst": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "byteBeatStartTime"
-    },
-    "beat": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "__beat"
-      ]
-    },
-    "begin": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "berlin": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "berlinWith": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "binary": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "binaryN": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "bind": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "bindWhole": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "binshift": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "bite": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "blshift": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "bor": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "bp": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "bpf",
-      "synonyms": [
-        "bandf"
-      ]
-    },
-    "bpa": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "bpattack"
-    },
-    "bpattack": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "bpa"
-      ]
-    },
-    "bpd": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "bpdecay"
-    },
-    "bpdecay": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "bpd"
-      ]
-    },
-    "bpe": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "bpenv"
-    },
-    "bpenv": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "bpe"
-      ]
-    },
-    "bpf": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "bandf",
-        "bp"
-      ]
-    },
-    "bpq": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "bandq"
-      ]
-    },
-    "bpr": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "bprelease"
-    },
-    "bprelease": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "bpr"
-      ]
-    },
-    "bps": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "bpsustain"
-    },
-    "bpsustain": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "bps"
-      ]
-    },
-    "brak": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "brand": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "brandBy": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "brshift": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "bxor": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "bypass": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "byteBeatExpression": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "bbexpr"
-      ]
-    },
-    "byteBeatStartTime": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "bbst"
-      ]
-    },
-    "cat": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "slowcat"
-      ]
-    },
-    "ccn": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "ccv": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "ceil": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "ch": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "channels"
-    },
-    "channel": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "channels": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "ch"
-      ]
-    },
-    "chebyshev": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "distAlgoNames"
-      ]
-    },
-    "choose": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "choose2": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "chooseCycles": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "randcat"
-      ]
-    },
-    "chooseIn": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "chooseInWith": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "chooseOut": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "choose"
-    },
-    "chooseWith": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "chop": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "chord": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "chorus": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "chunk": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "slowChunk",
-        "slowchunk",
-        "_chunk"
-      ]
-    },
-    "chunkBack": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "chunkback"
-      ]
-    },
-    "chunkBackInto": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "chunkbackinto"
-      ]
-    },
-    "chunkInto": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "chunkinto"
-      ]
-    },
-    "chunkback": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "chunkBack"
-    },
-    "chunkbackinto": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "chunkBackInto"
-    },
-    "chunkinto": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "chunkInto"
-    },
-    "clip": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "legato"
-      ]
-    },
-    "coarse": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "collect": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "color": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual",
-      "synonyms": [
-        "colour"
-      ]
-    },
-    "comb": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "compose": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "compress": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "compressSpan": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "compressor": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "compressorAttack": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "compressorKnee": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "compressorRatio": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "compressorRelease": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "compressspan": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "contract": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "control": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "cosine": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "cosine2": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "cpm": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "cps": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "createParam": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "createParams": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "crush": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "ctf": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "lpf",
-      "synonyms": [
-        "cutoff",
-        "lp"
-      ]
-    },
-    "ctlNum": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "ctranspose": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "cubic": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "curve": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "cut": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "cutoff": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "lpf",
-      "synonyms": [
-        "ctf",
-        "lp"
-      ]
-    },
-    "dec": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "decay"
-    },
-    "decay": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "dec"
-      ]
-    },
-    "defragmentHaps": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "degrade": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "degradeBy": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "degradeByWith": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "degree": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "delay": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "delayfb": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "delayfeedback",
-      "synonyms": [
-        "dfb"
-      ]
-    },
-    "delayfeedback": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "delayfb",
-        "dfb"
-      ]
-    },
-    "delayspeed": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "delayt",
-        "dt",
-        "delaytime"
-      ]
-    },
-    "delaysync": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "delayt",
-        "dt"
-      ]
-    },
-    "delayt": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "delayspeed",
-      "synonyms": [
-        "dt",
-        "delaytime"
-      ]
-    },
-    "delaytime": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "delayspeed",
-      "synonyms": [
-        "delayt",
-        "dt"
-      ]
-    },
-    "deltaSlide": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "density": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "det": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "detune"
-    },
-    "detune": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "det"
-      ]
-    },
-    "dfb": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "delayfeedback",
-      "synonyms": [
-        "delayfb"
-      ]
-    },
-    "dict": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "dictionary": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "diode": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "discreteOnly": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "dist": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "distort"
-    },
-    "distort": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "dist"
-      ]
-    },
-    "distorttype": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "disttype"
-      ]
-    },
-    "distortvol": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "distvol"
-      ]
-    },
-    "disttype": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "distorttype"
-    },
-    "distvol": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "distortvol"
-    },
-    "div": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "djf": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "dough": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "draw": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "drawLine": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "drive": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "drop": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "dry": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "superdirt"
-    },
-    "ds": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "dt": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "delayspeed",
-      "synonyms": [
-        "delayt",
-        "delaytime"
-      ]
-    },
-    "duck": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "duckorbit"
-    },
-    "duckatt": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "duckattack"
-    },
-    "duckattack": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "duckatt"
-      ]
-    },
-    "duckdepth": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "duckons": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "duckonset"
-    },
-    "duckonset": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "duckons"
-      ]
-    },
-    "duckorbit": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "duck"
-      ]
-    },
-    "dur": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "duration"
-    },
-    "duration": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "dur"
-      ]
-    },
-    "e": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "early": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "echo": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "echoWith": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "echowith",
-        "stutWith",
-        "stutwith"
-      ]
-    },
-    "echowith": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "echoWith",
-      "synonyms": [
-        "stutWith",
-        "stutwith"
-      ]
-    },
-    "eish": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "euclidish"
-    },
-    "end": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "enhance": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "eq": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "eqt": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "euclid": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "euclidLegato": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "_euclidLegato"
-      ]
-    },
-    "euclidLegatoRot": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "euclidRot": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "euclidish": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "eish"
-      ]
-    },
-    "euclidrot": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "evaluate": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "every": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "firstOf"
-      ]
-    },
-    "expand": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "expression": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "extend": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fadeInTime": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fadeOutTime": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fadeTime": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fanchor": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fast": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "density"
-      ]
-    },
-    "fastChunk": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "fastchunk"
-      ]
-    },
-    "fastGap": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "fastgap"
-      ]
-    },
-    "fastcat": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "seq",
-      "synonyms": [
-        "sequence"
-      ]
-    },
-    "fastchunk": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "fastChunk"
-    },
-    "fastgap": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "fastGap"
-    },
-    "fft": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "fill": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "filter": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "filterHaps": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "filterValues": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "filterWhen": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "firstCycle": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "firstCycleValues": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "firstOf": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fit": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "floor": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fm": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "fmi"
-      ]
-    },
-    "fmap": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fmattack": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fmdecay": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fmenv": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fmh": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fmi": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "fm"
-    },
-    "fmrelease": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fmsustain": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fmvelocity": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fmwave": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "focus": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "focusSpan": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "focusspan": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fold": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "frameRate": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "frames": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "freeze": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "freq": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "freqToMidi": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fromBipolar": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fscope": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "fshift": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fshiftnote": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "fshiftphase": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "ftype": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "func": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "gain": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "gap": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "gat": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "gate": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "getAudioContext": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "getFreq": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "getPainters": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "grow": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "gt": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "gte": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "h": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "hard": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "harmonic": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "hasSteps": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "hbrick": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "hcutoff": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "hpf",
-      "synonyms": [
-        "hp"
-      ]
-    },
-    "hold": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "hours": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "hp": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "hpf",
-      "synonyms": [
-        "hcutoff"
-      ]
-    },
-    "hpa": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "hpattack"
-    },
-    "hpattack": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "hpa"
-      ]
-    },
-    "hpd": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "hpdecay"
-    },
-    "hpdecay": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "hpd"
-      ]
-    },
-    "hpe": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "hpenv"
-    },
-    "hpenv": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "hpe"
-      ]
-    },
-    "hpf": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "hp",
-        "hcutoff"
-      ]
-    },
-    "hpq": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "hresonance"
-      ]
-    },
-    "hpr": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "hprelease"
-    },
-    "hprelease": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "hpr"
-      ]
-    },
-    "hps": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "hpsustain"
-    },
-    "hpsustain": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "hps"
-      ]
-    },
-    "hresonance": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "hpq"
-    },
-    "hsl": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "hsla": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "hurry": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "hush": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "id": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "imag": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "in": {
-      "category": "other",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "inhabit": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "pickSqueeze"
-      ]
-    },
-    "inhabitmod": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "pickmodSqueeze"
-      ]
-    },
-    "initAudioOnFirstClick": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "initStrudel": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "innerBind": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "innerJoin": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "inside": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "into": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "inv": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "invert"
-    },
-    "invert": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "inv"
-      ]
-    },
-    "ir": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "iresponse"
-    },
-    "irand": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "irbegin": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "ir"
-      ]
-    },
-    "iresponse": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "ir"
-      ]
-    },
-    "irspeed": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "isPattern": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "isaw": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "isaw2": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "iter": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "_iter"
-      ]
-    },
-    "iterBack": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "iterback"
-      ]
-    },
-    "iterback": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "iterBack"
-    },
-    "itri": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "itri2": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "join": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "jux": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "juxBy": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "juxby"
-      ]
-    },
-    "juxby": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "juxBy"
-    },
-    "kcutoff": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "keep": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "keepif": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "keyDown": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "krush": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "label": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual",
-      "synonyms": [
-        "activeLabel"
-      ]
-    },
-    "lastOf": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "late": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "layer": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "apply"
-      ]
-    },
-    "lbrick": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "legato": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "clip"
-    },
-    "leslie": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "superdirt"
-    },
-    "lfo": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "linger": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "lock": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "superdirt"
-    },
-    "log": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "log2": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "logValues": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "loop": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "loopAt": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "_loopAt"
-      ]
-    },
-    "loopAtCps": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "loopatcps"
-      ]
-    },
-    "loopBegin": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "loopb"
-      ]
-    },
-    "loopEnd": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "loope"
-      ]
-    },
-    "loopat": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "loopatcps": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "loopAtCps"
-    },
-    "loopb": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "loopBegin"
-    },
-    "loope": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "loopEnd"
-    },
-    "lp": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "lpf",
-      "synonyms": [
-        "cutoff",
-        "ctf"
-      ]
-    },
-    "lpa": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "lpattack"
-    },
-    "lpattack": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "lpa"
-      ]
-    },
-    "lpd": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "lpdecay"
-    },
-    "lpdecay": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "lpd"
-      ]
-    },
-    "lpe": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "lpenv"
-    },
-    "lpenv": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "lpe"
-      ]
-    },
-    "lpf": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "cutoff",
-        "ctf",
-        "lp"
-      ]
-    },
-    "lpq": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "resonance"
-      ]
-    },
-    "lpr": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "lprelease"
-    },
-    "lprelease": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "lpr"
-      ]
-    },
-    "lps": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "lpsustain"
-    },
-    "lpsustain": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "lps"
-      ]
-    },
-    "lrate": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "superdirt"
-    },
-    "lsize": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "superdirt"
-    },
-    "lt": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "lte": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "m": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "mask": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "maskAll": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "midi2note": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "midiToFreq": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "midibend": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "midichan": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "midicmd": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "midimap": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "midiport": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "miditouch": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "mini": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "minutes": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "mix": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "mod": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "mode": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "morph": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "mouseX": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "mouseY": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "mousex": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "mousey": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "_mouseY"
-      ]
-    },
-    "moveXY": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "mtranspose": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "mul": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "n": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "ne": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "net": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "never": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "noise": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "note": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "noteToMidi": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "nothing": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "nrpnn": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "nrpv": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "nudge": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "octave": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "superdirt"
-    },
-    "octaveR": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "octaves": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "octer": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "octersub": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "octersubsub": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "off": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "offset": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "often": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "onPaint": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "onTrigger": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "onTriggerTime": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "onsetsOnly": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "or": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "orbit": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "oschost": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "oscport": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "out": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "outerBind": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "outerJoin": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "outside": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "overgain": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "overshape": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pace": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "palindrome": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pan": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "panchor": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "panorient": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "panspan": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pansplay": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "panwidth": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "partials": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "patt": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "pattack"
-    },
-    "pattack": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "patt"
-      ]
-    },
-    "pcurve": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pdec": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "pdecay"
-    },
-    "pdecay": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "pdec"
-      ]
-    },
-    "penv": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "perlin": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "perlinWith": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "ph": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "phaser",
-      "synonyms": [
-        "phaserrate"
-      ]
-    },
-    "phasdp": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "phaserdepth",
-      "synonyms": [
-        "phd"
-      ]
-    },
-    "phaser": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "ph",
-        "phaserrate"
-      ]
-    },
-    "phasercenter": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "phc"
-      ]
-    },
-    "phaserdepth": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "phd",
-        "phasdp"
-      ]
-    },
-    "phaserrate": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "phaser",
-      "synonyms": [
-        "ph"
-      ]
-    },
-    "phasersweep": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "phs"
-      ]
-    },
-    "phc": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "phasercenter"
-    },
-    "phd": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "phaserdepth",
-      "synonyms": [
-        "phasdp"
-      ]
-    },
-    "phs": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "phasersweep"
-    },
-    "pianoroll": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual",
-      "synonyms": [
-        "punchcard"
-      ]
-    },
-    "pick": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pickF": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pickOut": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pickReset": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pickRestart": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pickSqueeze": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "inhabit"
-    },
-    "pickmod": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pickmodF": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pickmodOut": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pickmodReset": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pickmodRestart": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pickmodSqueeze": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "inhabitmod"
-    },
-    "pipe": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pitchJump": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pitchJumpTime": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pitchwheel": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "play": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "ply": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "plyForEach": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "plyforeach"
-      ]
-    },
-    "plyWith": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "plywith"
-      ]
-    },
-    "plyforeach": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "plyForEach"
-    },
-    "plywith": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "plyWith"
-    },
-    "pm": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "polymeter"
-    },
-    "poly": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "polyBind": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "polyTouch": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "polymeter": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "pm"
-      ]
-    },
-    "polyrhythm": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "stack",
-      "synonyms": [
-        "pr"
-      ]
-    },
-    "postgain": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pow": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pr": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "stack",
-      "synonyms": [
-        "polyrhythm"
-      ]
-    },
-    "prel": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "prelease"
-    },
-    "prelease": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "prel"
-      ]
-    },
-    "press": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pressBy": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "progNum": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "psus": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "psustain": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "punchcard": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual",
-      "aliasOf": "pianoroll"
-    },
-    "pure": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "pw": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pwrate": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "pwsweep": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "queryArc": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "r": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "rand": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "rand2": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "randcat": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "chooseCycles"
-    },
-    "randrun": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "range": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "range2": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "rangex": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "rarely": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "rate": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "ratio": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "rdim": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "roomdim"
-    },
-    "real": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "ref": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "register": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "registerSound": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "registerVoicings": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "reify": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "rel": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "release"
-    },
-    "release": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "rel"
-      ]
-    },
-    "removeUndefineds": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "repeatCycles": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "repeatTime": {
-      "category": "other",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "replicate": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "rescale": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "reset": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "resetAll": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "resetDefaults": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "resetJoin": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "resonance": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "lpq"
-    },
-    "restart": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "restartAll": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "restartJoin": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "rev": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "rfade": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "roomfade"
-    },
-    "rib": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "ribbon"
-    },
-    "ribbon": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "rib"
-      ]
-    },
-    "ring": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "ringdf": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "ringf": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "rlp": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "roomlp"
-    },
-    "room": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "roomdim": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "rdim"
-      ]
-    },
-    "roomfade": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "rfade"
-      ]
-    },
-    "roomlp": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "rlp"
-      ]
-    },
-    "roomsize": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "rsize",
-        "sz",
-        "size"
-      ]
-    },
-    "rootNotes": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "round": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "rsize": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "roomsize",
-      "synonyms": [
-        "sz",
-        "size"
-      ]
-    },
-    "run": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "s": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "sound"
-      ]
-    },
-    "s_add": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "take"
-    },
-    "s_alt": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "stepalt"
-    },
-    "s_cat": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "stepcat",
-      "synonyms": [
-        "timeCat",
-        "timecat"
-      ]
-    },
-    "s_contract": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "contract"
-    },
-    "s_expand": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "expand"
-    },
-    "s_extend": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "extend"
-    },
-    "s_polymeter": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "polymeter",
-      "synonyms": [
-        "pm"
-      ]
-    },
-    "s_sub": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "drop"
-    },
-    "s_taper": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "shrink"
-    },
-    "s_taperlist": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "shrinklist"
-    },
-    "s_tour": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "tour"
-    },
-    "s_zip": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "zip"
-    },
-    "samples": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "saw": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "saw2": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "scale": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "scaleTrans": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "scaleTranspose",
-      "synonyms": [
-        "strans"
-      ]
-    },
-    "scaleTranspose": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "scaleTrans",
-        "strans"
-      ]
-    },
-    "scope": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual",
-      "synonyms": [
-        "tscope",
-        "latestColor"
-      ]
-    },
-    "scram": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "scramble": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "scrub": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "scurve": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "seconds": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "seg": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "segment"
-    },
-    "segment": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "seg"
-      ]
-    },
-    "semitone": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "seq": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "sequence",
-        "fastcat"
-      ]
-    },
-    "seqPLoop": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "sequence": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "sequenceP": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "set": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "setContext": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "setDefault": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "setDefaultValue": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "setDefaultValues": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "setDefaultVoicings": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "setMaxPolyphony": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "setSteps": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "setVoicingRange": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "shape": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "showFirstCycle": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "shrink": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "shrinklist": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "shuffle": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "signal": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "silence": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "sine": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "sine2": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "sinefold": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "size": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "roomsize",
-      "synonyms": [
-        "rsize",
-        "sz"
-      ]
-    },
-    "slice": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "slide": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "slow": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "sparsity"
-      ]
-    },
-    "slowChunk": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "chunk",
-      "synonyms": [
-        "slowchunk",
-        "_chunk"
-      ]
-    },
-    "slowcat": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "cat"
-      ]
-    },
-    "slowcatPrime": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "slowchunk": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "chunk",
-      "synonyms": [
-        "slowChunk",
-        "_chunk"
-      ]
-    },
-    "smear": {
-      "category": "other",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "soft": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "someCycles": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "someCyclesBy": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "sometimes": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "sometimesBy": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "songPtr": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "sortHapsByPart": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "sound": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "s"
-    },
-    "soundAlias": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "source": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal",
-      "synonyms": [
-        "src"
-      ]
-    },
-    "sparsity": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "slow"
-    },
-    "speak": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "spectrum": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual",
-      "synonyms": [
-        "latestColor"
-      ]
-    },
-    "speed": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "spiral": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "splice": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "splitQueries": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "spread": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "square": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "square2": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "squeeze": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "squeezeBind": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "squeezeJoin": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "squeezeout": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "squiz": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "superdirt"
-    },
-    "src": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal",
-      "aliasOf": "source"
-    },
-    "stack": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "polyrhythm",
-        "pr"
-      ]
-    },
-    "stackBy": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "stackCentre": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "stackLeft": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "stackRight": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "steady": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "stepBind": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "stepJoin": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "stepalt": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "stepcat": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "timeCat",
-        "timecat"
-      ]
-    },
-    "steps": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "pace"
-    },
-    "stepsPerOctave": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "strans": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "scaleTranspose",
-      "synonyms": [
-        "scaleTrans"
-      ]
-    },
-    "stretch": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "striate": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "stripContext": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "struct": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "structAll": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "stut": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "stutWith": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "echoWith",
-      "synonyms": [
-        "echowith",
-        "stutwith"
-      ]
-    },
-    "stutwith": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "echoWith",
-      "synonyms": [
-        "echowith",
-        "stutWith"
-      ]
-    },
-    "sub": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "superimpose": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "supradough": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "sus": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "sustain"
-    },
-    "sustain": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "sus"
-      ]
-    },
-    "sustainpedal": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "swing": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "swingBy": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "sysex": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "sysexdata": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "sysexid": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "sz": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "roomsize",
-      "synonyms": [
-        "rsize",
-        "size"
-      ]
-    },
-    "tables": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "tag": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "take": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "time": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "timeCat": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "stepcat",
-      "synonyms": [
-        "timecat"
-      ]
-    },
-    "timecat": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "toBipolar": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "tour": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "trans": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "transpose"
-    },
-    "transpose": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "trans"
-      ]
-    },
-    "trem": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "tremolo"
-    },
-    "tremdepth": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "tremolodepth"
-    },
-    "tremolo": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "trem"
-      ]
-    },
-    "tremolodepth": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "tremdepth"
-      ]
-    },
-    "tremolophase": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "tremphase"
-      ]
-    },
-    "tremoloshape": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "tremshape"
-      ]
-    },
-    "tremoloskew": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "tremskew"
-      ]
-    },
-    "tremolosync": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "tremsync"
-      ]
-    },
-    "tremphase": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "tremolophase"
-    },
-    "tremshape": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "tremoloshape"
-    },
-    "tremskew": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "tremoloskew"
-    },
-    "tremsync": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "tremolosync"
-    },
-    "tri": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "tri2": {
-      "category": "signals",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "triode": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "tscope": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual",
-      "aliasOf": "scope",
-      "synonyms": [
-        "latestColor"
-      ]
-    },
-    "tsdelay": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "uid": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "undegrade": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "undegradeBy": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "unison": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "unit": {
-      "category": "sound",
-      "rank": 771,
-      "availability": "superdirt"
-    },
-    "unjoin": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "v": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "vib",
-      "synonyms": [
-        "vibrato"
-      ]
-    },
-    "val": {
-      "category": "math",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "valueToMidi": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "velocity": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "vib": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "vibrato",
-        "v"
-      ]
-    },
-    "vibmod": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "vmod"
-      ]
-    },
-    "vibrato": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "vib",
-      "synonyms": [
-        "v"
-      ]
-    },
-    "vmod": {
-      "category": "modulation",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "vibmod"
-    },
-    "voice": {
-      "category": "io",
-      "rank": 771,
-      "availability": "io"
-    },
-    "voicing": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "voicingAlias": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "voicings": {
-      "category": "pitch",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "vowel": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "w": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "warp": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "wavetableWarp"
-      ]
-    },
-    "warpatt": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "warpattack"
-    },
-    "warpattack": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "warpatt"
-      ]
-    },
-    "warpdc": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "warpdec": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "warpdecay"
-    },
-    "warpdecay": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "warpdec"
-      ]
-    },
-    "warpdepth": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "warpenv": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "warpmode": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "wavetableWarpMode"
-      ]
-    },
-    "warprate": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "warprel": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "warprelease"
-    },
-    "warprelease": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "warprel"
-      ]
-    },
-    "warpshape": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "warpskew": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "warpsus": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "warpsustain"
-    },
-    "warpsustain": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "warpsus"
-      ]
-    },
-    "warpsync": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "waveloss": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "wavetablePhaseRand": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "wtphaserand"
-    },
-    "wavetablePosition": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "wt"
-    },
-    "wavetableWarp": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "warp"
-    },
-    "wavetableWarpMode": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "warpmode"
-    },
-    "wchoose": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "wchooseCycles": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "wrandcat"
-      ]
-    },
-    "when": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "whenKey": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "withContext": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withHap": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withHapSpan": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withHapTime": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withHaps": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withLoc": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withQuerySpan": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withQuerySpanMaybe": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withQueryTime": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withState": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withSteps": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal"
-    },
-    "withValue": {
-      "category": "internal",
-      "rank": 771,
-      "availability": "internal",
-      "synonyms": [
-        "fmap"
-      ]
-    },
-    "within": {
-      "category": "transform",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "wordfall": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "wrandcat": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "wchooseCycles"
-    },
-    "wt": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "wavetablePosition"
-      ]
-    },
-    "wtatt": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "wtattack"
-    },
-    "wtattack": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "wtatt"
-      ]
-    },
-    "wtdc": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "wtdec": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "wtdecay"
-    },
-    "wtdecay": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "wtdec"
-      ]
-    },
-    "wtdepth": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "wtenv": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "wtphaserand": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "wavetablePhaseRand"
-      ]
-    },
-    "wtrate": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "wtrel": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "wtrelease"
-    },
-    "wtrelease": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "wtrel"
-      ]
-    },
-    "wtshape": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "wtskew": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "wtsus": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "aliasOf": "wtsustain"
-    },
-    "wtsustain": {
-      "category": "envelope",
-      "rank": 771,
-      "availability": "ok",
-      "synonyms": [
-        "wtsus"
-      ]
-    },
-    "wtsync": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "x": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual",
-      "aliasOf": "phase"
-    },
-    "xfade": {
-      "category": "dynamics",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "xsdelay": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "y": {
-      "category": "visual",
-      "rank": 771,
-      "availability": "visual"
-    },
-    "zcrush": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "zdelay": {
-      "category": "effects",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "zip": {
-      "category": "structure",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "zmod": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "znoise": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "zoom": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "zoomArc": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "zoomIn": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "zoomarc": {
-      "category": "time",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "zrand": {
-      "category": "randomness",
-      "rank": 771,
-      "availability": "ok"
-    },
-    "zzfx": {
-      "category": "synthesis",
-      "rank": 771,
-      "availability": "ok"
-    }
-  },
-  "after": {}
-}
+{"functions":{
+"accelerate":{"category":"sound","rank":234,"availability":"superdirt","docUrl":"https://strudel.cc/learn/samples/"},
+"activeLabel":{"category":"visual","rank":321,"availability":"visual","aliasOf":"label","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"ad":{"category":"envelope","rank":322,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"add":{"category":"math","rank":41,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#add"},
+"addVoicings":{"category":"pitch","rank":235,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"adsr":{"category":"envelope","rank":236,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/#adsr"},
+"aliasBank":{"category":"sound","rank":323,"availability":"io","docUrl":"https://strudel.cc/learn/samples/"},
+"almostAlways":{"category":"randomness","rank":237,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#almostalways"},
+"almostNever":{"category":"randomness","rank":238,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#almostnever"},
+"always":{"category":"randomness","rank":239,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#always"},
+"amp":{"category":"dynamics","rank":240,"availability":"superdirt","docUrl":"https://strudel.cc/learn/effects/"},
+"analyze":{"category":"visual","rank":324,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"anchor":{"category":"pitch","rank":84,"availability":"ok","docUrl":"https://strudel.cc/understand/voicings/#anchor"},
+"and":{"category":"math","rank":325,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"angle":{"category":"visual","rank":326,"availability":"visual","aliasOf":"from","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"animate":{"category":"visual","rank":327,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"appBoth":{"category":"internal","rank":328,"availability":"internal"},
+"appLeft":{"category":"internal","rank":329,"availability":"internal"},
+"appRight":{"category":"internal","rank":330,"availability":"internal"},
+"appWhole":{"category":"internal","rank":331,"availability":"internal"},
+"apply":{"category":"transform","rank":68,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"applyN":{"category":"transform","rank":332,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"ar":{"category":"envelope","rank":333,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"arp":{"category":"pitch","rank":22,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#arp"},
+"arpWith":{"category":"pitch","rank":241,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#arpwith-"},
+"arrange":{"category":"structure","rank":71,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/#arrange"},
+"as":{"category":"math","rank":168,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#as"},
+"asNumber":{"category":"math","rank":334,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"asym":{"category":"effects","rank":335,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"att":{"category":"envelope","rank":336,"availability":"ok","aliasOf":"attack","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#attack"},
+"attack":{"category":"envelope","rank":30,"availability":"ok","synonyms":["att"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#attack"},
+"band":{"category":"math","rank":337,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"bandf":{"category":"effects","rank":338,"availability":"ok","aliasOf":"bpf","synonyms":["bp"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#bpf"},
+"bandq":{"category":"effects","rank":339,"availability":"ok","aliasOf":"bpq","range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/#bpq"},
+"bank":{"category":"sound","rank":3,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/#sound-banks"},
+"bbexpr":{"category":"synthesis","rank":169,"availability":"ok","aliasOf":"byteBeatExpression","docUrl":"https://strudel.cc/learn/synths/"},
+"bbst":{"category":"synthesis","rank":170,"availability":"ok","aliasOf":"byteBeatStartTime","docUrl":"https://strudel.cc/learn/synths/"},
+"beat":{"category":"time","rank":94,"availability":"ok","synonyms":["__beat"],"docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"begin":{"category":"sound","rank":47,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/samples/#begin"},
+"berlin":{"category":"randomness","rank":340,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"berlinWith":{"category":"randomness","rank":341,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"binary":{"category":"time","rank":242,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/#binary"},
+"binaryN":{"category":"time","rank":243,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/#binaryn"},
+"bind":{"category":"internal","rank":342,"availability":"internal"},
+"bindWhole":{"category":"internal","rank":343,"availability":"internal"},
+"binshift":{"category":"effects","rank":344,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"bite":{"category":"structure","rank":171,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"blshift":{"category":"math","rank":345,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"bor":{"category":"math","rank":346,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"bp":{"category":"effects","rank":347,"availability":"ok","aliasOf":"bpf","synonyms":["bandf"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#bpf"},
+"bpa":{"category":"envelope","rank":136,"availability":"ok","aliasOf":"bpattack","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"bpattack":{"category":"envelope","rank":348,"availability":"ok","synonyms":["bpa"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"bpd":{"category":"envelope","rank":137,"availability":"ok","aliasOf":"bpdecay","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"bpdecay":{"category":"envelope","rank":349,"availability":"ok","synonyms":["bpd"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"bpe":{"category":"envelope","rank":350,"availability":"ok","aliasOf":"bpenv","range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/"},
+"bpenv":{"category":"envelope","rank":100,"availability":"ok","synonyms":["bpe"],"range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/"},
+"bpf":{"category":"effects","rank":91,"availability":"ok","synonyms":["bandf","bp"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#bpf"},
+"bpq":{"category":"effects","rank":172,"availability":"ok","synonyms":["bandq"],"range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/#bpq"},
+"bpr":{"category":"envelope","rank":173,"availability":"ok","aliasOf":"bprelease","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"bprelease":{"category":"envelope","rank":351,"availability":"ok","synonyms":["bpr"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"bps":{"category":"envelope","rank":138,"availability":"ok","aliasOf":"bpsustain","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"bpsustain":{"category":"envelope","rank":352,"availability":"ok","synonyms":["bps"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"brak":{"category":"time","rank":353,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"brand":{"category":"randomness","rank":354,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#brand"},
+"brandBy":{"category":"randomness","rank":244,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#brandby"},
+"brshift":{"category":"math","rank":355,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"bxor":{"category":"math","rank":356,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"bypass":{"category":"transform","rank":357,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"byteBeatExpression":{"category":"synthesis","rank":358,"availability":"ok","synonyms":["bbexpr"],"docUrl":"https://strudel.cc/learn/synths/"},
+"byteBeatStartTime":{"category":"synthesis","rank":359,"availability":"ok","synonyms":["bbst"],"docUrl":"https://strudel.cc/learn/synths/"},
+"cat":{"category":"structure","rank":58,"availability":"ok","synonyms":["slowcat"],"docUrl":"https://strudel.cc/learn/factories/#cat"},
+"ccn":{"category":"io","rank":360,"availability":"io","range":{"min":0,"max":127},"docUrl":"https://strudel.cc/learn/input-output/#control-ccn--ccv"},
+"ccv":{"category":"io","rank":361,"availability":"io","range":{"min":0,"max":127},"docUrl":"https://strudel.cc/learn/input-output/#control-ccn--ccv"},
+"ceil":{"category":"math","rank":245,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#ceil"},
+"ch":{"category":"dynamics","rank":362,"availability":"ok","aliasOf":"channels","docUrl":"https://strudel.cc/learn/effects/"},
+"channel":{"category":"dynamics","rank":363,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"channels":{"category":"dynamics","rank":174,"availability":"ok","synonyms":["ch"],"docUrl":"https://strudel.cc/learn/effects/"},
+"chebyshev":{"category":"effects","rank":364,"availability":"ok","synonyms":["distAlgoNames"],"docUrl":"https://strudel.cc/learn/effects/"},
+"choose":{"category":"randomness","rank":175,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#choose"},
+"choose2":{"category":"randomness","rank":365,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"chooseCycles":{"category":"randomness","rank":117,"availability":"ok","synonyms":["randcat"],"docUrl":"https://strudel.cc/learn/random-modifiers/#choosecycles"},
+"chooseIn":{"category":"randomness","rank":366,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"chooseInWith":{"category":"randomness","rank":367,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"chooseOut":{"category":"randomness","rank":368,"availability":"ok","aliasOf":"choose","docUrl":"https://strudel.cc/learn/random-modifiers/#choose"},
+"chooseWith":{"category":"randomness","rank":246,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"chop":{"category":"sound","rank":45,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/#chop"},
+"chord":{"category":"pitch","rank":20,"availability":"ok","docUrl":"https://strudel.cc/understand/voicings/#chord-symbols"},
+"chorus":{"category":"modulation","rank":247,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"chunk":{"category":"structure","rank":113,"availability":"ok","synonyms":["slowChunk","slowchunk","_chunk"],"docUrl":"https://strudel.cc/learn/conditional-modifiers/#chunk"},
+"chunkBack":{"category":"structure","rank":176,"availability":"ok","synonyms":["chunkback"],"docUrl":"https://strudel.cc/learn/conditional-modifiers/#chunkback"},
+"chunkBackInto":{"category":"structure","rank":369,"availability":"ok","synonyms":["chunkbackinto"],"docUrl":"https://strudel.cc/learn/factories/"},
+"chunkInto":{"category":"structure","rank":139,"availability":"ok","synonyms":["chunkinto"],"docUrl":"https://strudel.cc/learn/factories/"},
+"chunkback":{"category":"structure","rank":370,"availability":"ok","aliasOf":"chunkBack","docUrl":"https://strudel.cc/learn/conditional-modifiers/#chunkback"},
+"chunkbackinto":{"category":"structure","rank":371,"availability":"ok","aliasOf":"chunkBackInto","docUrl":"https://strudel.cc/learn/factories/"},
+"chunkinto":{"category":"structure","rank":372,"availability":"ok","aliasOf":"chunkInto","docUrl":"https://strudel.cc/learn/factories/"},
+"clip":{"category":"sound","rank":35,"availability":"ok","synonyms":["legato"],"range":{"min":0},"docUrl":"https://strudel.cc/learn/samples/#clip"},
+"coarse":{"category":"effects","rank":248,"availability":"ok","range":{"min":1},"docUrl":"https://strudel.cc/learn/effects/#coarse"},
+"collect":{"category":"internal","rank":373,"availability":"internal"},
+"color":{"category":"visual","rank":140,"availability":"visual","synonyms":["colour"],"docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"comb":{"category":"effects","rank":374,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"compose":{"category":"internal","rank":375,"availability":"internal"},
+"compress":{"category":"time","rank":249,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#compress"},
+"compressSpan":{"category":"time","rank":376,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"compressor":{"category":"dynamics","rank":177,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/#compressor"},
+"compressorAttack":{"category":"dynamics","rank":377,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"compressorKnee":{"category":"dynamics","rank":378,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"compressorRatio":{"category":"dynamics","rank":379,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"compressorRelease":{"category":"dynamics","rank":380,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"compressspan":{"category":"time","rank":381,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"contract":{"category":"time","rank":178,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#contract"},
+"control":{"category":"io","rank":382,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/#control-ccn--ccv"},
+"cosine":{"category":"signals","rank":383,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#cosine"},
+"cosine2":{"category":"signals","rank":384,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"cpm":{"category":"time","rank":250,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#cpm"},
+"cps":{"category":"time","rank":179,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"createParam":{"category":"io","rank":385,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"createParams":{"category":"io","rank":386,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"crush":{"category":"effects","rank":27,"availability":"ok","range":{"min":1,"max":16,"unit":"bits"},"docUrl":"https://strudel.cc/learn/effects/#crush"},
+"ctf":{"category":"effects","rank":387,"availability":"ok","aliasOf":"lpf","synonyms":["cutoff","lp"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#lpf"},
+"ctlNum":{"category":"io","rank":388,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"ctranspose":{"category":"pitch","rank":389,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"cubic":{"category":"effects","rank":390,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"curve":{"category":"effects","rank":391,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"cut":{"category":"sound","rank":102,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/#cut"},
+"cutoff":{"category":"effects","rank":126,"availability":"ok","aliasOf":"lpf","synonyms":["ctf","lp"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#lpf"},
+"dec":{"category":"envelope","rank":251,"availability":"ok","aliasOf":"decay","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#decay"},
+"decay":{"category":"envelope","rank":31,"availability":"ok","synonyms":["dec"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#decay"},
+"defragmentHaps":{"category":"internal","rank":392,"availability":"internal"},
+"degrade":{"category":"randomness","rank":180,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#degrade"},
+"degradeBy":{"category":"randomness","rank":25,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/random-modifiers/#degradeby"},
+"degradeByWith":{"category":"randomness","rank":393,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"degree":{"category":"pitch","rank":394,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"delay":{"category":"effects","rank":8,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#delay-1"},
+"delayfb":{"category":"effects","rank":395,"availability":"ok","aliasOf":"delayfeedback","synonyms":["dfb"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#delayfeedback"},
+"delayfeedback":{"category":"effects","rank":55,"availability":"ok","synonyms":["delayfb","dfb"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#delayfeedback"},
+"delayspeed":{"category":"effects","rank":141,"availability":"ok","synonyms":["delayt","dt","delaytime"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#delaytime"},
+"delaysync":{"category":"effects","rank":252,"availability":"ok","synonyms":["delayt","dt"],"range":{"min":0,"unit":"cycles"},"docUrl":"https://strudel.cc/learn/effects/"},
+"delayt":{"category":"effects","rank":396,"availability":"ok","aliasOf":"delayspeed","synonyms":["dt","delaytime"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#delaytime"},
+"delaytime":{"category":"effects","rank":54,"availability":"ok","aliasOf":"delayspeed","synonyms":["delayt","dt"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#delaytime"},
+"deltaSlide":{"category":"modulation","rank":397,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"density":{"category":"synthesis","rank":93,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"det":{"category":"synthesis","rank":398,"availability":"ok","aliasOf":"detune","docUrl":"https://strudel.cc/learn/synths/"},
+"detune":{"category":"synthesis","rank":78,"availability":"ok","synonyms":["det"],"docUrl":"https://strudel.cc/learn/synths/"},
+"dfb":{"category":"effects","rank":399,"availability":"ok","aliasOf":"delayfeedback","synonyms":["delayfb"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#delayfeedback"},
+"dict":{"category":"pitch","rank":400,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"dictionary":{"category":"pitch","rank":401,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"diode":{"category":"effects","rank":402,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"discreteOnly":{"category":"math","rank":403,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"dist":{"category":"effects","rank":404,"availability":"ok","aliasOf":"distort","range":{"min":0,"max":10},"docUrl":"https://strudel.cc/learn/effects/#distort"},
+"distort":{"category":"effects","rank":29,"availability":"ok","synonyms":["dist"],"range":{"min":0,"max":10},"docUrl":"https://strudel.cc/learn/effects/#distort"},
+"distorttype":{"category":"effects","rank":142,"availability":"ok","synonyms":["disttype"],"docUrl":"https://strudel.cc/learn/effects/"},
+"distortvol":{"category":"effects","rank":181,"availability":"ok","synonyms":["distvol"],"range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/"},
+"disttype":{"category":"effects","rank":405,"availability":"ok","aliasOf":"distorttype","docUrl":"https://strudel.cc/learn/effects/"},
+"distvol":{"category":"effects","rank":406,"availability":"ok","aliasOf":"distortvol","range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/"},
+"div":{"category":"math","rank":105,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#div"},
+"djf":{"category":"effects","rank":253,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"dough":{"category":"synthesis","rank":407,"availability":"io","docUrl":"https://strudel.cc/learn/synths/"},
+"draw":{"category":"visual","rank":408,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"drawLine":{"category":"visual","rank":254,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"drive":{"category":"effects","rank":255,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"drop":{"category":"time","rank":106,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#drop"},
+"dry":{"category":"effects","rank":127,"availability":"superdirt","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"ds":{"category":"envelope","rank":409,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"dt":{"category":"effects","rank":410,"availability":"ok","aliasOf":"delayspeed","synonyms":["delayt","delaytime"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#delaytime"},
+"duck":{"category":"dynamics","rank":411,"availability":"ok","aliasOf":"duckorbit","docUrl":"https://strudel.cc/learn/effects/#duckorbit"},
+"duckatt":{"category":"dynamics","rank":412,"availability":"ok","aliasOf":"duckattack","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#duckattack"},
+"duckattack":{"category":"dynamics","rank":73,"availability":"ok","synonyms":["duckatt"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#duckattack"},
+"duckdepth":{"category":"dynamics","rank":75,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#duckdepth"},
+"duckons":{"category":"dynamics","rank":413,"availability":"ok","aliasOf":"duckonset","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"duckonset":{"category":"dynamics","rank":118,"availability":"ok","synonyms":["duckons"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"duckorbit":{"category":"dynamics","rank":74,"availability":"ok","synonyms":["duck"],"docUrl":"https://strudel.cc/learn/effects/#duckorbit"},
+"dur":{"category":"sound","rank":182,"availability":"ok","aliasOf":"duration","range":{"min":0,"unit":"cycles"},"docUrl":"https://strudel.cc/learn/samples/"},
+"duration":{"category":"sound","rank":414,"availability":"ok","synonyms":["dur"],"range":{"min":0,"unit":"cycles"},"docUrl":"https://strudel.cc/learn/samples/"},
+"e":{"category":"time","rank":415,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"early":{"category":"time","rank":256,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#early"},
+"echo":{"category":"transform","rank":64,"availability":"ok","docUrl":"https://strudel.cc/learn/accumulation/#echo"},
+"echoWith":{"category":"transform","rank":143,"availability":"ok","synonyms":["echowith","stutWith","stutwith"],"docUrl":"https://strudel.cc/learn/accumulation/#echowith"},
+"echowith":{"category":"transform","rank":416,"availability":"ok","aliasOf":"echoWith","synonyms":["stutWith","stutwith"],"docUrl":"https://strudel.cc/learn/accumulation/#echowith"},
+"eish":{"category":"time","rank":417,"availability":"ok","aliasOf":"euclidish","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"end":{"category":"sound","rank":48,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/samples/#end"},
+"enhance":{"category":"effects","rank":418,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"eq":{"category":"math","rank":419,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"eqt":{"category":"math","rank":420,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"euclid":{"category":"time","rank":14,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#euclid"},
+"euclidLegato":{"category":"time","rank":257,"availability":"ok","synonyms":["_euclidLegato"],"docUrl":"https://strudel.cc/learn/time-modifiers/#euclidlegato"},
+"euclidLegatoRot":{"category":"time","rank":258,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"euclidRot":{"category":"time","rank":259,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#euclidrot"},
+"euclidish":{"category":"time","rank":183,"availability":"ok","synonyms":["eish"],"docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"euclidrot":{"category":"time","rank":421,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#euclidrot"},
+"evaluate":{"category":"io","rank":422,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"every":{"category":"structure","rank":15,"availability":"ok","synonyms":["firstOf"],"docUrl":"https://strudel.cc/learn/conditional-modifiers/#firstof"},
+"expand":{"category":"time","rank":184,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#expand"},
+"expression":{"category":"internal","rank":423,"availability":"internal"},
+"extend":{"category":"time","rank":185,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#extend"},
+"fadeInTime":{"category":"sound","rank":424,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/"},
+"fadeOutTime":{"category":"sound","rank":425,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/"},
+"fadeTime":{"category":"sound","rank":426,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/"},
+"fanchor":{"category":"envelope","rank":186,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"fast":{"category":"time","rank":11,"availability":"ok","synonyms":["density"],"docUrl":"https://strudel.cc/learn/time-modifiers/#fast"},
+"fastChunk":{"category":"structure","rank":187,"availability":"ok","synonyms":["fastchunk"],"docUrl":"https://strudel.cc/learn/conditional-modifiers/#fastchunk"},
+"fastGap":{"category":"time","rank":188,"availability":"ok","synonyms":["fastgap"],"docUrl":"https://strudel.cc/learn/time-modifiers/#fastgap"},
+"fastcat":{"category":"structure","rank":427,"availability":"ok","aliasOf":"seq","synonyms":["sequence"],"docUrl":"https://strudel.cc/learn/factories/#seq"},
+"fastchunk":{"category":"structure","rank":428,"availability":"ok","aliasOf":"fastChunk","docUrl":"https://strudel.cc/learn/conditional-modifiers/#fastchunk"},
+"fastgap":{"category":"time","rank":429,"availability":"ok","aliasOf":"fastGap","docUrl":"https://strudel.cc/learn/time-modifiers/#fastgap"},
+"fft":{"category":"visual","rank":430,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"fill":{"category":"visual","rank":144,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"filter":{"category":"internal","rank":260,"availability":"internal"},
+"filterHaps":{"category":"internal","rank":431,"availability":"internal"},
+"filterValues":{"category":"internal","rank":432,"availability":"internal"},
+"filterWhen":{"category":"transform","rank":433,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"firstCycle":{"category":"internal","rank":434,"availability":"internal"},
+"firstCycleValues":{"category":"internal","rank":435,"availability":"internal"},
+"firstOf":{"category":"structure","rank":261,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#firstof"},
+"fit":{"category":"time","rank":128,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/#fit"},
+"floor":{"category":"math","rank":129,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#floor"},
+"fm":{"category":"synthesis","rank":50,"availability":"ok","synonyms":["fmi"],"range":{"min":0},"docUrl":"https://strudel.cc/learn/synths/#fm"},
+"fmap":{"category":"math","rank":436,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"fmattack":{"category":"envelope","rank":262,"availability":"ok","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/synths/#fmattack"},
+"fmdecay":{"category":"envelope","rank":162,"availability":"ok","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/synths/#fmdecay"},
+"fmenv":{"category":"envelope","rank":263,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/#fmenv"},
+"fmh":{"category":"synthesis","rank":189,"availability":"ok","range":{"min":0},"docUrl":"https://strudel.cc/learn/synths/#fmh"},
+"fmi":{"category":"synthesis","rank":437,"availability":"ok","aliasOf":"fm","range":{"min":0},"docUrl":"https://strudel.cc/learn/synths/#fm"},
+"fmrelease":{"category":"envelope","rank":438,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"fmsustain":{"category":"envelope","rank":163,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/#fmsustain"},
+"fmvelocity":{"category":"synthesis","rank":439,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"fmwave":{"category":"synthesis","rank":190,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"focus":{"category":"time","rank":264,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"focusSpan":{"category":"time","rank":440,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"focusspan":{"category":"time","rank":441,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"fold":{"category":"effects","rank":442,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"frameRate":{"category":"visual","rank":443,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"frames":{"category":"visual","rank":444,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"freeze":{"category":"effects","rank":445,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"freq":{"category":"pitch","rank":107,"availability":"ok","range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/tonal/"},
+"freqToMidi":{"category":"pitch","rank":446,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"fromBipolar":{"category":"signals","rank":447,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"fscope":{"category":"visual","rank":265,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"fshift":{"category":"effects","rank":448,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"fshiftnote":{"category":"effects","rank":449,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"fshiftphase":{"category":"effects","rank":450,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"ftype":{"category":"effects","rank":114,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/#ftype"},
+"func":{"category":"internal","rank":451,"availability":"internal"},
+"gain":{"category":"dynamics","rank":4,"availability":"ok","range":{"min":0,"max":1.5},"docUrl":"https://strudel.cc/learn/effects/#gain"},
+"gap":{"category":"time","rank":266,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"gat":{"category":"io","rank":452,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"gate":{"category":"io","rank":453,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"getAudioContext":{"category":"io","rank":454,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"getFreq":{"category":"pitch","rank":455,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"getPainters":{"category":"visual","rank":456,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"grow":{"category":"time","rank":145,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#grow"},
+"gt":{"category":"math","rank":457,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"gte":{"category":"math","rank":458,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"h":{"category":"visual","rank":459,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"hard":{"category":"effects","rank":460,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"harmonic":{"category":"pitch","rank":461,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"hasSteps":{"category":"internal","rank":462,"availability":"internal"},
+"hbrick":{"category":"effects","rank":463,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"hcutoff":{"category":"effects","rank":464,"availability":"ok","aliasOf":"hpf","synonyms":["hp"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#hpf"},
+"hold":{"category":"envelope","rank":465,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"hours":{"category":"time","rank":466,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"hp":{"category":"effects","rank":467,"availability":"ok","aliasOf":"hpf","synonyms":["hcutoff"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#hpf"},
+"hpa":{"category":"envelope","rank":146,"availability":"ok","aliasOf":"hpattack","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"hpattack":{"category":"envelope","rank":147,"availability":"ok","synonyms":["hpa"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"hpd":{"category":"envelope","rank":148,"availability":"ok","aliasOf":"hpdecay","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"hpdecay":{"category":"envelope","rank":468,"availability":"ok","synonyms":["hpd"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"hpe":{"category":"envelope","rank":469,"availability":"ok","aliasOf":"hpenv","range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/"},
+"hpenv":{"category":"envelope","rank":92,"availability":"ok","synonyms":["hpe"],"range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/"},
+"hpf":{"category":"effects","rank":6,"availability":"ok","synonyms":["hp","hcutoff"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#hpf"},
+"hpq":{"category":"effects","rank":191,"availability":"ok","synonyms":["hresonance"],"range":{"min":0,"max":50},"docUrl":"https://strudel.cc/learn/effects/#hpq"},
+"hpr":{"category":"envelope","rank":192,"availability":"ok","aliasOf":"hprelease","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"hprelease":{"category":"envelope","rank":470,"availability":"ok","synonyms":["hpr"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"hps":{"category":"envelope","rank":149,"availability":"ok","aliasOf":"hpsustain","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"hpsustain":{"category":"envelope","rank":471,"availability":"ok","synonyms":["hps"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"hresonance":{"category":"effects","rank":472,"availability":"ok","aliasOf":"hpq","range":{"min":0,"max":50},"docUrl":"https://strudel.cc/learn/effects/#hpq"},
+"hsl":{"category":"visual","rank":473,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"hsla":{"category":"visual","rank":474,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"hurry":{"category":"time","rank":101,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"hush":{"category":"io","rank":267,"availability":"io","docUrl":"https://strudel.cc/learn/conditional-modifiers/#hush"},
+"id":{"category":"internal","rank":475,"availability":"internal"},
+"imag":{"category":"synthesis","rank":476,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"in":{"category":"other","rank":477,"availability":"ok"},
+"inhabit":{"category":"structure","rank":150,"availability":"ok","synonyms":["pickSqueeze"],"docUrl":"https://strudel.cc/learn/conditional-modifiers/#inhabit"},
+"inhabitmod":{"category":"structure","rank":478,"availability":"ok","synonyms":["pickmodSqueeze"],"docUrl":"https://strudel.cc/learn/conditional-modifiers/#inhabitmod"},
+"initAudioOnFirstClick":{"category":"io","rank":479,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"initStrudel":{"category":"io","rank":480,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"innerBind":{"category":"internal","rank":481,"availability":"internal"},
+"innerJoin":{"category":"internal","rank":482,"availability":"internal"},
+"inside":{"category":"time","rank":268,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#inside"},
+"into":{"category":"transform","rank":269,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"inv":{"category":"transform","rank":483,"availability":"ok","aliasOf":"invert","docUrl":"https://strudel.cc/learn/conditional-modifiers/#invert"},
+"invert":{"category":"transform","rank":484,"availability":"ok","synonyms":["inv"],"docUrl":"https://strudel.cc/learn/conditional-modifiers/#invert"},
+"ir":{"category":"sound","rank":151,"availability":"ok","aliasOf":"iresponse","docUrl":"https://strudel.cc/learn/effects/#iresponse"},
+"irand":{"category":"randomness","rank":77,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#irand"},
+"irbegin":{"category":"sound","rank":193,"availability":"ok","synonyms":["ir"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/samples/"},
+"iresponse":{"category":"sound","rank":485,"availability":"ok","synonyms":["ir"],"docUrl":"https://strudel.cc/learn/effects/#iresponse"},
+"irspeed":{"category":"sound","rank":194,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/"},
+"isPattern":{"category":"io","rank":486,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"isaw":{"category":"signals","rank":487,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"isaw2":{"category":"signals","rank":488,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"iter":{"category":"time","rank":44,"availability":"ok","synonyms":["_iter"],"docUrl":"https://strudel.cc/learn/time-modifiers/#iter"},
+"iterBack":{"category":"time","rank":195,"availability":"ok","synonyms":["iterback"],"docUrl":"https://strudel.cc/learn/time-modifiers/#iterback"},
+"iterback":{"category":"time","rank":489,"availability":"ok","aliasOf":"iterBack","docUrl":"https://strudel.cc/learn/time-modifiers/#iterback"},
+"itri":{"category":"signals","rank":490,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"itri2":{"category":"signals","rank":491,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"join":{"category":"internal","rank":89,"availability":"internal"},
+"jux":{"category":"transform","rank":17,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/#jux"},
+"juxBy":{"category":"transform","rank":119,"availability":"ok","synonyms":["juxby"],"docUrl":"https://strudel.cc/learn/effects/#juxby"},
+"juxby":{"category":"transform","rank":492,"availability":"ok","aliasOf":"juxBy","docUrl":"https://strudel.cc/learn/effects/#juxby"},
+"kcutoff":{"category":"effects","rank":493,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"keep":{"category":"transform","rank":494,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"keepif":{"category":"transform","rank":495,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"keyDown":{"category":"io","rank":270,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"krush":{"category":"effects","rank":496,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"label":{"category":"visual","rank":497,"availability":"visual","synonyms":["activeLabel"],"docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"lastOf":{"category":"structure","rank":83,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#lastof"},
+"late":{"category":"time","rank":79,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#late"},
+"layer":{"category":"structure","rank":164,"availability":"ok","synonyms":["apply"],"docUrl":"https://strudel.cc/learn/accumulation/#layer"},
+"lbrick":{"category":"effects","rank":498,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"legato":{"category":"sound","rank":34,"availability":"ok","aliasOf":"clip","range":{"min":0},"docUrl":"https://strudel.cc/learn/samples/#clip"},
+"leslie":{"category":"modulation","rank":165,"availability":"superdirt","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"lfo":{"category":"modulation","rank":499,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"linger":{"category":"time","rank":271,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#linger"},
+"lock":{"category":"transform","rank":272,"availability":"superdirt","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"log":{"category":"math","rank":130,"availability":"internal","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"log2":{"category":"math","rank":500,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"logValues":{"category":"internal","rank":273,"availability":"internal"},
+"loop":{"category":"sound","rank":131,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/#loop"},
+"loopAt":{"category":"time","rank":49,"availability":"ok","synonyms":["_loopAt"],"docUrl":"https://strudel.cc/learn/samples/#loopat"},
+"loopAtCps":{"category":"time","rank":196,"availability":"ok","synonyms":["loopatcps"],"docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"loopBegin":{"category":"sound","rank":197,"availability":"ok","synonyms":["loopb"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/samples/#loopbegin"},
+"loopEnd":{"category":"sound","rank":198,"availability":"ok","synonyms":["loope"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/samples/#loopend"},
+"loopat":{"category":"time","rank":501,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"loopatcps":{"category":"time","rank":502,"availability":"ok","aliasOf":"loopAtCps","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"loopb":{"category":"sound","rank":503,"availability":"ok","aliasOf":"loopBegin","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/samples/#loopbegin"},
+"loope":{"category":"sound","rank":504,"availability":"ok","aliasOf":"loopEnd","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/samples/#loopend"},
+"lp":{"category":"effects","rank":505,"availability":"ok","aliasOf":"lpf","synonyms":["cutoff","ctf"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#lpf"},
+"lpa":{"category":"envelope","rank":152,"availability":"ok","aliasOf":"lpattack","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#lpattack"},
+"lpattack":{"category":"envelope","rank":108,"availability":"ok","synonyms":["lpa"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#lpattack"},
+"lpd":{"category":"envelope","rank":153,"availability":"ok","aliasOf":"lpdecay","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#lpdecay"},
+"lpdecay":{"category":"envelope","rank":69,"availability":"ok","synonyms":["lpd"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#lpdecay"},
+"lpe":{"category":"envelope","rank":506,"availability":"ok","aliasOf":"lpenv","range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/#lpenv"},
+"lpenv":{"category":"envelope","rank":62,"availability":"ok","synonyms":["lpe"],"range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/#lpenv"},
+"lpf":{"category":"effects","rank":5,"availability":"ok","synonyms":["cutoff","ctf","lp"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#lpf"},
+"lpq":{"category":"effects","rank":61,"availability":"ok","synonyms":["resonance"],"range":{"min":0,"max":50},"docUrl":"https://strudel.cc/learn/effects/#lpq"},
+"lpr":{"category":"envelope","rank":199,"availability":"ok","aliasOf":"lprelease","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#lprelease"},
+"lprelease":{"category":"envelope","rank":507,"availability":"ok","synonyms":["lpr"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#lprelease"},
+"lps":{"category":"envelope","rank":200,"availability":"ok","aliasOf":"lpsustain","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#lpsustain"},
+"lpsustain":{"category":"envelope","rank":90,"availability":"ok","synonyms":["lps"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#lpsustain"},
+"lrate":{"category":"modulation","rank":201,"availability":"superdirt","range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/effects/"},
+"lsize":{"category":"modulation","rank":274,"availability":"superdirt","range":{"min":0,"max":1,"unit":"m"},"docUrl":"https://strudel.cc/learn/effects/"},
+"lt":{"category":"math","rank":508,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"lte":{"category":"math","rank":509,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"m":{"category":"io","rank":510,"availability":"ok","docUrl":"https://strudel.cc/learn/input-output/"},
+"mask":{"category":"time","rank":56,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#mask"},
+"maskAll":{"category":"time","rank":511,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"midi2note":{"category":"pitch","rank":512,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"midiToFreq":{"category":"pitch","rank":513,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"midibend":{"category":"io","rank":275,"availability":"io","range":{"min":-1,"max":1},"docUrl":"https://strudel.cc/learn/input-output/#midibend--miditouch"},
+"midichan":{"category":"io","rank":115,"availability":"io","range":{"min":0,"max":15},"docUrl":"https://strudel.cc/learn/input-output/#midichannumber"},
+"midicmd":{"category":"io","rank":276,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/#midicmdcommand"},
+"midimap":{"category":"io","rank":514,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"midiport":{"category":"io","rank":277,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/#midiportoutputname"},
+"miditouch":{"category":"io","rank":278,"availability":"io","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/input-output/#midibend--miditouch"},
+"mini":{"category":"io","rank":65,"availability":"ok","docUrl":"https://strudel.cc/learn/input-output/"},
+"minutes":{"category":"time","rank":515,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"mix":{"category":"dynamics","rank":516,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"mod":{"category":"math","rank":517,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"mode":{"category":"pitch","rank":95,"availability":"ok","docUrl":"https://strudel.cc/understand/voicings/#mode"},
+"morph":{"category":"effects","rank":202,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"mouseX":{"category":"signals","rank":518,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#mousex"},
+"mouseY":{"category":"signals","rank":519,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#mousey"},
+"mousex":{"category":"signals","rank":520,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#mousex"},
+"mousey":{"category":"signals","rank":521,"availability":"ok","synonyms":["_mouseY"],"docUrl":"https://strudel.cc/learn/signals/#mousey"},
+"moveXY":{"category":"visual","rank":522,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"mtranspose":{"category":"pitch","rank":523,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"mul":{"category":"math","rank":43,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#mul"},
+"n":{"category":"pitch","rank":1,"availability":"ok","range":{"min":0},"docUrl":"https://strudel.cc/learn/samples/#selecting-sounds"},
+"ne":{"category":"math","rank":524,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"net":{"category":"io","rank":525,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"never":{"category":"randomness","rank":279,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#never"},
+"noise":{"category":"synthesis","rank":526,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/#noise"},
+"note":{"category":"pitch","rank":2,"availability":"ok","docUrl":"https://strudel.cc/workshop/first-notes/#numbers-and-notes"},
+"noteToMidi":{"category":"pitch","rank":527,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"nothing":{"category":"structure","rank":528,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"nrpnn":{"category":"io","rank":203,"availability":"io","range":{"min":0,"max":127},"docUrl":"https://strudel.cc/learn/input-output/"},
+"nrpv":{"category":"io","rank":204,"availability":"io","range":{"min":0,"max":127},"docUrl":"https://strudel.cc/learn/input-output/"},
+"nudge":{"category":"time","rank":85,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"octave":{"category":"pitch","rank":280,"availability":"superdirt","docUrl":"https://strudel.cc/learn/tonal/"},
+"octaveR":{"category":"pitch","rank":529,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"octaves":{"category":"pitch","rank":530,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"octer":{"category":"effects","rank":531,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"octersub":{"category":"effects","rank":532,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"octersubsub":{"category":"effects","rank":533,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"off":{"category":"time","rank":23,"availability":"ok","docUrl":"https://strudel.cc/learn/accumulation/#off"},
+"offset":{"category":"pitch","rank":534,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"often":{"category":"randomness","rank":281,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#often"},
+"onPaint":{"category":"visual","rank":535,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"onTrigger":{"category":"io","rank":536,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"onTriggerTime":{"category":"io","rank":282,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"onsetsOnly":{"category":"internal","rank":537,"availability":"internal"},
+"or":{"category":"math","rank":538,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"orbit":{"category":"dynamics","rank":36,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/#orbit"},
+"oschost":{"category":"io","rank":205,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"oscport":{"category":"io","rank":206,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"out":{"category":"io","rank":283,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"outerBind":{"category":"internal","rank":539,"availability":"internal"},
+"outerJoin":{"category":"internal","rank":540,"availability":"internal"},
+"outside":{"category":"time","rank":284,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#outside"},
+"overgain":{"category":"dynamics","rank":541,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"overshape":{"category":"dynamics","rank":542,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"pace":{"category":"time","rank":86,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#pace"},
+"palindrome":{"category":"time","rank":132,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#palindrome"},
+"pan":{"category":"dynamics","rank":9,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#pan"},
+"panchor":{"category":"dynamics","rank":285,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#panchor"},
+"panorient":{"category":"dynamics","rank":543,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"panspan":{"category":"dynamics","rank":544,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"pansplay":{"category":"dynamics","rank":545,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"panwidth":{"category":"dynamics","rank":546,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"partials":{"category":"synthesis","rank":547,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/#partials"},
+"patt":{"category":"envelope","rank":548,"availability":"ok","aliasOf":"pattack","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#pattack"},
+"pattack":{"category":"envelope","rank":120,"availability":"ok","synonyms":["patt"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#pattack"},
+"pcurve":{"category":"envelope","rank":286,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#pcurve"},
+"pdec":{"category":"envelope","rank":287,"availability":"ok","aliasOf":"pdecay","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#pdecay"},
+"pdecay":{"category":"envelope","rank":121,"availability":"ok","synonyms":["pdec"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#pdecay"},
+"penv":{"category":"envelope","rank":98,"availability":"ok","range":{"unit":"semitones"},"docUrl":"https://strudel.cc/learn/effects/#penv"},
+"perlin":{"category":"randomness","rank":549,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#perlin"},
+"perlinWith":{"category":"randomness","rank":550,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"ph":{"category":"modulation","rank":551,"availability":"ok","aliasOf":"phaser","synonyms":["phaserrate"],"range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/effects/#phaser-1"},
+"phasdp":{"category":"modulation","rank":552,"availability":"ok","aliasOf":"phaserdepth","synonyms":["phd"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#phaserdepth"},
+"phaser":{"category":"modulation","rank":52,"availability":"ok","synonyms":["ph","phaserrate"],"range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/effects/#phaser-1"},
+"phasercenter":{"category":"modulation","rank":207,"availability":"ok","synonyms":["phc"],"range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/effects/#phasercenter"},
+"phaserdepth":{"category":"modulation","rank":166,"availability":"ok","synonyms":["phd","phasdp"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#phaserdepth"},
+"phaserrate":{"category":"modulation","rank":553,"availability":"ok","aliasOf":"phaser","synonyms":["ph"],"range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/effects/#phaser-1"},
+"phasersweep":{"category":"modulation","rank":208,"availability":"ok","synonyms":["phs"],"range":{"min":0,"max":4000,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/effects/#phasersweep"},
+"phc":{"category":"modulation","rank":554,"availability":"ok","aliasOf":"phasercenter","range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/effects/#phasercenter"},
+"phd":{"category":"modulation","rank":555,"availability":"ok","aliasOf":"phaserdepth","synonyms":["phasdp"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#phaserdepth"},
+"phs":{"category":"modulation","rank":556,"availability":"ok","aliasOf":"phasersweep","range":{"min":0,"max":4000,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/effects/#phasersweep"},
+"pianoroll":{"category":"visual","rank":209,"availability":"visual","synonyms":["punchcard"],"docUrl":"https://strudel.cc/learn/visual-feedback/#punchcard--pianoroll"},
+"pick":{"category":"structure","rank":133,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#pick"},
+"pickF":{"category":"structure","rank":210,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#pickf"},
+"pickOut":{"category":"structure","rank":557,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"pickReset":{"category":"structure","rank":558,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#pickreset"},
+"pickRestart":{"category":"structure","rank":288,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#pickrestart"},
+"pickSqueeze":{"category":"structure","rank":559,"availability":"ok","aliasOf":"inhabit","docUrl":"https://strudel.cc/learn/conditional-modifiers/#inhabit"},
+"pickmod":{"category":"structure","rank":560,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#pickmod"},
+"pickmodF":{"category":"structure","rank":561,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#pickmodf"},
+"pickmodOut":{"category":"structure","rank":562,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"pickmodReset":{"category":"structure","rank":563,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#pickmodreset"},
+"pickmodRestart":{"category":"structure","rank":564,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#pickmodrestart"},
+"pickmodSqueeze":{"category":"structure","rank":565,"availability":"ok","aliasOf":"inhabitmod","docUrl":"https://strudel.cc/learn/conditional-modifiers/#inhabitmod"},
+"pipe":{"category":"transform","rank":566,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"pitchJump":{"category":"modulation","rank":567,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"pitchJumpTime":{"category":"modulation","rank":568,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"pitchwheel":{"category":"visual","rank":289,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/#pitchwheel"},
+"play":{"category":"io","rank":569,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"ply":{"category":"time","rank":24,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#ply"},
+"plyForEach":{"category":"time","rank":211,"availability":"ok","synonyms":["plyforeach"],"docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"plyWith":{"category":"time","rank":212,"availability":"ok","synonyms":["plywith"],"docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"plyforeach":{"category":"time","rank":570,"availability":"ok","aliasOf":"plyForEach","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"plywith":{"category":"time","rank":571,"availability":"ok","aliasOf":"plyWith","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"pm":{"category":"structure","rank":572,"availability":"ok","aliasOf":"polymeter","docUrl":"https://strudel.cc/learn/factories/#polymeter"},
+"poly":{"category":"structure","rank":573,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"polyBind":{"category":"internal","rank":574,"availability":"internal"},
+"polyTouch":{"category":"io","rank":575,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"polymeter":{"category":"structure","rank":167,"availability":"ok","synonyms":["pm"],"docUrl":"https://strudel.cc/learn/factories/#polymeter"},
+"polyrhythm":{"category":"structure","rank":576,"availability":"ok","aliasOf":"stack","synonyms":["pr"],"docUrl":"https://strudel.cc/learn/factories/#stack"},
+"postgain":{"category":"dynamics","rank":37,"availability":"ok","range":{"min":0},"docUrl":"https://strudel.cc/learn/effects/#postgain"},
+"pow":{"category":"math","rank":577,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"pr":{"category":"structure","rank":578,"availability":"ok","aliasOf":"stack","synonyms":["polyrhythm"],"docUrl":"https://strudel.cc/learn/factories/#stack"},
+"prel":{"category":"envelope","rank":579,"availability":"ok","aliasOf":"prelease","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#prelease"},
+"prelease":{"category":"envelope","rank":213,"availability":"ok","synonyms":["prel"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#prelease"},
+"press":{"category":"time","rank":580,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"pressBy":{"category":"time","rank":290,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"progNum":{"category":"io","rank":291,"availability":"io","range":{"min":0,"max":127},"docUrl":"https://strudel.cc/learn/input-output/#prognum-program-change"},
+"psus":{"category":"envelope","rank":581,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"psustain":{"category":"envelope","rank":582,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"punchcard":{"category":"visual","rank":583,"availability":"visual","aliasOf":"pianoroll","docUrl":"https://strudel.cc/learn/visual-feedback/#punchcard--pianoroll"},
+"pure":{"category":"internal","rank":292,"availability":"internal"},
+"pw":{"category":"synthesis","rank":154,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"pwrate":{"category":"synthesis","rank":214,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"pwsweep":{"category":"synthesis","rank":215,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"queryArc":{"category":"internal","rank":293,"availability":"internal"},
+"r":{"category":"envelope","rank":584,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"rand":{"category":"randomness","rank":585,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#rand"},
+"rand2":{"category":"randomness","rank":586,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"randcat":{"category":"randomness","rank":587,"availability":"ok","aliasOf":"chooseCycles","docUrl":"https://strudel.cc/learn/random-modifiers/#choosecycles"},
+"randrun":{"category":"randomness","rank":588,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"range":{"category":"signals","rank":40,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#range"},
+"range2":{"category":"signals","rank":294,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#range2"},
+"rangex":{"category":"signals","rank":66,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#rangex"},
+"rarely":{"category":"randomness","rank":295,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#rarely"},
+"rate":{"category":"sound","rank":589,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/"},
+"ratio":{"category":"math","rank":296,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#ratio"},
+"rdim":{"category":"effects","rank":155,"availability":"ok","aliasOf":"roomdim","range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#roomdim"},
+"real":{"category":"synthesis","rank":590,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"ref":{"category":"internal","rank":591,"availability":"internal"},
+"register":{"category":"io","rank":592,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"registerSound":{"category":"sound","rank":593,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/"},
+"registerVoicings":{"category":"pitch","rank":594,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"reify":{"category":"internal","rank":109,"availability":"internal"},
+"rel":{"category":"envelope","rank":595,"availability":"ok","aliasOf":"release","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#release"},
+"release":{"category":"envelope","rank":33,"availability":"ok","synonyms":["rel"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#release"},
+"removeUndefineds":{"category":"math","rank":596,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"repeatCycles":{"category":"time","rank":297,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"repeatTime":{"category":"other","rank":597,"availability":"ok"},
+"replicate":{"category":"structure","rank":298,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"rescale":{"category":"signals","rank":598,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"reset":{"category":"transform","rank":299,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#reset"},
+"resetAll":{"category":"transform","rank":599,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"resetDefaults":{"category":"io","rank":600,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"resetJoin":{"category":"internal","rank":601,"availability":"internal"},
+"resonance":{"category":"effects","rank":602,"availability":"ok","aliasOf":"lpq","range":{"min":0,"max":50},"docUrl":"https://strudel.cc/learn/effects/#lpq"},
+"restart":{"category":"transform","rank":300,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#restart"},
+"restartAll":{"category":"transform","rank":603,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"restartJoin":{"category":"internal","rank":604,"availability":"internal"},
+"rev":{"category":"time","rank":18,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#rev"},
+"rfade":{"category":"effects","rank":156,"availability":"ok","aliasOf":"roomfade","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#roomfade"},
+"rib":{"category":"time","rank":157,"availability":"ok","aliasOf":"ribbon","docUrl":"https://strudel.cc/learn/time-modifiers/#ribbon"},
+"ribbon":{"category":"time","rank":116,"availability":"ok","synonyms":["rib"],"docUrl":"https://strudel.cc/learn/time-modifiers/#ribbon"},
+"ring":{"category":"effects","rank":605,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"ringdf":{"category":"effects","rank":606,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"ringf":{"category":"effects","rank":607,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"rlp":{"category":"effects","rank":96,"availability":"ok","aliasOf":"roomlp","range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#roomlp"},
+"room":{"category":"effects","rank":7,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#room"},
+"roomdim":{"category":"effects","rank":608,"availability":"ok","synonyms":["rdim"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#roomdim"},
+"roomfade":{"category":"effects","rank":609,"availability":"ok","synonyms":["rfade"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/#roomfade"},
+"roomlp":{"category":"effects","rank":158,"availability":"ok","synonyms":["rlp"],"range":{"min":20,"max":20000,"unit":"Hz","log":true},"docUrl":"https://strudel.cc/learn/effects/#roomlp"},
+"roomsize":{"category":"effects","rank":53,"availability":"ok","synonyms":["rsize","sz","size"],"range":{"min":0,"max":10},"docUrl":"https://strudel.cc/learn/effects/#roomsize"},
+"rootNotes":{"category":"pitch","rank":103,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/#rootnotesoctave--2"},
+"round":{"category":"math","rank":301,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#round"},
+"rsize":{"category":"effects","rank":67,"availability":"ok","aliasOf":"roomsize","synonyms":["sz","size"],"range":{"min":0,"max":10},"docUrl":"https://strudel.cc/learn/effects/#roomsize"},
+"run":{"category":"structure","rank":82,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/#run"},
+"s":{"category":"sound","rank":0,"availability":"ok","synonyms":["sound"],"docUrl":"https://strudel.cc/workshop/first-sounds/#sounds"},
+"s_add":{"category":"time","rank":610,"availability":"ok","aliasOf":"take","docUrl":"https://strudel.cc/learn/stepwise/#take"},
+"s_alt":{"category":"structure","rank":611,"availability":"ok","aliasOf":"stepalt","docUrl":"https://strudel.cc/learn/stepwise/#stepalt"},
+"s_cat":{"category":"structure","rank":612,"availability":"ok","aliasOf":"stepcat","synonyms":["timeCat","timecat"],"docUrl":"https://strudel.cc/learn/factories/#stepcat"},
+"s_contract":{"category":"time","rank":613,"availability":"ok","aliasOf":"contract","docUrl":"https://strudel.cc/learn/stepwise/#contract"},
+"s_expand":{"category":"time","rank":614,"availability":"ok","aliasOf":"expand","docUrl":"https://strudel.cc/learn/stepwise/#expand"},
+"s_extend":{"category":"time","rank":615,"availability":"ok","aliasOf":"extend","docUrl":"https://strudel.cc/learn/stepwise/#extend"},
+"s_polymeter":{"category":"structure","rank":616,"availability":"ok","aliasOf":"polymeter","synonyms":["pm"],"docUrl":"https://strudel.cc/learn/factories/#polymeter"},
+"s_sub":{"category":"time","rank":617,"availability":"ok","aliasOf":"drop","docUrl":"https://strudel.cc/learn/stepwise/#drop"},
+"s_taper":{"category":"time","rank":618,"availability":"ok","aliasOf":"shrink","docUrl":"https://strudel.cc/learn/stepwise/#shrink"},
+"s_taperlist":{"category":"structure","rank":619,"availability":"ok","aliasOf":"shrinklist","docUrl":"https://strudel.cc/learn/factories/"},
+"s_tour":{"category":"structure","rank":620,"availability":"ok","aliasOf":"tour","docUrl":"https://strudel.cc/learn/stepwise/#tour"},
+"s_zip":{"category":"structure","rank":621,"availability":"ok","aliasOf":"zip","docUrl":"https://strudel.cc/learn/stepwise/#zip"},
+"samples":{"category":"sound","rank":87,"availability":"io","docUrl":"https://strudel.cc/learn/samples/#samples"},
+"saw":{"category":"signals","rank":622,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#saw"},
+"saw2":{"category":"signals","rank":623,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"scale":{"category":"pitch","rank":19,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/#scalename"},
+"scaleTrans":{"category":"pitch","rank":624,"availability":"ok","aliasOf":"scaleTranspose","synonyms":["strans"],"docUrl":"https://strudel.cc/learn/tonal/#scaletransposesteps"},
+"scaleTranspose":{"category":"pitch","rank":134,"availability":"ok","synonyms":["scaleTrans","strans"],"docUrl":"https://strudel.cc/learn/tonal/#scaletransposesteps"},
+"scope":{"category":"visual","rank":80,"availability":"visual","synonyms":["tscope","latestColor"],"docUrl":"https://strudel.cc/learn/visual-feedback/#scope"},
+"scram":{"category":"randomness","rank":625,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"scramble":{"category":"randomness","rank":216,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"scrub":{"category":"transform","rank":159,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/#scrub"},
+"scurve":{"category":"effects","rank":626,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"seconds":{"category":"time","rank":627,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"seg":{"category":"time","rank":99,"availability":"ok","aliasOf":"segment","docUrl":"https://strudel.cc/learn/time-modifiers/#segment"},
+"segment":{"category":"time","rank":39,"availability":"ok","synonyms":["seg"],"docUrl":"https://strudel.cc/learn/time-modifiers/#segment"},
+"semitone":{"category":"pitch","rank":628,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"seq":{"category":"structure","rank":59,"availability":"ok","synonyms":["sequence","fastcat"],"docUrl":"https://strudel.cc/learn/factories/#seq"},
+"seqPLoop":{"category":"structure","rank":302,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"sequence":{"category":"structure","rank":303,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"sequenceP":{"category":"structure","rank":629,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"set":{"category":"math","rank":630,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"setContext":{"category":"internal","rank":631,"availability":"internal"},
+"setDefault":{"category":"io","rank":632,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"setDefaultValue":{"category":"io","rank":633,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"setDefaultValues":{"category":"io","rank":634,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"setDefaultVoicings":{"category":"pitch","rank":635,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"setMaxPolyphony":{"category":"io","rank":636,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"setSteps":{"category":"internal","rank":637,"availability":"internal"},
+"setVoicingRange":{"category":"pitch","rank":638,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"shape":{"category":"effects","rank":28,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#waveshaping"},
+"showFirstCycle":{"category":"internal","rank":639,"availability":"internal"},
+"shrink":{"category":"time","rank":110,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#shrink"},
+"shrinklist":{"category":"structure","rank":640,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"shuffle":{"category":"randomness","rank":217,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"signal":{"category":"signals","rank":641,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"silence":{"category":"structure","rank":642,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/#silence"},
+"sine":{"category":"signals","rank":643,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#sine"},
+"sine2":{"category":"signals","rank":644,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"sinefold":{"category":"effects","rank":645,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"size":{"category":"effects","rank":646,"availability":"ok","aliasOf":"roomsize","synonyms":["rsize","sz"],"range":{"min":0,"max":10},"docUrl":"https://strudel.cc/learn/effects/#roomsize"},
+"slice":{"category":"sound","rank":122,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/#slice"},
+"slide":{"category":"modulation","rank":647,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"slow":{"category":"time","rank":12,"availability":"ok","synonyms":["sparsity"],"docUrl":"https://strudel.cc/learn/time-modifiers/#slow"},
+"slowChunk":{"category":"structure","rank":648,"availability":"ok","aliasOf":"chunk","synonyms":["slowchunk","_chunk"],"docUrl":"https://strudel.cc/learn/conditional-modifiers/#chunk"},
+"slowcat":{"category":"structure","rank":304,"availability":"ok","synonyms":["cat"],"docUrl":"https://strudel.cc/learn/factories/#cat"},
+"slowcatPrime":{"category":"structure","rank":649,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"slowchunk":{"category":"structure","rank":650,"availability":"ok","aliasOf":"chunk","synonyms":["slowChunk","_chunk"],"docUrl":"https://strudel.cc/learn/conditional-modifiers/#chunk"},
+"smear":{"category":"other","rank":651,"availability":"ok"},
+"soft":{"category":"effects","rank":652,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"someCycles":{"category":"randomness","rank":305,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#somecycles"},
+"someCyclesBy":{"category":"randomness","rank":306,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/random-modifiers/#somecyclesby"},
+"sometimes":{"category":"randomness","rank":16,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#sometimes"},
+"sometimesBy":{"category":"randomness","rank":70,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/random-modifiers/#sometimesby"},
+"songPtr":{"category":"io","rank":653,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"sortHapsByPart":{"category":"internal","rank":654,"availability":"internal"},
+"sound":{"category":"sound","rank":60,"availability":"ok","aliasOf":"s","docUrl":"https://strudel.cc/workshop/first-sounds/#sounds"},
+"soundAlias":{"category":"sound","rank":655,"availability":"io","docUrl":"https://strudel.cc/learn/samples/"},
+"source":{"category":"internal","rank":656,"availability":"internal","synonyms":["src"]},
+"sparsity":{"category":"time","rank":657,"availability":"ok","aliasOf":"slow","docUrl":"https://strudel.cc/learn/time-modifiers/#slow"},
+"speak":{"category":"io","rank":658,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"spectrum":{"category":"visual","rank":307,"availability":"visual","synonyms":["latestColor"],"docUrl":"https://strudel.cc/learn/visual-feedback/#spectrum"},
+"speed":{"category":"sound","rank":10,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/#speed"},
+"spiral":{"category":"visual","rank":308,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/#spiral"},
+"splice":{"category":"sound","rank":309,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/#splice"},
+"splitQueries":{"category":"internal","rank":659,"availability":"internal"},
+"spread":{"category":"synthesis","rank":88,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/synths/"},
+"square":{"category":"signals","rank":660,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#square"},
+"square2":{"category":"signals","rank":661,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"squeeze":{"category":"structure","rank":310,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#squeeze"},
+"squeezeBind":{"category":"internal","rank":662,"availability":"internal"},
+"squeezeJoin":{"category":"internal","rank":663,"availability":"internal"},
+"squeezeout":{"category":"structure","rank":664,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"squiz":{"category":"effects","rank":311,"availability":"superdirt","docUrl":"https://strudel.cc/learn/effects/"},
+"src":{"category":"internal","rank":665,"availability":"internal","aliasOf":"source"},
+"stack":{"category":"structure","rank":57,"availability":"ok","synonyms":["polyrhythm","pr"],"docUrl":"https://strudel.cc/learn/factories/#stack"},
+"stackBy":{"category":"structure","rank":666,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"stackCentre":{"category":"structure","rank":667,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"stackLeft":{"category":"structure","rank":668,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"stackRight":{"category":"structure","rank":669,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"steady":{"category":"signals","rank":670,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"stepBind":{"category":"internal","rank":671,"availability":"internal"},
+"stepJoin":{"category":"internal","rank":672,"availability":"internal"},
+"stepalt":{"category":"structure","rank":218,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#stepalt"},
+"stepcat":{"category":"structure","rank":104,"availability":"ok","synonyms":["timeCat","timecat"],"docUrl":"https://strudel.cc/learn/factories/#stepcat"},
+"steps":{"category":"time","rank":673,"availability":"ok","aliasOf":"pace","docUrl":"https://strudel.cc/learn/stepwise/#pace"},
+"stepsPerOctave":{"category":"pitch","rank":674,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"strans":{"category":"pitch","rank":675,"availability":"ok","aliasOf":"scaleTranspose","synonyms":["scaleTrans"],"docUrl":"https://strudel.cc/learn/tonal/#scaletransposesteps"},
+"stretch":{"category":"sound","rank":312,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/"},
+"striate":{"category":"sound","rank":46,"availability":"ok","docUrl":"https://strudel.cc/learn/samples/#striate"},
+"stripContext":{"category":"internal","rank":676,"availability":"internal"},
+"struct":{"category":"time","rank":13,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#struct"},
+"structAll":{"category":"time","rank":677,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"stut":{"category":"transform","rank":313,"availability":"ok","docUrl":"https://strudel.cc/learn/accumulation/#stut"},
+"stutWith":{"category":"transform","rank":678,"availability":"ok","aliasOf":"echoWith","synonyms":["echowith","stutwith"],"docUrl":"https://strudel.cc/learn/accumulation/#echowith"},
+"stutwith":{"category":"transform","rank":679,"availability":"ok","aliasOf":"echoWith","synonyms":["echowith","stutWith"],"docUrl":"https://strudel.cc/learn/accumulation/#echowith"},
+"sub":{"category":"math","rank":42,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/#sub"},
+"superimpose":{"category":"structure","rank":63,"availability":"ok","docUrl":"https://strudel.cc/learn/accumulation/#superimpose"},
+"supradough":{"category":"synthesis","rank":680,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"sus":{"category":"envelope","rank":681,"availability":"ok","aliasOf":"sustain","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#sustain"},
+"sustain":{"category":"envelope","rank":32,"availability":"ok","synonyms":["sus"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#sustain"},
+"sustainpedal":{"category":"envelope","rank":682,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"swing":{"category":"time","rank":314,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#swing"},
+"swingBy":{"category":"time","rank":76,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#swingby"},
+"sysex":{"category":"io","rank":315,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/#sysex-sysexid--sysexdata-system-exclusive-message"},
+"sysexdata":{"category":"io","rank":219,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/#sysex-sysexid--sysexdata-system-exclusive-message"},
+"sysexid":{"category":"io","rank":220,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/#sysex-sysexid--sysexdata-system-exclusive-message"},
+"sz":{"category":"effects","rank":683,"availability":"ok","aliasOf":"roomsize","synonyms":["rsize","size"],"range":{"min":0,"max":10},"docUrl":"https://strudel.cc/learn/effects/#roomsize"},
+"tables":{"category":"synthesis","rank":684,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"tag":{"category":"internal","rank":685,"availability":"internal"},
+"take":{"category":"time","rank":123,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#take"},
+"time":{"category":"signals","rank":686,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"timeCat":{"category":"structure","rank":687,"availability":"ok","aliasOf":"stepcat","synonyms":["timecat"],"docUrl":"https://strudel.cc/learn/factories/#stepcat"},
+"timecat":{"category":"structure","rank":688,"availability":"ok","docUrl":"https://strudel.cc/learn/factories/"},
+"toBipolar":{"category":"signals","rank":689,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"tour":{"category":"structure","rank":221,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#tour"},
+"trans":{"category":"pitch","rank":690,"availability":"ok","aliasOf":"transpose","docUrl":"https://strudel.cc/learn/tonal/#transposesemitones"},
+"transpose":{"category":"pitch","rank":72,"availability":"ok","synonyms":["trans"],"docUrl":"https://strudel.cc/learn/tonal/#transposesemitones"},
+"trem":{"category":"modulation","rank":691,"availability":"ok","aliasOf":"tremolo","range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/effects/"},
+"tremdepth":{"category":"modulation","rank":692,"availability":"ok","aliasOf":"tremolodepth","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#tremolodepth"},
+"tremolo":{"category":"modulation","rank":222,"availability":"ok","synonyms":["trem"],"range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/effects/"},
+"tremolodepth":{"category":"modulation","rank":223,"availability":"ok","synonyms":["tremdepth"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#tremolodepth"},
+"tremolophase":{"category":"modulation","rank":224,"availability":"ok","synonyms":["tremphase"],"range":{"unit":"cycles"},"docUrl":"https://strudel.cc/learn/effects/#tremolophase"},
+"tremoloshape":{"category":"modulation","rank":225,"availability":"ok","synonyms":["tremshape"],"docUrl":"https://strudel.cc/learn/effects/#tremoloshape"},
+"tremoloskew":{"category":"modulation","rank":124,"availability":"ok","synonyms":["tremskew"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#tremoloskew"},
+"tremolosync":{"category":"modulation","rank":226,"availability":"ok","synonyms":["tremsync"],"range":{"min":0,"unit":"cycles"},"docUrl":"https://strudel.cc/learn/effects/#tremolosync"},
+"tremphase":{"category":"modulation","rank":693,"availability":"ok","aliasOf":"tremolophase","range":{"unit":"cycles"},"docUrl":"https://strudel.cc/learn/effects/#tremolophase"},
+"tremshape":{"category":"modulation","rank":694,"availability":"ok","aliasOf":"tremoloshape","docUrl":"https://strudel.cc/learn/effects/#tremoloshape"},
+"tremskew":{"category":"modulation","rank":695,"availability":"ok","aliasOf":"tremoloskew","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#tremoloskew"},
+"tremsync":{"category":"modulation","rank":111,"availability":"ok","aliasOf":"tremolosync","range":{"min":0,"unit":"cycles"},"docUrl":"https://strudel.cc/learn/effects/#tremolosync"},
+"tri":{"category":"signals","rank":696,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/#tri"},
+"tri2":{"category":"signals","rank":697,"availability":"ok","docUrl":"https://strudel.cc/learn/signals/"},
+"triode":{"category":"effects","rank":698,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"tscope":{"category":"visual","rank":699,"availability":"visual","aliasOf":"scope","synonyms":["latestColor"],"docUrl":"https://strudel.cc/learn/visual-feedback/#scope"},
+"tsdelay":{"category":"effects","rank":700,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"uid":{"category":"internal","rank":701,"availability":"internal"},
+"undegrade":{"category":"randomness","rank":227,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#undegrade"},
+"undegradeBy":{"category":"randomness","rank":228,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/random-modifiers/#undegradeby"},
+"unison":{"category":"synthesis","rank":81,"availability":"ok","range":{"min":1,"max":100},"docUrl":"https://strudel.cc/learn/synths/"},
+"unit":{"category":"sound","rank":316,"availability":"superdirt","docUrl":"https://strudel.cc/learn/samples/"},
+"unjoin":{"category":"internal","rank":702,"availability":"internal"},
+"v":{"category":"modulation","rank":703,"availability":"ok","aliasOf":"vib","synonyms":["vibrato"],"range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/synths/#vib"},
+"val":{"category":"math","rank":704,"availability":"ok","docUrl":"https://strudel.cc/functions/value-modifiers/"},
+"valueToMidi":{"category":"pitch","rank":705,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"velocity":{"category":"dynamics","rank":38,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/#velocity"},
+"vib":{"category":"modulation","rank":51,"availability":"ok","synonyms":["vibrato","v"],"range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/synths/#vib"},
+"vibmod":{"category":"modulation","rank":97,"availability":"ok","synonyms":["vmod"],"range":{"unit":"semitones"},"docUrl":"https://strudel.cc/learn/synths/#vibmod"},
+"vibrato":{"category":"modulation","rank":706,"availability":"ok","aliasOf":"vib","synonyms":["v"],"range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/synths/#vib"},
+"vmod":{"category":"modulation","rank":707,"availability":"ok","aliasOf":"vibmod","range":{"unit":"semitones"},"docUrl":"https://strudel.cc/learn/synths/#vibmod"},
+"voice":{"category":"io","rank":708,"availability":"io","docUrl":"https://strudel.cc/learn/input-output/"},
+"voicing":{"category":"pitch","rank":21,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/#voicing"},
+"voicingAlias":{"category":"pitch","rank":709,"availability":"ok","docUrl":"https://strudel.cc/learn/tonal/"},
+"voicings":{"category":"pitch","rank":229,"availability":"ok","docUrl":"https://strudel.cc/understand/voicings/#voicings"},
+"vowel":{"category":"effects","rank":26,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/#vowel"},
+"w":{"category":"visual","rank":710,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"warp":{"category":"synthesis","rank":160,"availability":"ok","synonyms":["wavetableWarp"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/synths/"},
+"warpatt":{"category":"envelope","rank":711,"availability":"ok","aliasOf":"warpattack","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"warpattack":{"category":"envelope","rank":712,"availability":"ok","synonyms":["warpatt"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"warpdc":{"category":"synthesis","rank":713,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"warpdec":{"category":"envelope","rank":714,"availability":"ok","aliasOf":"warpdecay","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"warpdecay":{"category":"envelope","rank":715,"availability":"ok","synonyms":["warpdec"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"warpdepth":{"category":"synthesis","rank":716,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"warpenv":{"category":"envelope","rank":717,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"warpmode":{"category":"synthesis","rank":161,"availability":"ok","synonyms":["wavetableWarpMode"],"docUrl":"https://strudel.cc/learn/synths/"},
+"warprate":{"category":"synthesis","rank":718,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"warprel":{"category":"envelope","rank":719,"availability":"ok","aliasOf":"warprelease","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"warprelease":{"category":"envelope","rank":720,"availability":"ok","synonyms":["warprel"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"warpshape":{"category":"synthesis","rank":721,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"warpskew":{"category":"synthesis","rank":722,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"warpsus":{"category":"envelope","rank":723,"availability":"ok","aliasOf":"warpsustain","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"warpsustain":{"category":"envelope","rank":724,"availability":"ok","synonyms":["warpsus"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"warpsync":{"category":"synthesis","rank":725,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"waveloss":{"category":"synthesis","rank":726,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"wavetablePhaseRand":{"category":"synthesis","rank":727,"availability":"ok","aliasOf":"wtphaserand","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/synths/"},
+"wavetablePosition":{"category":"synthesis","rank":728,"availability":"ok","aliasOf":"wt","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/synths/"},
+"wavetableWarp":{"category":"synthesis","rank":729,"availability":"ok","aliasOf":"warp","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/synths/"},
+"wavetableWarpMode":{"category":"synthesis","rank":730,"availability":"ok","aliasOf":"warpmode","docUrl":"https://strudel.cc/learn/synths/"},
+"wchoose":{"category":"randomness","rank":135,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/#wchoose"},
+"wchooseCycles":{"category":"randomness","rank":125,"availability":"ok","synonyms":["wrandcat"],"docUrl":"https://strudel.cc/learn/random-modifiers/#wchoosecycles"},
+"when":{"category":"transform","rank":317,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/#when"},
+"whenKey":{"category":"transform","rank":230,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"withContext":{"category":"internal","rank":731,"availability":"internal"},
+"withHap":{"category":"internal","rank":732,"availability":"internal"},
+"withHapSpan":{"category":"internal","rank":733,"availability":"internal"},
+"withHapTime":{"category":"internal","rank":734,"availability":"internal"},
+"withHaps":{"category":"internal","rank":735,"availability":"internal"},
+"withLoc":{"category":"internal","rank":736,"availability":"internal"},
+"withQuerySpan":{"category":"internal","rank":737,"availability":"internal"},
+"withQuerySpanMaybe":{"category":"internal","rank":738,"availability":"internal"},
+"withQueryTime":{"category":"internal","rank":739,"availability":"internal"},
+"withState":{"category":"internal","rank":740,"availability":"internal"},
+"withSteps":{"category":"internal","rank":741,"availability":"internal"},
+"withValue":{"category":"internal","rank":318,"availability":"internal","synonyms":["fmap"]},
+"within":{"category":"transform","rank":112,"availability":"ok","docUrl":"https://strudel.cc/learn/conditional-modifiers/"},
+"wordfall":{"category":"visual","rank":742,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"wrandcat":{"category":"randomness","rank":743,"availability":"ok","aliasOf":"wchooseCycles","docUrl":"https://strudel.cc/learn/random-modifiers/#wchoosecycles"},
+"wt":{"category":"synthesis","rank":231,"availability":"ok","synonyms":["wavetablePosition"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/synths/"},
+"wtatt":{"category":"envelope","rank":744,"availability":"ok","aliasOf":"wtattack","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"wtattack":{"category":"envelope","rank":745,"availability":"ok","synonyms":["wtatt"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"wtdc":{"category":"synthesis","rank":746,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"wtdec":{"category":"envelope","rank":747,"availability":"ok","aliasOf":"wtdecay","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"wtdecay":{"category":"envelope","rank":748,"availability":"ok","synonyms":["wtdec"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"wtdepth":{"category":"synthesis","rank":749,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"wtenv":{"category":"envelope","rank":750,"availability":"ok","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"wtphaserand":{"category":"synthesis","rank":232,"availability":"ok","synonyms":["wavetablePhaseRand"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/synths/"},
+"wtrate":{"category":"synthesis","rank":751,"availability":"ok","range":{"min":0,"unit":"Hz"},"docUrl":"https://strudel.cc/learn/synths/"},
+"wtrel":{"category":"envelope","rank":752,"availability":"ok","aliasOf":"wtrelease","range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"wtrelease":{"category":"envelope","rank":753,"availability":"ok","synonyms":["wtrel"],"range":{"min":0,"unit":"s"},"docUrl":"https://strudel.cc/learn/effects/"},
+"wtshape":{"category":"synthesis","rank":754,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"wtskew":{"category":"synthesis","rank":755,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"wtsus":{"category":"envelope","rank":756,"availability":"ok","aliasOf":"wtsustain","range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"wtsustain":{"category":"envelope","rank":757,"availability":"ok","synonyms":["wtsus"],"range":{"min":0,"max":1},"docUrl":"https://strudel.cc/learn/effects/"},
+"wtsync":{"category":"synthesis","rank":758,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"x":{"category":"visual","rank":759,"availability":"visual","aliasOf":"phase","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"xfade":{"category":"dynamics","rank":319,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/#xfade"},
+"xsdelay":{"category":"effects","rank":760,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"y":{"category":"visual","rank":761,"availability":"visual","docUrl":"https://strudel.cc/learn/visual-feedback/"},
+"zcrush":{"category":"effects","rank":762,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"zdelay":{"category":"effects","rank":763,"availability":"ok","docUrl":"https://strudel.cc/learn/effects/"},
+"zip":{"category":"structure","rank":233,"availability":"ok","docUrl":"https://strudel.cc/learn/stepwise/#zip"},
+"zmod":{"category":"synthesis","rank":764,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/"},
+"znoise":{"category":"randomness","rank":765,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"zoom":{"category":"time","rank":320,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/#zoom"},
+"zoomArc":{"category":"time","rank":766,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"zoomIn":{"category":"time","rank":767,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"zoomarc":{"category":"time","rank":768,"availability":"ok","docUrl":"https://strudel.cc/learn/time-modifiers/"},
+"zrand":{"category":"randomness","rank":769,"availability":"ok","docUrl":"https://strudel.cc/learn/random-modifiers/"},
+"zzfx":{"category":"synthesis","rank":770,"availability":"ok","docUrl":"https://strudel.cc/learn/synths/#zzfx"}
+},
+"after":{
+"chord":["voicing","gain","s","struct","lpf","room","release","sustain","attack","decay","hpf","orbit","rsize","anchor","detune","lpdecay","lpenv","arp","lpattack","lpsustain"],
+"mini":["note","scale","sound","bank","fast","drop","slow","s","shrink","take","add","pace","echoWith","inhabit","pick","transpose","chunk","grow","mul","scaleTranspose"],
+"n":["scale","s","add","gain","slow","orbit","lpf","release","room","sustain","delay","attack","decay","off","hpf","rsize","chord","voicing","delayfeedback","delaytime"],
+"note":["s","gain","lpf","sustain","decay","release","sound","room","attack","hpf","lpenv","struct","delay","delaytime","orbit","scope","delayfeedback","lpq","clip","velocity"],
+"perlin":["range","slow","fast","floor","mul","segment"],
+"polyrhythm":["orbit","room","rsize","bank","hpf","gain","pan","s","scale","sometimesBy","velocity","attack","delay","delayfeedback","delaytime","lpf","note","nudge","release","sustain"],
+"pr":["orbit","room","rsize","bank","hpf","gain","pan","s","scale","sometimesBy","velocity","attack","delay","delayfeedback","delaytime","lpf","note","nudge","release","sustain"],
+"s":["gain","bank","hpf","pan","room","lpf","velocity","sustain","n","release","duckattack","duckorbit","orbit","attack","decay","duckdepth","slow","shape","sometimesBy","degradeBy"],
+"saw":["slow","range","rangex","segment"],
+"sine":["slow","range","rangex","fast","late","mul","segment"],
+"sound":["gain","bank","hpf","pan","room","lpf","velocity","sustain","n","release","duckattack","duckorbit","orbit","attack","decay","duckdepth","slow","shape","sometimesBy","degradeBy"],
+"stack":["orbit","room","rsize","bank","hpf","gain","pan","s","scale","sometimesBy","velocity","attack","delay","delayfeedback","delaytime","lpf","note","nudge","release","sustain"]
+}}

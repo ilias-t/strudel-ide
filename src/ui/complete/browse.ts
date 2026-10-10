@@ -257,7 +257,11 @@ export function wireBrowse(monaco: typeof Monaco, editor: Monaco.editor.IStandal
     enabled: on,
     prefetch(p) {
       note({ type: "prefetch", sound: p.sound, bank: p.bank, n: p.n });
-      void loadAudition().then((m) => m.prefetchSound(p.sound, opts(p)));
+      const turn = generation;
+      // the module may still be loading: not after a stop, previews off or disposal
+      void loadAudition().then((m) => {
+        if (turn === generation && !disposed && on()) void m.prefetchSound(p.sound, opts(p));
+      });
     },
     play(p) {
       const item = focused?.strudel === p ? focused : null;

@@ -54,10 +54,16 @@ export function setupLanguage(monaco: typeof Monaco): void {
     noUnusedLocals: false,
     noUnusedParameters: false,
   });
+  // Completions are ours (src/ui/complete/provider.ts): it asks TypeScript
+  // itself outside Strudel strings and answers inside them. TypeScript's own
+  // provider would add whole-string items next to ours. Hovers, signature
+  // help and diagnostics stay TypeScript's.
+  defaults.setModeConfiguration({ ...defaults.modeConfiguration, completionItems: false });
   // Syntax and type errors, like `tsc`. Not TS's suggestion diagnostics, which
   // tsc never reports: they'd strike through songs that pass `npm run check`
   // (jynx and tour use the @deprecated `DrumMachineBank` alias). Completions
-  // still strike through deprecated names.
+  // still strike through names TypeScript calls deprecated (never Strudel's
+  // own methods: those that don't work here just sink, with the reason).
   defaults.setDiagnosticsOptions({ noSemanticValidation: false, noSyntaxValidation: false, noSuggestionDiagnostics: true });
   // Sync every model to the worker up front, so cross-file types are ready
   // before the first hover rather than after the first request.

@@ -118,6 +118,36 @@ interface SuggestWidget {
   onDidHide(fn: () => void): Monaco.IDisposable;
   showDetails?(loading: boolean): void;
   _isDetailsVisible?(): boolean;
+  getFocusedItem?(): unknown;
+}
+
+/**
+ * Monaco's details pane measures its content at its previous width, then
+ * takes its place (often narrower): text that wraps there gets cut at the
+ * bottom, which is where a sound row's previews line sits. Render it once more
+ * after it has its place. Internal too, so feature-detected.
+ */
+function relayoutDetails(widget: SuggestWidget) {
+  const show = widget.showDetails;
+  if (typeof show !== "function") return;
+  let queued = false;
+  widget.showDetails = function (this: SuggestWidget, loading: boolean) {
+    show.call(this, loading);
+    if (loading || queued) return;
+    queued = true;
+    // two frames: after Monaco has drawn it (it draws on this frame or the next)
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        queued = false;
+        try {
+          // only with a focused row: showDetails renders it a frame later, outside this try
+          if (this._isDetailsVisible?.() && this.getFocusedItem?.()) show.call(this, false);
+        } catch {
+          // leave it as Monaco drew it
+        }
+      })
+    );
+  };
 }
 
 /** The suggest widget, created if it isn't yet; null if Monaco changed and it isn't where it was */
@@ -179,6 +209,7 @@ export function wireBrowse(monaco: typeof Monaco, editor: Monaco.editor.IStandal
   const hint = () => (!on() ? HINT_OFF : performance.now() < firstHintUntil ? HINT_FIRST : HINT_ON);
 
   const widget = suggestWidget(editor);
+  if (widget) relayoutDetails(widget);
   const refresh = () => {
     const h = hint();
     for (const item of items()) {
@@ -186,7 +217,7 @@ export function wireBrowse(monaco: typeof Monaco, editor: Monaco.editor.IStandal
       item.documentation = { value: composeDoc(item.strudelDoc, { hint: h, note: item.strudelNote }) };
     }
     try {
-      if (widget?._isDetailsVisible?.()) widget.showDetails?.(false);
+      if (widget?._isDetailsVisible?.() && widget.getFocusedItem?.()) widget.showDetails?.(false);
     } catch {
       // the pane catches up on the next row
     }
@@ -227,12 +258,9 @@ export function wireBrowse(monaco: typeof Monaco, editor: Monaco.editor.IStandal
   });
 
   if (widget) {
-    // capture: before the suggest widget handles the key and moves the focus
-    const node = editor.getDomNode();
-    const onKey = (e: KeyboardEvent) => browser.keyDown(e.key);
-    node?.addEventListener("keydown", onKey, true);
-    disposables.push({ dispose: () => node?.removeEventListener("keydown", onKey, true) });
+    // the editor's own key event comes before the keybinding that moves the list's focus
     disposables.push(
+      editor.onKeyDown((e) => browser.keyDown(e.browserEvent.key)),
       widget.onDidFocus(({ item }) => {
         focused = item.completion;
         browser.focus(item.completion.strudel);

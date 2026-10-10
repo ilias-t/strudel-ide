@@ -295,7 +295,8 @@ function soundItems(ctx: StringContext, bank: string | undefined, range: Range, 
       insertText: name,
       range,
       insertEnd: offset,
-      sortText: `${tier}${name}`,
+      // short names first within a kind: the classic ones (bd, sd, hh) before bassdrum1, snare_hi
+      sortText: `${tier}${pad(name.length, 2)}${name}`,
       documentation: `**${name}**${bank ? ` · ${bank}` : ""} · ${description}${variants}`,
       strudel,
     };

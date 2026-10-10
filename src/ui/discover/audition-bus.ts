@@ -6,8 +6,9 @@
 // shared by every sound on it, and they stay set: a `djf` example auditioned
 // on the song's orbit would filter the playing song, and go on filtering it
 // after the audition ended. So every audition value is moved to one orbit no
-// song uses, never ducks another orbit, and (once an audition used the DJ
-// filter) sets it back to neutral when it doesn't ask for one.
+// song uses, never ducks another orbit, plays on the default outputs, chokes
+// only auditions (cut groups are the sampler's, not an orbit's), and (once an
+// audition used the DJ filter) sets it back to neutral when it doesn't ask for one.
 //
 // Pure: no engine imports, so it runs in Node tests.
 
@@ -25,6 +26,10 @@ export class AuditionBus {
   route(value: Record<string, unknown>): Record<string, unknown> {
     const v: Record<string, unknown> = { ...value, orbit: AUDITION_ORBIT };
     delete v.duckorbit;
+    // an orbit's outputs are fixed by the first sound on it: the bus stays on the default ones
+    delete v.channels;
+    // cut groups are the sampler's, across orbits: an audition gets groups of its own
+    if (v.cut != null) v.cut = `audition:${String(v.cut)}`;
     if (v.djf != null) this.djf = true;
     else if (this.djf) v.djf = DJF_OFF;
     return v;

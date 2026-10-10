@@ -29,6 +29,18 @@ describe("the audition bus", () => {
     assert.equal(bus.route({ s: "hh" }).djf, 0.5);
   });
 
+  test("cut groups are the engine's, not an orbit's: an audition chokes only auditions", () => {
+    const bus = new AuditionBus();
+    const a = bus.route({ s: "oh", cut: 1 });
+    assert.notEqual(a.cut, 1, "the song's cut group 1 is left alone");
+    assert.equal(bus.route({ s: "hh", cut: 1 }).cut, a.cut, "the audition's own hats still choke each other");
+    assert.notEqual(bus.route({ s: "hh", cut: 2 }).cut, a.cut);
+  });
+
+  test("plays on the default outputs: the first audition's channels would stick to the bus", () => {
+    assert.equal("channels" in new AuditionBus().route({ note: "e", channels: "3:4" }), false);
+  });
+
   test("the caller's value is left alone", () => {
     const value = { s: "bd", orbit: 3, duckorbit: 2 };
     new AuditionBus().route(value);

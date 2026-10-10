@@ -111,6 +111,8 @@ describe("the record", () => {
     // a Strudel function taking an object is an event, not a track list: hats would become an event field
     refused(song(`    return pure({ s: "bd", gain: 0.7 });`), "hats", /track list/);
     refused(song(`    return n({ kick: 1 });`), "hats", /track list/);
+    // the helper's name shadowed inside createPattern is not the helper any more
+    refused(song(`    const mixdown = pure;\n    return mixdown({ s: "bd" });`, "const mixdown = (t: Record<string, Pattern>) => t;"), "hats", /track list/);
   });
 
   test("parenthesised, `as` and `satisfies` records", () => {

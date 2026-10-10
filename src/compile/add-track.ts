@@ -233,6 +233,11 @@ function analyze(ts: Ts, sf: TS.SourceFile): Analysis {
   if (!body || !ts.isBlock(body)) return fail("createPattern() needs a { … } body that ends with return { … }");
   for (const p of fn.parameters) bindingNames(ts, p.name, taken);
   declaredIn(ts, body.statements, taken);
+  // a module name declared again in createPattern isn't the module's helper there
+  const local = new Set<string>();
+  for (const p of fn.parameters) bindingNames(ts, p.name, local);
+  declaredIn(ts, body.statements, local);
+  for (const name of local) own.delete(name);
   identifiersIn(ts, body, taken);
 
   // its last top-level return, and the record

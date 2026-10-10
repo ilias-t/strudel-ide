@@ -150,6 +150,17 @@ test("an unknown bank is a warning too", async ({ player, page }) => {
   ]);
 });
 
+test("an unknown scale is a warning with a did-you-mean; scales that play are left alone", async ({ player, page }) => {
+  await editFixture(player);
+  await typeLine(page, 'const a = n("0 2").scale("C4:minor:pentatonic").s("piano");');
+  await typeLine(page, 'const b = n("0 2").scale("<D:dorian Eb:aeolian>").s("piano");');
+  await typeLine(page, 'const c = n("0 2").scale("C:majr").s("piano");');
+  await page.keyboard.press("End");
+  await expect.poll(() => soundMarkers(page).then((m) => m.map((x) => [x.severity, x.message]))).toEqual([
+    ["warning", 'No scale "majr" — did you mean "major"?'],
+  ]);
+});
+
 test("never red: no Error marker from anyone on these words, a dotted underline, and an amber panel at most", async ({ player, page }) => {
   await editFixture(player);
   // let TypeScript check the fixture too (it starts with @ts-nocheck)

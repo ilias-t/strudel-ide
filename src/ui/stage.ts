@@ -918,6 +918,7 @@ export function mountStage(): Stage {
       const track = player.getState().tracks?.[Number(digit) - 1];
       if (track) player.toggleTrack(e.shiftKey ? "solo" : "mute", track);
     } else if (e.key === "?") {
+      e.preventDefault(); // the sheet focuses its search: don't type the ? into it
       if (discover.helpOpen()) discover.hideHelp();
       else discover.showHelp();
     } else if (e.key === "c" || e.key === "C") {

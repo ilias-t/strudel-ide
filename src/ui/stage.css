@@ -898,6 +898,35 @@ code {
   background: var(--px);
   box-shadow: none;
 }
+/* a narrow file bar (phones, a narrow code unit): the help key is just its ?,
+   the library key drops its B and the keys sit closer, so the edit key keeps its place */
+.code-head {
+  container: file-bar / inline-size;
+}
+@media (max-width: 560px) {
+  .code-head {
+    gap: 8px;
+    padding-right: 8px;
+  }
+}
+@container file-bar (max-width: 640px) {
+  .code-help .code-help-label {
+    display: none;
+  }
+  .code-help,
+  .stage[data-code-mode] .code-help {
+    padding: 0 4px;
+  }
+  .stage[data-code-mode] .code-help kbd {
+    display: inline;
+  }
+  .stage .code-library kbd {
+    display: none;
+  }
+  .stage .code-library {
+    padding-right: 9px;
+  }
+}
 .code-help[aria-expanded="true"] kbd,
 .code-library[aria-expanded="true"] kbd,
 .code-mode[aria-pressed="true"] kbd {

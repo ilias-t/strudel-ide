@@ -88,10 +88,14 @@ only the stage's own editor and its localStorage are left.
   - `editor-source.ts`: the session's path into the player (`evalSource`).
   - `song-saver.ts`: the debounced autosave into the songs store.
 - **Discovery** (`src/ui/discover/`). The library (**B**), the ⌘/Ctrl+K
-  palette and the track builder (the mixer's **+ track**). Only `hooks.ts`
-  (and the pure `insert.ts` it uses) is on the boot path: it takes the keys
-  and lazy-loads each feature, with its CSS and the catalog JSON in
-  `src/catalog/`, the first time it opens.
+  palette, the track builder (the mixer's **+ track**) and the cheat sheet
+  (**?**, **F1** in the editor). Only `hooks.ts` (and the pure `insert.ts` it
+  uses) is on the boot path: it takes the keys and lazy-loads each feature,
+  with its CSS and the catalog JSON in `src/catalog/`, the first time it
+  opens. The cheat sheet's card and Keys tab are static markup in
+  `index.html`, so `hooks.ts` shows it at once and keeps it modal; its chunk
+  fills the other tabs from curated rows (`cheatsheet-data.ts`, every example
+  and strudel.cc link tested) joined with the catalog.
   Everything they put in a song goes into the editor as an edit you made
   (`CodeEditor.applyEdits`, one undo step): the song's `EditSession` takes the
   buffer, evaluates it as typing and the autosave keeps it. While your editor

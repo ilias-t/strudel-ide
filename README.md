@@ -64,9 +64,19 @@ doesn't see them, and clearing site data loses them. To move a song:
 
 ### Finding sounds and functions
 
-Three tools on the stage help when you can't remember what's there. None of
+Four tools on the stage help when you can't remember what's there. None of
 them loads until you first open it.
 
+- **Cheat sheet** (**?**, the **help** key in the code unit's file bar, or
+  **F1** while editing): one card with tabs. **Mini-notation** has a row per
+  operator (`~ [ ] < > { } , * / ! @ _ ? | : (3,8)`), **Functions** about 60
+  core functions in groups (rhythm, pitch, sound, filter, space, dynamics,
+  modulation, randomness) with a one-line example each, **Sounds** every sound
+  by family and the drum machines, and **Keys** every shortcut. ▶ plays an
+  example at the song's tempo or a sound once, **insert** puts the example at
+  the cursor, ↗ opens the matching strudel.cc section. The search covers every
+  tab and the catalog's ideas ("wetter" → room, size, delay). **Esc** closes it and puts you back where you
+  were, caret included.
 - **Library** (**B**, or the **library** key in the code unit's file bar): a
   unit that slides over the rack column. **Sounds** lists every sound by kind
   (drums, instruments, synths, fx) or by drum machine bank. **Functions** lists

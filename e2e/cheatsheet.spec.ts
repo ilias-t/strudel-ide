@@ -65,6 +65,7 @@ test("? opens it on Mini-notation, lazily, with the search focused; the tabs are
   const dialog = sheet(page).getByRole("dialog");
   await expect(dialog).toHaveAttribute("aria-modal", "true");
   await expect(search(page)).toBeFocused();
+  await expect(search(page), "the ? that opened it isn't typed into the search").toHaveValue("");
   await expect(tab(page, "mini")).toHaveAttribute("aria-selected", "true");
   await expect(row(page, "mini", "subdivide")).toBeVisible();
   expect(await page.getByTestId("cheat-row").and(page.locator("[data-kind=mini]")).count()).toBeGreaterThanOrEqual(14);

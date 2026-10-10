@@ -120,6 +120,7 @@ test("nothing before the samples are loaded; the warning comes once they are", a
     await gate;
     await route.continue();
   });
+  player.clearErrors(); // its console listener is on: errors from here on fail the test
   writeFixture();
   await page.goto("/");
   await page.waitForFunction(() => !!window.__strudel);

@@ -9,7 +9,7 @@
 // dotted amber (warning) or faint grey (info) underline, not a red wave.
 //
 // When they run:
-//   - 300 ms after the text settles, skipping the word being typed (the caret
+//   - ~300 ms after the text settles, skipping the word being typed (the caret
 //     at the last edit, while the editor has focus);
 //   - when the caret leaves that skipped word, or the editor loses focus;
 //   - when the registry or the theory changes (samples loaded, catalog in);
@@ -24,7 +24,8 @@ type M = typeof Monaco;
 
 export const MARKER_OWNER = "strudel-sounds";
 export const MARKER_SOURCE = "strudel";
-const TYPING_DELAY = 300;
+/** After the text settles. Not exactly 300 ms: e2e/editing-ux.spec.ts holds every 300 ms timeout (the autosave debounce) */
+const TYPING_DELAY = 320;
 
 export interface WarningsOptions {
   registry: SoundRegistry;

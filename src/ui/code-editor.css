@@ -68,6 +68,21 @@
   text-decoration-skip-ink: none;
 }
 
+/* names that won't play (src/ui/complete/warnings.ts): calm, not alarming. A
+   dotted amber underline for a warning, faint grey dots for an info, instead of
+   Monaco's wave; TypeScript's errors keep their red wave (.squiggly-error) */
+.code-editor .monaco-editor .squiggly-warning,
+.code-editor .monaco-editor .squiggly-info {
+  background: none;
+  box-sizing: border-box;
+}
+.code-editor .monaco-editor .squiggly-warning {
+  border-bottom: 2px dotted #e8b34acc;
+}
+.code-editor .monaco-editor .squiggly-info {
+  border-bottom: 2px dotted #8a867e80;
+}
+
 /* the gap a knob chip sits on (injected figure spaces) */
 .code-editor .monaco-editor .cm-chip-slot {
   user-select: none;

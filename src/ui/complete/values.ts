@@ -77,8 +77,6 @@ export interface ValueEnv {
   theory: Theory | null;
   /** While samples load: sounds registered so far, of about how many */
   loading?: { count: number; total: number } | null;
-  /** The details pane's line about previews, on sound rows */
-  previewHint?: string;
 }
 
 export interface ValueList {
@@ -267,8 +265,6 @@ function describeSound(type: string | undefined, kind: string | undefined, pitch
   return pitched ? `${kind ?? "sample"} · pitched` : (kind ?? "sample");
 }
 
-const withHint = (md: string, hint: string | undefined) => (hint ? `${md}\n\n${hint}` : md);
-
 function soundItems(ctx: StringContext, bank: string | undefined, range: Range, offset: number, env: ValueEnv): ValueItem[] {
   const reg = env.registry;
   const names = bank ? reg.bankParts(bank) : reg.unbanked();
@@ -300,7 +296,7 @@ function soundItems(ctx: StringContext, bank: string | undefined, range: Range, 
       range,
       insertEnd: offset,
       sortText: `${tier}${name}`,
-      documentation: withHint(`**${name}**${bank ? ` · ${bank}` : ""} · ${description}${variants}`, env.previewHint),
+      documentation: `**${name}**${bank ? ` · ${bank}` : ""} · ${description}${variants}`,
       strudel,
     };
     if (count) item.detail = ` ×${count}`;
@@ -328,7 +324,7 @@ function variantItems(ctx: StringContext, bank: string | undefined, range: Range
       range,
       insertEnd: offset,
       sortText: pad(i),
-      documentation: withHint(`**${head}:${i}**${bank ? ` · ${bank}` : ""} · file ${i + 1} of ${n}`, env.previewHint),
+      documentation: `**${head}:${i}**${bank ? ` · ${bank}` : ""} · file ${i + 1} of ${n}`,
       strudel,
     });
   }
@@ -353,7 +349,7 @@ function bankItems(ctx: StringContext, range: Range, offset: number, env: ValueE
       range,
       insertEnd: offset,
       sortText: `${pad(missing.length, 2)}${alias ? 1 : 0}${b.name.toLowerCase()}`,
-      documentation: withHint(`**${b.canonical}**${alias ? ` (as ${b.name})` : ""}: ${b.parts.join(" ")}`, env.previewHint),
+      documentation: `**${b.canonical}**${alias ? ` (as ${b.name})` : ""}: ${b.parts.join(" ")}`,
       strudel: { sound: part, bank: b.name },
     };
     if (alias) item.detail = ` → ${b.canonical}`;
@@ -390,7 +386,7 @@ function noteItems(prefix: string, range: Range, offset: number): ValueItem[] {
 }
 
 /** The step of a string around the caret: the run between spaces and brackets ("C:minor:pentatonic", "Dm7") */
-function stepAt(ctx: StringContext, offset: number): { start: number; end: number; before: string } {
+export function stepAt(ctx: StringContext, offset: number): { start: number; end: number; before: string } {
   const base = ctx.string.start + 1;
   const v = ctx.value;
   const stop = (c: string) => /[\s[\]<>{}(),|]/.test(c);

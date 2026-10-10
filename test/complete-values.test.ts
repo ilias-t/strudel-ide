@@ -111,10 +111,10 @@ describe("sounds", () => {
     assert.deepEqual(byLabel(items, "bd").strudel, { sound: "bd" });
   });
 
-  test("sound rows carry the preview hint for the details pane", () => {
-    const { items } = list('s("|")', { ...env, previewHint: "⌥P to hear sounds as you browse" });
-    assert.match(byLabel(items, "cp").documentation!, /\*\*cp\*\* · clap · 2 variants/);
-    assert.match(byLabel(items, "cp").documentation!, /⌥P to hear sounds as you browse/);
+  test("sound rows say what they are in the details pane", () => {
+    const { items } = list('s("|")');
+    assert.equal(byLabel(items, "cp").documentation, "**cp** · clap · 2 variants (cp:0–cp:1)");
+    assert.equal(byLabel(list('s("cp:|")').items, "1").documentation, "**cp:1** · file 2 of 2");
   });
 });
 

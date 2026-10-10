@@ -151,6 +151,8 @@ export class KnobRegistry {
   private songs = new Map<string, Map<string, Entry>>();
   /** Knob names a song's module declared at its last evaluation (top-level knobs) */
   private moduleNames = new Map<string, string[]>();
+  /** The specs behind moduleNames, as that evaluation declared them (see moduleSpecs) */
+  private moduleSpecList = new Map<string, KnobSpec[]>();
   /** Knob names a song's last build declared (knobs inside createPattern) */
   private buildNames = new Map<string, string[]>();
   /** The song being built right now (attributes knobs called without a file) */
@@ -163,9 +165,61 @@ export class KnobRegistry {
     this.opts = opts;
   }
 
+  /**
+   * Each song's entries as they were right before its module was last
+   * evaluated (beginModule): restoreModule() puts those live values back.
+   */
+  private beforeModule = new Map<string, Map<string, { def: number; value: number }>>();
+
   /** A song module is being (re-)evaluated: its top-level knobs are declared anew */
   beginModule(songId: string) {
+    const before = new Map<string, { def: number; value: number }>();
+    for (const e of this.songs.get(songId)?.values() ?? []) before.set(e.name, { def: e.def, value: e.value });
+    this.beforeModule.set(songId, before);
+    this.resetModule(songId);
+  }
+
+  private resetModule(songId: string) {
     this.moduleNames.set(songId, []);
+    this.moduleSpecList.set(songId, []);
+  }
+
+  /**
+   * The top-level knobs a song's module declared at its last evaluation, to
+   * hand back to restoreModule() when that module is the song again (a revert,
+   * or an evaluated edit that didn't land). A module object can't re-run its
+   * top level, and the patterns it built read the same entries a later
+   * evaluation redeclared.
+   */
+  moduleSpecs(songId: string): KnobSpec[] {
+    return (this.moduleSpecList.get(songId) ?? []).map((spec) => ({ ...spec }));
+  }
+
+  /**
+   * Declare a module's top-level knobs again, as if it had just been evaluated
+   * (from moduleSpecs()). The evaluation it undoes reset the live value of every
+   * knob whose literal it changed: a knob that has the default again gets back
+   * the value it had before that evaluation (a live tweak survives an edit
+   * that didn't land).
+   */
+  restoreModule(songId: string, specs: KnobSpec[]) {
+    this.resetModule(songId);
+    const before = this.beforeModule.get(songId);
+    const knobs = this.knobsOf(songId);
+    for (const spec of specs) {
+      // the default the undone evaluation declared: only a knob whose default it changed had its value reset
+      const undone = knobs.get(spec.name)?.def;
+      this.define(songId, spec);
+      const was = before?.get(spec.name);
+      const entry = knobs.get(spec.name);
+      if (!was || !entry || entry.grabbed || undone === undefined || undone === was.def || entry.def !== was.def) continue;
+      if (entry.value === was.value) continue;
+      entry.value = was.value;
+      this.persist(songId);
+    }
+    // used once: later live tweaks are the user's, not the undone evaluation's
+    this.beforeModule.delete(songId);
+    this.opts.onChange?.(songId);
   }
 
   /** Run a song's build (createPattern) with knob() attributed to it */
@@ -194,7 +248,10 @@ export class KnobRegistry {
     const names = listed.get(id) ?? [];
     listed.set(id, names);
     const repeated = names.includes(spec.name);
-    if (!repeated) names.push(spec.name);
+    if (!repeated) {
+      names.push(spec.name);
+      if (listed === this.moduleNames) this.moduleSpecList.get(id)?.push({ ...spec });
+    }
 
     let entry = knobs.get(spec.name);
     if (!entry) {

@@ -231,6 +231,70 @@ test("a file saved with the buffer's text while an autosave is pending keeps tha
   await expect(page.getByTestId("code-edited")).toBeHidden();
 });
 
+/** The page's 300 ms timeouts held back by holdAutosaveTimers() */
+type HeldTimers = { armed: boolean; held: Map<number, () => void>; release(): void };
+const heldTimers = (page: Page) => page.evaluate(() => (window as unknown as { __hold: HeldTimers }).__hold.held.size);
+
+/**
+ * Once armed, the page's 300 ms timeouts (the autosave's debounce,
+ * src/ui/song-saver.ts) wait until released, however long anything else
+ * takes. (A fake page clock would also hold every timer the player, Vite's
+ * HMR and Monaco run on.)
+ */
+async function holdAutosaveTimers(page: Page) {
+  await page.addInitScript(() => {
+    const setTimer = window.setTimeout.bind(window);
+    const clearTimer = window.clearTimeout.bind(window);
+    const held = new Map<number, () => void>();
+    let nextId = -1;
+    const hold: HeldTimers = {
+      armed: false,
+      held,
+      release() {
+        this.armed = false;
+        const due = [...held.values()];
+        held.clear();
+        for (const fn of due) fn();
+      },
+    };
+    (window as unknown as { __hold: HeldTimers }).__hold = hold;
+    window.setTimeout = ((handler: TimerHandler, ms?: number, ...args: unknown[]) => {
+      if (hold.armed && ms === 300 && typeof handler === "function") {
+        const id = nextId--;
+        held.set(id, () => handler(...args));
+        return id;
+      }
+      return setTimer(handler, ms, ...args);
+    }) as typeof window.setTimeout;
+    window.clearTimeout = ((id?: number) => {
+      if (id !== undefined && held.delete(id)) return;
+      clearTimer(id);
+    }) as typeof window.clearTimeout;
+  });
+}
+
+test("an autosave still pending when the browser stops owning the buffer never brings that text back", async ({ player, page }) => {
+  await holdAutosaveTimers(page);
+  await playFixtureAndEdit(player);
+  await page.evaluate(() => ((window as unknown as { __hold: HeldTimers }).__hold.armed = true));
+  await typeGainEdit(page); // A: its autosave is pending, held
+  const a = await buffer(page);
+  expect(await heldTimers(page), "the autosave is held").toBe(1);
+  expect(await kept(page), "the autosave hasn't run yet").toBeNull();
+
+  // the IDE saves exactly A (the file is the truth again), then B
+  expect(writeFixture({ gain: 0.4 })).toBe(a);
+  await expect.poll(() => page.evaluate(() => window.__strudelEditor!.session()?.owner)).toBe("mirror");
+  const b = writeFixture({ gain: 0.3 });
+  await expect.poll(() => buffer(page), { message: "the editor follows the file" }).toBe(b);
+
+  // only now may A's autosave run
+  await page.evaluate(() => (window as unknown as { __hold: HeldTimers }).__hold.release());
+  expect(await kept(page), "A was given up: nothing kept, so a reload shows B").toBeNull();
+  expect(await buffer(page)).toBe(b);
+  await expect(page.getByTestId("code-edited")).toBeHidden();
+});
+
 test("when the browser can't keep an edit, the stage says so", async ({ player, page }) => {
   await playFixtureAndEdit(player);
   await page.evaluate(() => {
@@ -262,6 +326,15 @@ test("⌘S on the site keeps the edit in this browser at once", async ({ player,
   expect(await kept(page)).toMatchObject({ kind: "override", text });
   await expect(page.getByTestId("code-edited")).toBeVisible();
   expect(readFileSync(FIXTURE_PATH, "utf8"), "no file is written").toBe(disk);
+});
+
+test("⌘/Ctrl+Enter keeps the edit at once: a boot replay still running can't evaluate an older kept text", async ({ player, page }) => {
+  await playFixtureAndEdit(player);
+  await typeGainEdit(page);
+  const text = await buffer(page);
+  await page.keyboard.press("ControlOrMeta+Enter"); // before the autosave's debounce
+  expect(await kept(page), "kept with the commit, not 300 ms later").toMatchObject({ kind: "override", text });
+  await expect.poll(() => page.evaluate(() => window.__strudel!.currentSource()?.text)).toBe(text);
 });
 
 test("share copies a link that opens through the stage's dialog", async ({ player, page, browser, baseURL }) => {

@@ -6,7 +6,7 @@
 
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { EditSession, type IncomingSource, type SessionView } from "../src/ui/edit-session.ts";
+import { EditSession, type IncomingSource, type Owner, type SessionView } from "../src/ui/edit-session.ts";
 import type { EvalIntent, EvalResult } from "../src/ui/editor-types.ts";
 import { contentVersion } from "../src/live/protocol.ts";
 
@@ -46,6 +46,8 @@ class FakeTimers {
 interface EvalCall {
   text: string;
   intent: EvalIntent;
+  /** Aborted when the session gives this eval up (the engine must not apply it) */
+  signal: AbortSignal | undefined;
   resolve: (r: EvalResult | null) => void;
   reject: (e: unknown) => void;
 }
@@ -65,16 +67,19 @@ function setup(initial: IncomingSource = disk("A"), opts: { debounceMs?: number;
   const timers = new FakeTimers();
   const calls: EvalCall[] = [];
   const views: SessionView[] = [];
+  /** [owner, previous] for every ownership change */
+  const owners: [Owner, Owner][] = [];
   const session = new EditSession({
     initial,
-    evaluate: (text, intent) =>
-      new Promise<EvalResult | null>((resolve, reject) => calls.push({ text, intent, resolve, reject })),
+    evaluate: (text, intent, signal) =>
+      new Promise<EvalResult | null>((resolve, reject) => calls.push({ text, intent, signal, resolve, reject })),
     debounceMs: opts.debounceMs,
     timers,
     onChange: (v) => views.push(v),
+    onOwnerChange: (owner, previous) => owners.push([owner, previous]),
     ideName: opts.ideName ? () => opts.ideName! : undefined,
   });
-  return { session, timers, calls, views };
+  return { session, timers, calls, views, owners };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -794,5 +799,171 @@ describe("restore (rule 7)", () => {
     const before = views.length;
     session.restore("A2", { evaluated: false });
     assert.equal(views.length, before);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Giving an eval up: the engine is told (its signal aborts), so it can't land
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("abandoned evals abort their signal", () => {
+  test("every eval gets its own signal, not aborted while the session wants it", () => {
+    const { session, timers, calls } = setup(disk("A"));
+    session.edit("A1");
+    timers.advance(400);
+    void session.commit();
+    assert.equal(calls.length, 2);
+    assert.ok(calls[0].signal instanceof AbortSignal);
+    assert.notEqual(calls[0].signal, calls[1].signal);
+    assert.equal(calls[1].signal?.aborted, false);
+  });
+
+  test("load on a conflict aborts the eval in flight", () => {
+    const { session, timers, calls } = setup(disk("A"));
+    session.incoming(ideLive("X"));
+    session.takeOver();
+    session.incoming(ideLive("XY")); // the IDE's newer buffer: a conflict
+    session.edit("X1");
+    timers.advance(400);
+    assert.equal(calls[0].signal?.aborted, false);
+    session.loadIncoming();
+    assert.equal(session.view().owner, "ide");
+    assert.equal(calls[0].signal?.aborted, true);
+  });
+
+  test("a file saved with the buffer's text aborts the eval in flight", () => {
+    const { session, calls } = setup(disk("A"));
+    session.edit("A1");
+    void session.commit();
+    session.incoming(disk("A1"));
+    assert.equal(session.view().owner, "mirror");
+    assert.equal(calls[0].signal?.aborted, true);
+  });
+
+  test("an external change replacing the mirrored buffer aborts the eval in flight", () => {
+    const { session, calls } = setup(disk("A"));
+    void session.commit();
+    session.incoming(disk("B"));
+    assert.equal(session.view().text, "B");
+    assert.equal(calls[0].signal?.aborted, true);
+  });
+
+  test("dispose aborts the eval in flight", () => {
+    const { session, calls } = setup(disk("A"));
+    session.edit("A1");
+    void session.commit();
+    session.dispose();
+    assert.equal(calls[0].signal?.aborted, true);
+  });
+
+  test("an older eval still in flight is aborted too", () => {
+    const { session, timers, calls } = setup(disk("A"));
+    session.edit("A1");
+    timers.advance(400);
+    void session.commit();
+    session.dispose();
+    assert.deepEqual(
+      calls.map((c) => c.signal?.aborted),
+      [true, true]
+    );
+  });
+
+  test("an eval that already finished is not aborted later", async () => {
+    const { session, calls } = setup(disk("A"));
+    session.edit("A1");
+    void session.commit();
+    calls[0].resolve(OK);
+    await flush();
+    session.incoming(disk("B"));
+    session.loadIncoming();
+    session.dispose();
+    assert.equal(calls[0].signal?.aborted, false);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// onOwnerChange: the stage drops the browser's kept edit when the browser
+// stops owning the buffer, whichever way that happens
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("onOwnerChange", () => {
+  test("typing reports mirror → browser once, not on every key", () => {
+    const { session, owners } = setup(disk("A"));
+    session.edit("A1");
+    session.edit("A12");
+    assert.deepEqual(owners, [["browser", "mirror"]]);
+  });
+
+  test("a file saved with the buffer's text reports browser → mirror", () => {
+    const { session, owners } = setup(disk("A"));
+    session.edit("A1");
+    session.incoming(disk("A1"));
+    assert.deepEqual(owners.at(-1), ["mirror", "browser"]);
+  });
+
+  test("load on a disk conflict reports browser → mirror", () => {
+    const { session, owners } = setup(disk("A"));
+    session.edit("A1");
+    session.incoming(disk("X"));
+    assert.deepEqual(owners.at(-1), ["browser", "mirror"], "a conflict alone keeps the browser the owner");
+    session.loadIncoming();
+    assert.deepEqual(owners.at(-1), ["mirror", "browser"]);
+  });
+
+  test("load on an IDE conflict reports browser → ide", () => {
+    const { session, owners } = setup(disk("A"));
+    session.edit("A1");
+    session.incoming(ideLive("X"));
+    session.loadIncoming();
+    assert.deepEqual(owners.at(-1), ["ide", "browser"]);
+  });
+
+  test("an IDE buffer, take over, load and restore report their changes", () => {
+    const { session, owners } = setup(disk("A"));
+    session.incoming(ideLive("X"));
+    session.takeOver();
+    session.incoming(disk("Y"));
+    session.loadIncoming();
+    session.restore("Z", { evaluated: true });
+    assert.deepEqual(owners, [
+      ["ide", "mirror"],
+      ["browser", "ide"],
+      ["mirror", "browser"],
+      ["browser", "mirror"],
+    ]);
+  });
+
+  test("the session's view already shows the new owner when it is reported", () => {
+    const seen: Owner[] = [];
+    const session: EditSession = new EditSession({
+      initial: disk("A"),
+      evaluate: async () => OK,
+      timers: new FakeTimers(),
+      onChange: () => {},
+      onOwnerChange: () => seen.push(session.view().owner),
+    });
+    session.edit("A1");
+    session.incoming(disk("A1"));
+    assert.deepEqual(seen, ["browser", "mirror"]);
+  });
+
+  test("an echo, a conflict or the same source again report nothing", async () => {
+    const { session, calls, owners } = setup(disk("A"));
+    session.edit("A1");
+    void session.commit();
+    calls[0].resolve(OK);
+    await flush();
+    session.incoming(echo("A1"));
+    session.incoming(disk("X"));
+    session.incoming(disk("X"));
+    assert.deepEqual(owners, [["browser", "mirror"]]);
+  });
+
+  test("nothing is reported after dispose", () => {
+    const { session, owners } = setup(disk("A"));
+    session.edit("A1");
+    session.dispose();
+    session.incoming(disk("A1"));
+    assert.deepEqual(owners, [["browser", "mirror"]]);
   });
 });

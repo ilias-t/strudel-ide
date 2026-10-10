@@ -291,8 +291,9 @@ export function mountStage(): Stage {
     );
   }
 
-  /** Each song's id and the name it plays under now (an edit may rename it) */
-  const songList = () => player.allSongs().map(({ id, song }) => ({ id, name: player.playingSongOf(id)?.name ?? song.name }));
+  /** Each song's id and the name it plays under now (an edit may rename it); ⚠ marks a song that didn't build */
+  const songList = () =>
+    player.allSongs().map(({ id, song }) => ({ id, name: (player.songProblem(id) ? "⚠ " : "") + (player.playingSongOf(id)?.name ?? song.name) }));
   const songListKey = () => songList().map(({ id, name }) => `${id}\u0000${name}`).join("\u0001");
   let shownSongList = "";
 
@@ -399,8 +400,11 @@ export function mountStage(): Stage {
     }
     const session = new EditSession({
       initial: incomingOf(source, true),
-      evaluate: (text, intent) => evalEdit(songId, text, intent),
+      evaluate: (text, intent, signal) => evalEdit(songId, text, intent, signal),
       ideName: () => ideName,
+      onOwnerChange: (_owner, previous) => {
+        if (previous === "browser") dropKeptEdit(songId);
+      },
       onChange: (view) => {
         if (songId === shownSongId && editor && surface === editor) applyView(editor, view);
       },
@@ -414,7 +418,19 @@ export function mountStage(): Stage {
   // ── edits kept in this browser (src/songs-store, src/ui/song-saver.ts) ────
   // Invariant: a song has a saved edit exactly while the browser owns its
   // buffer. Typing saves it; going back to the file / the IDE (load theirs, a
-  // save of the same text, revert) drops it.
+  // save of the same text, revert) drops it: every owner change away from the
+  // browser does (dropKeptEdit), pending autosave included.
+
+  /**
+   * The browser stopped owning a built-in song's buffer (load theirs, a save of
+   * the same text): its kept edit goes, and a pending autosave must not bring
+   * it back. A user song's stored text is the song itself: it stays.
+   */
+  function dropKeptEdit(id: string) {
+    if (!player.isBuiltInSong(id)) return;
+    saver.cancel(id);
+    songsStore.discard(id);
+  }
 
   /** A built-in song's own text (its file): what revert brings back */
   const originalText = (id: string) => player.fileSource(id)?.text;
@@ -449,9 +465,15 @@ export function mountStage(): Stage {
     return mine.text === player.sourceOf(id)?.text ? null : mine.text;
   }
 
+  /** The text of a user song that didn't build (the player holds it in a placeholder), else null */
+  const brokenText = (id: string) => (player.songProblem(id) ? player.sourceOf(id)?.text ?? null : null);
+
   /** A saved edit comes back as the browser's buffer (after a reload, or before the store's replay lands) */
   function restoreSaved(songId: string, session: EditSession) {
     if (session.view().owner === "browser" || saver.pending(songId)) return;
+    const broken = brokenText(songId);
+    // a song that didn't build plays a silent placeholder: evaluate its text as typing, so its error shows inline
+    if (broken !== null) return session.restore(broken, { evaluated: false });
     const text = savedEdit(songId);
     if (text === null) return;
     // the store's boot replay may still be compiling it: that eval is ours, don't evaluate twice
@@ -610,8 +632,13 @@ export function mountStage(): Stage {
 
   /** ⌘/Ctrl+Enter: evaluate now; like strudel.cc it also starts the music */
   async function commit() {
-    const session = sessions.get(shownSongId);
+    const id = shownSongId;
+    const session = sessions.get(id);
     if (!session || session.view().readOnly) return;
+    // keep the buffer now, not after the autosave's debounce: the store's boot
+    // replay re-reads a song's kept text right before evaluating it, and must
+    // not find an older one and play it over this commit
+    saver.flush(id);
     const result = await session.commit();
     if (result?.ok && !player.getState().playing) void player.play();
   }
@@ -798,10 +825,23 @@ export function mountStage(): Stage {
   });
   loadKey.addEventListener("click", () => {
     const id = shownSongId;
+    const session = sessions.get(id);
+    const theirs = session?.view().conflict;
+    if (!session || !theirs) return;
     // the browser's edits are given up for theirs: a reload must not bring them back
-    saver.cancel(id);
-    songsStore.discard(id);
-    sessions.get(id)?.loadIncoming();
+    if (player.isBuiltInSong(id)) {
+      saver.cancel(id);
+      songsStore.discard(id);
+    } else {
+      // a user song's stored text is the song itself: theirs is the song now (like ⌘S)
+      saver.keep(id, theirs.text);
+    }
+    session.loadIncoming();
+    // the browser's eval may have landed after theirs arrived: the player plays what the editor shows
+    if (player.sourceOf(id)?.text !== theirs.text) {
+      if (theirs.live) void player.evalSource(id, theirs.text, { intent: "commit", origin: "editor" });
+      else player.revertSource(id);
+    }
     renderEdited();
   });
   // a double-click in the read-only code starts editing right there
@@ -1093,7 +1133,7 @@ export function mountStage(): Stage {
       // a saved edit that doesn't build: evaluate it as typing, so its error shows inline in the editor
       for (const { id } of failed) {
         const session = sessions.get(id);
-        const text = savedEdit(id);
+        const text = savedEdit(id) ?? brokenText(id);
         if (session && text !== null && session.view().text === text && session.view().status.kind === "idle") {
           session.restore(text, { evaluated: false });
         }

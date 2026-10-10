@@ -20,9 +20,12 @@ const source = createEditorSource({
   getEngine: () => testEngine ?? api.evalSource,
 });
 
-/** Evaluate the browser editor's text. null = no engine path yet (no evalSource): the call is only recorded. */
-export function evalEdit(songId: string, text: string, intent: EvalIntent): Promise<EvalResult | null> {
-  return source.evalEdit(songId, text, intent);
+/**
+ * Evaluate the browser editor's text. null = no engine path yet (no evalSource): the call is only recorded.
+ * An aborted `signal` tells the engine not to apply it.
+ */
+export function evalEdit(songId: string, text: string, intent: EvalIntent, signal?: AbortSignal): Promise<EvalResult | null> {
+  return source.evalEdit(songId, text, intent, signal);
 }
 
 export function hasEngine(): boolean {

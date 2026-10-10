@@ -64,6 +64,69 @@ describe("registry", () => {
     assert.equal(r.get("b", "x")?.value, 0.5);
   });
 
+  test("a module's top-level knobs can be re-declared from its snapshot (revert to the file's module)", () => {
+    const saved: Record<string, SavedKnobs> = {};
+    const r = new KnobRegistry({ save: (id, s) => (saved[id] = s) });
+    // the file's module: its top level declares cutoff = 2200; its pattern reads that entry
+    r.beginModule("song");
+    const entry = r.define("song", parseKnobArgs(["cutoff", 2200, 200, 8000, { log: true }]));
+    r.define("song", spec("send", 0.3));
+    const read = r.reader(entry);
+    const file = r.moduleSpecs("song");
+    assert.deepEqual(file.map((k) => [k.name, k.def]), [["cutoff", 2200], ["send", 0.3]]);
+    r.set("song", "send", 0.6); // a live tweak on a knob the edit doesn't change
+
+    // an evaluated edit of the module (browser eval): cutoff's literal is now 7000, and it adds a knob
+    r.beginModule("song");
+    r.define("song", parseKnobArgs(["cutoff", 7000, 200, 8000, { log: true }]));
+    r.define("song", spec("send", 0.3));
+    r.define("song", spec("extra", 0.5));
+    assert.equal(read(), 7000, "the file module's pattern reads the same entry");
+
+    // revert: the file module's specs are declared again
+    r.restoreModule("song", file);
+    assert.equal(r.get("song", "cutoff")?.def, 2200);
+    assert.equal(r.get("song", "cutoff")?.value, 2200, "default changed back: the live value resets");
+    assert.equal(read(), 2200, "the file module's pattern plays the file's value again");
+    assert.equal(r.get("song", "send")?.value, 0.6, "unchanged default: the live tweak is kept");
+    assert.deepEqual(r.list("song").map((k) => k.name), ["cutoff", "send"], "the edit's extra knob is gone");
+    assert.deepEqual(r.moduleSpecs("song"), file, "the snapshot is the module's again");
+    r.flush("song");
+    assert.deepEqual(saved.song, { send: { value: 0.6, base: 0.3 } }, "persisted against the file's defaults");
+  });
+
+  test("restoring a module after an evaluation that didn't land keeps the live value it had", () => {
+    const saved: Record<string, SavedKnobs> = {};
+    const r = new KnobRegistry({ save: (id, s) => (saved[id] = s) });
+    r.beginModule("song");
+    const read = r.reader(r.define("song", spec("level", 0.5)));
+    const file = r.moduleSpecs("song");
+    r.set("song", "level", 0.7); // turned live
+
+    // an evaluated edit changes the literal (the shared entry resets to it), then fails or is aborted
+    r.beginModule("song");
+    r.define("song", spec("level", 0.8));
+    assert.equal(read(), 0.8);
+
+    r.restoreModule("song", file);
+    assert.equal(r.get("song", "level")?.def, 0.5);
+    assert.equal(r.get("song", "level")?.value, 0.7, "the live value from before the edit");
+    assert.equal(read(), 0.7, "the playing pattern reads it");
+    r.flush("song");
+    assert.deepEqual(saved.song, { level: { value: 0.7, base: 0.5 } });
+
+    // an evaluation that lands without touching the literal, a later tweak, then a revert: the tweak stays
+    r.beginModule("song");
+    r.define("song", spec("level", 0.5));
+    r.set("song", "level", 0.9);
+    r.restoreModule("song", file);
+    assert.equal(r.get("song", "level")?.value, 0.9, "a tweak made after the evaluation is the user's");
+    // and a restore with nothing evaluated since doesn't bring an old value back
+    r.set("song", "level", 0.6);
+    r.restoreModule("song", file);
+    assert.equal(r.get("song", "level")?.value, 0.6);
+  });
+
   test("snapping, log travel and argument errors", () => {
     const cutoff = parseKnobArgs(["cutoff", 2200, 200, 8000, { log: true }]);
     assert.equal(cutoff.step, 10);

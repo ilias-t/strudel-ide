@@ -139,7 +139,8 @@ void player.validateCurrent();
 void songsStore.initSongsStore(player, { confirmShare: confirmSharedSong }).then(({ failed, shared }) => {
   stage.storeReplayed(failed);
   for (const { id, error } of failed) console.warn(`[strudel-ide] stored song ${id} did not load: ${error}`);
-  if (shared && !shared.ok) console.warn(`[strudel-ide] share link: ${shared.error}`);
+  // not opened, or opened as a placeholder that doesn't build ({ ok: true, error })
+  if (shared?.error) console.warn(`[strudel-ide] share link: ${shared.error}`);
 });
 
 player.setLoading("Loading samples…");

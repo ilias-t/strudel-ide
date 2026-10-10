@@ -34,14 +34,16 @@
 // sets the player error: its errors are returned for inline display, and while
 // a typing build plays, its query/trigger errors only go to the console.
 // User songs (addSong/removeSong) are compiled the same way and join the song
-// list next to the built-in songs from src/songs/*.ts.
+// list next to the built-in songs from src/songs/*.ts. A saved one that doesn't
+// build is listed anyway (keepBroken): a silent placeholder holding its text,
+// until an edit of it builds (songProblem()).
 
 import { Mix } from "./mix";
 import { errorFrom } from "./errors";
 import { composeTracks } from "./tracks";
 import { TimeMap, normalizeSections, sectionAt, songLength } from "./timemap";
 import { KEYS, readJson, readStorage, writeJson, writeStorage } from "./storage";
-import { KnobRegistry, installKnobGlobals, type KnobInfo, type SavedKnobs } from "./knobs";
+import { KnobRegistry, installKnobGlobals, type KnobInfo, type KnobSpec, type SavedKnobs } from "./knobs";
 import { bpmToCps, engine, internals, warmOrbits, type Repl } from "./strudel";
 import { applyVisualization, clearVisualization } from "../ui/viz";
 import { audioOutputLatency } from "../live/highlights";
@@ -90,6 +92,24 @@ const knobRegistry = new KnobRegistry({
 });
 installKnobGlobals(knobRegistry, engine.pure);
 
+/**
+ * Per song object: the top-level knobs its module declared when it was
+ * evaluated (captured right after: boot, HMR, live eval, browser compile). A later
+ * evaluation of the same song id redeclares those entries, and the module that
+ * comes back on a revert (or keeps playing when an evaluated edit doesn't land)
+ * can't re-run its top level, so restoreModuleKnobs() declares them again.
+ */
+const moduleKnobs = new WeakMap<Song, KnobSpec[]>();
+function noteModuleKnobs(songId: string, song: Song) {
+  moduleKnobs.set(song, knobRegistry.moduleSpecs(songId));
+}
+/** Give a song id the top-level knobs of the module it plays now (see moduleKnobs) */
+function restoreModuleKnobs(songId: string) {
+  const song = playingSongOf(songId);
+  const specs = song && moduleKnobs.get(song);
+  if (specs) knobRegistry.restoreModule(songId, specs);
+}
+
 /** The current song's last successful build (also while stopped, for the mixer) */
 interface Build {
   songId: string;
@@ -111,6 +131,8 @@ let playing: Build | null = null;
 interface LiveSong {
   song: Song;
   source: PlayerSource;
+  /** Set on a user song that didn't build (addSong's keepBroken): a silent placeholder holding its text */
+  problem?: EvalSourceError;
 }
 const liveSongs = new Map<string, LiveSong>();
 
@@ -131,6 +153,8 @@ let pendingJump: { index: number; atCycle: number } | null = null;
 
 export function setSongsModule(mod: SongsModule) {
   songsModule = mod;
+  // the songs index imports every song module eagerly: their top levels just ran
+  for (const [id, song] of Object.entries(mod.songs)) noteModuleKnobs(id, song);
   exposeSongsIndex(mod);
 }
 
@@ -771,6 +795,7 @@ export function songsUpdated(newModule: SongsModule | undefined) {
   // Only edited song modules are re-instantiated by Vite; unchanged ones come
   // back as the very same objects. That identifies which file(s) you edited.
   const edited = Object.keys(newModule.songs).filter((id) => newModule.songs[id] !== previous.songs[id]);
+  for (const id of edited) noteModuleKnobs(id, newModule.songs[id]);
 
   // A saved file is the truth again: its evaluated buffer steps down. When the
   // file now says exactly what the buffer said, the build that is playing
@@ -888,6 +913,7 @@ async function applyLiveSong(
     if (liveSongs.get(songId)?.song === song) {
       if (previous) liveSongs.set(songId, previous);
       else liveSongs.delete(songId);
+      restoreModuleKnobs(songId);
     }
     changed();
     return { ok: false, error: out.error };
@@ -919,14 +945,26 @@ export async function evalLive(buffer: LiveBuffer, { play: start = false } = {})
   try {
     mod = await import(/* @vite-ignore */ buffer.url);
   } catch (err) {
+    restoreModuleKnobs(songId); // it may have thrown at top level after a knob() call
     return fail(err);
   }
-  // imports can finish out of order: only the newest buffer of a song counts
-  if (evalSeq.get(songId) !== seq) return { ok: false, applied: false, error: { message: "superseded by a newer buffer" } };
   const song = mod.default;
-  if (!song || typeof song.createPattern !== "function") {
+  const valid = !!song && typeof song.createPattern === "function";
+  // A module's top level runs on its first import only: the same buffer again
+  // (same version, same URL) is the same module, and its knobs are the ones it
+  // declared then (restored below once it plays). A first import just declared them.
+  const reused = valid && moduleKnobs.has(song);
+  if (valid && !reused) noteModuleKnobs(songId, song);
+  // imports can finish out of order: only the newest buffer of a song counts
+  if (evalSeq.get(songId) !== seq) {
+    restoreModuleKnobs(songId);
+    return { ok: false, applied: false, error: { message: "superseded by a newer buffer" } };
+  }
+  if (!valid) {
+    restoreModuleKnobs(songId);
     return fail(new Error(`${buffer.file} must \`export default\` a song with createPattern()`));
   }
+  if (reused) knobRegistry.restoreModule(songId, moduleKnobs.get(song)!.map((spec) => ({ ...spec })));
   const outcome = await applyLiveSong(
     songId,
     song,
@@ -964,6 +1002,11 @@ export interface EvalSourceOptions {
   intent: "typing" | "commit";
   /** Who evaluated the text (reported back in currentSource().origin) */
   origin: "browser" | "editor";
+  /**
+   * Cancels this one call: aborted before its compile finishes, nothing is
+   * applied (a superseded result). Other evals of the song are unaffected.
+   */
+  signal?: AbortSignal;
 }
 
 export interface EvalSourceError {
@@ -1041,7 +1084,7 @@ export function evalSource(songId: string, text: string, opts: EvalSourceOptions
   return trackPending(songId, evalSourceNow(songId, text, opts));
 }
 
-async function evalSourceNow(songId: string, text: string, { intent, origin }: EvalSourceOptions): Promise<EvalSourceResult> {
+async function evalSourceNow(songId: string, text: string, { intent, origin, signal }: EvalSourceOptions): Promise<EvalSourceResult> {
   const quiet = intent !== "commit";
   const file = baseSource(songId)?.file ?? songFileOf(songId);
   const fail = (e: EvalSourceError): EvalSourceResult => {
@@ -1056,9 +1099,21 @@ async function evalSourceNow(songId: string, text: string, { intent, origin }: E
 
   const seq = nextSeq(songId);
   const compiled = await compileSource(text, file);
-  if (evalSeq.get(songId) !== seq) return superseded();
-  if (!hasSong(songId)) return { ok: false, error: { message: `"${songId}" was removed` } };
-  if (!compiled.ok) return fail(compiled.error);
+  // its top level ran and declared its knobs: unless it lands, the playing song's come back
+  if (compiled.ok) noteModuleKnobs(songId, compiled.song);
+  // a newer eval of this song came first, or the caller gave this one up (no await from here to the swap)
+  if (evalSeq.get(songId) !== seq || signal?.aborted) {
+    restoreModuleKnobs(songId);
+    return superseded();
+  }
+  if (!hasSong(songId)) {
+    restoreModuleKnobs(songId);
+    return { ok: false, error: { message: `"${songId}" was removed` } };
+  }
+  if (!compiled.ok) {
+    restoreModuleKnobs(songId); // it may have thrown at top level after a knob() call
+    return fail(compiled.error);
+  }
 
   const version = contentVersion(text);
   const outcome = await applyLiveSong(songId, compiled.song, {
@@ -1069,7 +1124,10 @@ async function evalSourceNow(songId: string, text: string, { intent, origin }: E
     live: version !== baseSource(songId)?.version,
     origin,
   }, { quiet });
-  if (outcome.ok) return { ok: true, version };
+  if (outcome.ok) {
+    promotePlaceholder(songId, compiled.song);
+    return { ok: true, version };
+  }
   // swap() already reported it (unless quiet); wait for its line in the text
   if (outcome.error) await whenLocated(outcome.error);
   return { ok: false, error: toEvalError(outcome.error) };
@@ -1079,6 +1137,7 @@ async function evalSourceNow(songId: string, text: string, { intent, origin }: E
 export function revertSource(songId: string): boolean {
   nextSeq(songId); // an eval still compiling must not land afterwards
   if (!liveSongs.delete(songId)) return false;
+  restoreModuleKnobs(songId); // the module that comes back can't re-run its top-level knob() calls
   if (songId === currentSongId) void swap();
   changed();
   return true;
@@ -1087,53 +1146,128 @@ export function revertSource(songId: string): boolean {
 /** The last song played (saved id) isn't registered yet at boot: it may be a user song that addSong() brings */
 let bootSongId: string | null = null;
 
+export interface AddSongOptions {
+  /**
+   * A text that doesn't build (compile error, a module that throws, or a
+   * createPattern() that throws when selected) still registers, as a silent
+   * placeholder holding the text, so the song can be opened, fixed, shared or
+   * downloaded (songProblem() says why). Never replaces a working song. The
+   * result is still the error. Used for songs the user already has (the store's
+   * boot replay, share links).
+   */
+  keepBroken?: boolean;
+}
+
 /**
  * Register a user song compiled from `text` (browser compile) under `id`, or
  * replace the one with that id. It joins the song list (picker, next/prev,
  * window.__strudel.songs()) and plays like a built-in song, as file
  * `src/songs/<id>.ts`. Built-in ids are refused: evalSource() changes those.
  */
-export function addSong(id: string, text: string): Promise<EvalSourceResult> {
+export function addSong(id: string, text: string, opts: AddSongOptions = {}): Promise<EvalSourceResult> {
   const problem = songIdProblem(id) ?? checkText(text);
   if (problem) return Promise.resolve({ ok: false, error: { message: problem } });
   if (isBuiltInSong(id)) {
     return Promise.resolve({ ok: false, error: { message: `"${id}" is a built-in song (src/songs/${id}.ts): use evalSource() to change it` } });
   }
-  return trackPending(id, addSongNow(id, text));
+  return trackPending(id, addSongNow(id, text, !!opts.keepBroken));
 }
 
-async function addSongNow(id: string, text: string): Promise<EvalSourceResult> {
+async function addSongNow(id: string, text: string, keepBroken: boolean): Promise<EvalSourceResult> {
   const file = songFileOf(id);
   const seq = nextSeq(id);
   const compiled = await compileSource(text, file);
-  if (evalSeq.get(id) !== seq) return superseded();
-  if (!compiled.ok) return { ok: false, error: compiled.error };
-  if (isBuiltInSong(id)) return { ok: false, error: { message: `"${id}" became a built-in song meanwhile` } };
+  // its top level ran and declared its knobs: unless it lands, the playing song's come back
+  if (compiled.ok) noteModuleKnobs(id, compiled.song);
+  if (evalSeq.get(id) !== seq) {
+    restoreModuleKnobs(id);
+    return superseded();
+  }
   const version = contentVersion(text);
+  const source: PlayerSource = { file, version, text, live: false, origin: "browser" };
   const previous = userSongs.get(id);
+  // only a missing song or another placeholder makes way for a placeholder
+  const holdBroken = keepBroken && (!previous || !!previous.problem);
+  if (!compiled.ok) {
+    if (holdBroken && !isBuiltInSong(id)) await registerPlaceholder(id, placeholderOf(id, source, compiled.error));
+    else restoreModuleKnobs(id); // it may have thrown at top level after a knob() call
+    return { ok: false, error: compiled.error };
+  }
+  if (isBuiltInSong(id)) {
+    restoreModuleKnobs(id);
+    return { ok: false, error: { message: `"${id}" became a built-in song meanwhile` } };
+  }
   const previousLive = liveSongs.get(id);
-  userSongs.set(id, { song: compiled.song, source: { file, version, text, live: false, origin: "browser" } });
+  const out: SwapOutcome = { error: null };
+  if (!(await registerUserSong(id, { song: compiled.song, source }, out))) {
+    // replacing the song that is selected: it must build, or the old one stays
+    const placeholder = holdBroken ? placeholderOf(id, source, toEvalError(out.error)) : null;
+    if (userSongs.get(id)?.song === compiled.song) {
+      if (placeholder) await registerPlaceholder(id, placeholder);
+      else {
+        if (previous) userSongs.set(id, previous);
+        else userSongs.delete(id);
+        if (previousLive) liveSongs.set(id, previousLive);
+        restoreModuleKnobs(id);
+      }
+    }
+    changed();
+    if (out.error) await whenLocated(out.error);
+    const error = toEvalError(out.error);
+    if (placeholder && userSongs.get(id) === placeholder) {
+      placeholder.problem = error; // now with its line in the text
+      changed();
+    }
+    return { ok: false, error };
+  }
+  return { ok: true, version };
+}
+
+/** Put `entry` in the song list as `id` (selecting it if it was the last song played) and swap it in if it is selected. False: that swap failed. */
+async function registerUserSong(id: string, entry: LiveSong, out?: SwapOutcome): Promise<boolean> {
+  userSongs.set(id, entry);
   liveSongs.delete(id);
   if (bootSongId === id && !repl?.scheduler.started) {
     bootSongId = null;
     switchTo(id);
   }
   changed();
-  if (id === currentSongId) {
-    // replacing the song that is selected: it must build, or the old one stays
-    const out: SwapOutcome = { error: null };
-    if (!(await swap({ out }))) {
-      if (userSongs.get(id)?.song === compiled.song) {
-        if (previous) userSongs.set(id, previous);
-        else userSongs.delete(id);
-        if (previousLive) liveSongs.set(id, previousLive);
-      }
-      changed();
-      if (out.error) await whenLocated(out.error);
-      return { ok: false, error: toEvalError(out.error) };
-    }
-  }
-  return { ok: true, version };
+  return id !== currentSongId || swap({ out });
+}
+
+const NAME_RE = /\bname\s*:\s*"([^"\\\n]*)"/;
+
+/** A user song that didn't build: plays silence, keeps its text as its source (see AddSongOptions.keepBroken) */
+function placeholderOf(id: string, source: PlayerSource, problem: EvalSourceError): LiveSong {
+  const name = NAME_RE.exec(source.text ?? "")?.[1] || id;
+  return { song: { name, createPattern: () => engine.silence }, source, problem };
+}
+
+/**
+ * Register a placeholder: it declares no top-level knobs (it has no module), so
+ * the ones a broken text's top level declared go, and an evaluated edit of it
+ * that doesn't land restores that empty set (see moduleKnobs).
+ */
+async function registerPlaceholder(id: string, placeholder: LiveSong): Promise<void> {
+  moduleKnobs.set(placeholder.song, []);
+  await registerUserSong(id, placeholder);
+  if (userSongs.get(id) === placeholder) restoreModuleKnobs(id);
+}
+
+/** Why a user song is a "didn't build" placeholder (null: it built, or isn't a user song) */
+export function songProblem(id: string): EvalSourceError | null {
+  return userSongs.get(id)?.problem ?? null;
+}
+
+/** An evaluated text of a placeholder built: it becomes the song itself (its own source, no longer "unsaved") */
+function promotePlaceholder(id: string, song: Song) {
+  const live = liveSongs.get(id);
+  if (!userSongs.get(id)?.problem || live?.song !== song) return;
+  const source: PlayerSource = { ...live.source, live: false };
+  userSongs.set(id, { song, source });
+  liveSongs.delete(id);
+  for (const b of new Set([build, playing])) if (b?.song === song) b.source = source;
+  changed();
 }
 
 /** Unregister a user song (built-in songs can't be removed). The current song moves on if it was this one. */

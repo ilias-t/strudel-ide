@@ -95,6 +95,10 @@ test("a scale or chord with mini-notation modifiers after it: still its hover", 
   assert.equal(text.slice(h.range.start, h.range.end), "Dm7");
 });
 
+test("a chord name that is an Object property (constructor, __proto__, toString): no hover, no throw", () => {
+  for (const sym of ["constructor", "__proto__", "toString", "hasOwnProperty"]) assert.equal(hover(`chord("C${sym}|")`), null, sym);
+});
+
 test("a bank: its parts; ▶ plays bd on it", () => {
   const h = hover('s("sd").bank("TR9|09")')!;
   const parts = reg.bankParts("TR909");

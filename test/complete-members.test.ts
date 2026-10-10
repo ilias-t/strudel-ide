@@ -147,3 +147,10 @@ test("cheap: ranking ~800 entries well under a frame", () => {
   console.log(`member ranking: ${best.toFixed(2)} ms for ${ENTRIES.length} entries`);
   assert.ok(best < 8, `${best} ms`);
 });
+
+test("a chain that starts with an Object property name (constructor, toString): ranked without the after-list, no throw", () => {
+  for (const head of ["constructor", "toString", "__proto__"]) {
+    const { names } = order(`${head}("x").|`);
+    assert.ok(names.length > 0, head);
+  }
+});

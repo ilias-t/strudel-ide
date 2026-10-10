@@ -6,8 +6,10 @@
 // ones people use, after which call, what they are for and whether they work
 // here. Everything stays in the list, ranked:
 //
-//   1. what songs use right after the chain's first call (after["s"]: gain,
-//      bank, hpf, …), minus methods the chain already has
+//   1. the top of what songs use right after the chain's first call
+//      (after["s"]: gain, bank, hpf, …): its first AFTER_TOP everyday names
+//      (global rank under COMMON_RANK), minus methods the chain already has.
+//      A niche control a few songs use a lot (duckattack) keeps its global rank
 //   2. the rest by global rank (most used first; unused ones alphabetically)
 //   3. members the catalog doesn't know, alphabetically
 //   4. the ones that don't work here, with the reason on the right ("SuperDirt
@@ -108,6 +110,11 @@ function bestAlias(name: string, meta: CompletionMeta, catalog: CompletionsCatal
   return best;
 }
 
+/** How many of the chain head's after-list lead the list */
+export const AFTER_TOP = 8;
+/** Only everyday names (global rank under this) get the after-list boost */
+export const COMMON_RANK = 40;
+
 const pad = (n: number, w: number) => String(Math.max(0, Math.min(n, 10 ** w - 1))).padStart(w, "0");
 const fits = (name: string, typed: string) => !!typed && name.toLowerCase().startsWith(typed.toLowerCase());
 
@@ -126,9 +133,12 @@ export function rankMembers(entries: readonly TsEntry[], catalog: CompletionsCat
   const after = head ? (catalog.after[head] ?? []) : [];
   const inChain = new Set((chain ?? []).slice(1).map((c) => c.name));
   const afterAt = new Map<string, number>();
-  after.forEach((n, i) => {
-    if (!inChain.has(n) && !afterAt.has(n)) afterAt.set(n, i);
-  });
+  for (const n of after) {
+    if (afterAt.size >= AFTER_TOP) break;
+    const m = Object.prototype.hasOwnProperty.call(fns, n) ? fns[n] : undefined;
+    if (!m || m.availability !== "ok" || m.rank >= COMMON_RANK || inChain.has(n) || afterAt.has(n)) continue;
+    afterAt.set(n, afterAt.size);
+  }
   const rows: MemberRow[] = [];
   const sortOf = new Map<string, string>();
   const aliases: { entry: TsEntry; meta: CompletionMeta }[] = [];

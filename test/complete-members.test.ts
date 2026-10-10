@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { callChainBefore } from "../src/ui/complete/context.ts";
-import { compactRange, isPatternMemberList, memberDocLine, rankMembers, type TsEntry } from "../src/ui/complete/members.ts";
+import { AFTER_TOP, COMMON_RANK, compactRange, isPatternMemberList, memberDocLine, rankMembers, type TsEntry } from "../src/ui/complete/members.ts";
 import type { CompletionsCatalog } from "../src/ui/discover/catalog.ts";
 
 const catalog = JSON.parse(readFileSync(new URL("../src/catalog/completions.json", import.meta.url), "utf8")) as CompletionsCatalog;
@@ -42,12 +42,16 @@ test("callChainBefore: the chain a dot continues, up to its receiver", () => {
   assert.equal(chainAt('s("bd")|'), null);
 });
 
-test('after s("bd").: the methods songs use after s() first (completions.json after.s), in that order', () => {
+test('after s("bd").: the common methods songs use after s() first (the top of completions.json after.s), then the global rank', () => {
   const { names } = order('s("bd").|');
-  const expected = catalog.after.s.filter((n) => fns[n]?.availability === "ok");
+  const expected = catalog.after.s.filter((n) => fns[n]?.availability === "ok" && fns[n].rank < COMMON_RANK).slice(0, AFTER_TOP);
   assert.deepEqual(names.slice(0, expected.length), expected);
   // what that is today
   assert.deepEqual(names.slice(0, 6), ["gain", "bank", "hpf", "pan", "room", "lpf"]);
+  // a niche control a few songs use a lot (ducking) does not jump the everyday ones
+  const top = names.slice(0, 16);
+  for (const n of ["note", "delay", "speed", "fast"]) assert.ok(top.includes(n), n + " in " + top.join(" "));
+  for (const n of ["duckattack", "duckorbit", "duckdepth"]) assert.ok(!top.includes(n), n + " in " + top.join(" "));
 });
 
 test('after note("c").: s first, then what follows note() in songs', () => {
@@ -57,13 +61,13 @@ test('after note("c").: s first, then what follows note() in songs', () => {
 
 test("then the global rank, then names the catalog doesn't know, then the demoted ones", () => {
   const { names, rows } = order('s("bd").|');
-  const after = catalog.after.s.length;
+  const after = catalog.after.s.filter((n) => fns[n]?.availability === "ok" && fns[n].rank < COMMON_RANK).slice(0, AFTER_TOP).length;
   // past the after list: global rank order (s n note … are the most used)
   const rest = names.slice(after).filter((n) => meta(n));
   const ranked = rest.filter((n) => meta(n)!.availability === "ok");
   const ranks = ranked.map((n) => fns[n].rank);
   assert.deepEqual(ranks, [...ranks].sort((a, b) => a - b));
-  assert.deepEqual(ranked.slice(0, 3), ["s", "note", "delay"], "n is in after.s already");
+  assert.deepEqual(ranked.slice(0, 3), ["s", "n", "note"]);
   // unknown names after every ranked one, demoted ones last
   const unknown = names.indexOf("toString");
   assert.ok(unknown > names.indexOf(ranked[ranked.length - 1]));
@@ -83,7 +87,7 @@ test("then the global rank, then names the catalog doesn't know, then the demote
 test("a method already in the chain loses its after-boost", () => {
   const { names } = order('s("bd").gain(0.5).|');
   assert.equal(names[0], "bank");
-  assert.ok(names.indexOf("gain") > catalog.after.s.length - 2);
+  assert.ok(names.indexOf("gain") >= AFTER_TOP, "gain falls back to its global rank");
 });
 
 test("no chain (an identifier receiver): the global rank", () => {

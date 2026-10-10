@@ -139,6 +139,16 @@ test("search: 909 finds the RolandTR909 bank, lpf ranks lpf first among function
   await expect(fn(page, "lpf")).toBeVisible();
 });
 
+test("search by sound: wetter lists room, size and delay first among functions", async ({ player, page }) => {
+  await player.boot();
+  await openLibrary(page);
+  await page.getByTestId("library-tab-functions").click();
+  await page.getByTestId("library-search").fill("wetter");
+  await expect
+    .poll(() => page.getByTestId("library-function").evaluateAll((els) => els.slice(0, 3).map((e) => e.getAttribute("data-name"))))
+    .toEqual(["room", "size", "delay"]);
+});
+
 test("▶ auditions while stopped, then while the song plays, without touching the song", async ({ player, page }) => {
   await player.boot();
   await openLibrary(page);

@@ -151,6 +151,8 @@ export interface Intent {
   phrases: string[];
   /** Real function names, the main one first */
   functions: string[];
+  /** The main function's call, inserted after an expression: "room(0.5)" (default: `${functions[0]}()`) */
+  call?: string;
   /** One expression of string literals that plays the idea (previewable) */
   recipe?: string;
   /** Snippet ids (snippets.json) that show it */

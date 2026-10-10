@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, test } from "node:test";
-import type { FunctionInfo, FunctionsCatalog, SoundsCatalog } from "../src/ui/discover/catalog.ts";
+import type { FunctionInfo, FunctionsCatalog, IntentsCatalog, SoundsCatalog } from "../src/ui/discover/catalog.ts";
 import {
   bankPart,
   docBlocks,
@@ -140,6 +140,37 @@ describe("function search", () => {
   test("ties are sorted by name", () => {
     const names = fnNames("lp").filter((n) => n.startsWith("lp") && n !== "lp");
     assert.deepEqual(names, [...names].sort());
+  });
+});
+
+describe("function search by sound (intents)", () => {
+  const intents = read<IntentsCatalog>("intents.json");
+  const names = (query: string) => searchFunctions(functions, query, intents).map((f) => f.name);
+
+  test('"wetter" lists the wetter intent\'s functions first, in its order', () => {
+    assert.deepEqual(names("wetter").slice(0, 3), ["room", "size", "delay"]);
+  });
+
+  test("a phrase of several words, or the start of one, works too", () => {
+    assert.deepEqual(names("more reverb").slice(0, 3), ["room", "size", "delay"]);
+    assert.deepEqual(names("acid bass").slice(0, 2), ["lpf", "lpq"]);
+    assert.equal(names("wobb")[0], "lpf");
+  });
+
+  test("a function's own name still wins over an intent that lists it", () => {
+    assert.equal(names("delay")[0], "delay");
+    assert.equal(names("lpf")[0], "lpf");
+    assert.equal(names("cutoff")[0], "cutoff");
+  });
+
+  test("an intent adds its functions to what the words already find", () => {
+    const found = names("reverb");
+    assert.equal(found[0], "room");
+    assert.ok(found.includes("roomsize") && found.includes("dry"), "summary matches stay");
+  });
+
+  test("without intents, the search is as before", () => {
+    assert.deepEqual(searchFunctions(functions, "wetter"), []);
   });
 });
 

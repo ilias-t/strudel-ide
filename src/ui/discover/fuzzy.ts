@@ -16,11 +16,19 @@
 //   a gap between matches        −3, then −1 per extra character skipped
 //   the whole text, exactly      +32
 //
-// rank() scores a list against a query (names, then alternative names such as
-// synonyms and bank aliases at a small discount) and sorts: score, then the
-// item's weight (the palette puts actions and songs first on ties), then the
-// shorter name, then input order. ~1100 items per keystroke is well under a
-// millisecond or two.
+// rank() scores a list against a query and sorts: score, then the item's
+// weight (the palette puts actions and songs first on ties), then the shorter
+// name, then input order. An item is scored on its best field:
+//
+//   name          fuzzy, as above
+//   alts          fuzzy, −4      synonyms, bank aliases, an intent's phrases
+//   phrases       fuzzy, −6      what an intent says about a function ("wetter" → room)
+//   words         −48            description words (a summary), never fuzzy: each
+//                                query word must be a whole word or a word's start
+//
+// A fuzzy fit broken into more stretches than the query has words loses 12 per
+// extra stretch, so "reverb" scattered over "Crash every 4 bars" can't beat a
+// real word. ~1100 items per keystroke is well under a millisecond or two.
 
 export interface Match {
   score: number;
@@ -37,6 +45,14 @@ const GAP_EXTEND = -1;
 const EXACT = 32;
 /** An alternative name's match counts for a little less than the same match on the name */
 const ALT_PENALTY = 4;
+/** A phrase (an intent's way of describing what a function does) a little less again */
+const PHRASE_PENALTY = 6;
+/** A description word counts for much less: names, synonyms and phrases come first */
+const WORDS_PENALTY = 48;
+/** Each stretch a fuzzy fit is broken into beyond one per query word */
+const SCATTER = 12;
+/** Description words only answer a query at least this long, and only words of 2+ letters in it */
+const WORDS_MIN = 3;
 
 const NONE = -Infinity;
 
@@ -169,17 +185,26 @@ export interface Candidate {
   name: string;
   /** Other names that find it too (synonyms, aliases) */
   alts?: string[];
+  /** Ways of describing it that find it a little lower (an intent's phrases on a function) */
+  phrases?: string[];
+  /** Description words, lowercased (wordsOf(summary)): found by whole word or a word's start, well below names */
+  words?: string[];
   /** Lower ranks first among equal scores (default 0) */
   weight?: number;
 }
 
+/** Which of a candidate's fields matched */
+export type MatchField = "name" | "alt" | "phrase" | "words";
+
 export interface Ranked<T> {
   item: T;
   score: number;
-  /** Indices into item.name (empty when only an alternative name matched) */
+  /** Indices into item.name (empty when only another field matched) */
   indices: number[];
-  /** The alternative name that matched, if it wasn't the name */
+  /** The alternative name or phrase that matched, if it wasn't the name */
   via?: string;
+  /** Where the best match was (absent for an empty query) */
+  field?: MatchField;
 }
 
 export interface RankOptions {
@@ -187,19 +212,69 @@ export interface RankOptions {
   limit?: number;
 }
 
+const WORD_SPLIT = /[^\p{L}\p{N}]+/u;
+
+/** A text's words, lowercased, for Candidate.words */
+export function wordsOf(text: string): string[] {
+  return text.toLowerCase().split(WORD_SPLIT).filter(Boolean);
+}
+
+/** How many stretches of consecutive characters a fit is broken into */
+function stretches(indices: number[]): number {
+  let n = indices.length ? 1 : 0;
+  for (let i = 1; i < indices.length; i++) if (indices[i] !== indices[i - 1] + 1) n++;
+  return n;
+}
+
+/** A fuzzy match, less SCATTER for each stretch beyond one per query word */
+function fit(q: string, words: number, text: string): Match | null {
+  const m = matchNormalized(q, text);
+  if (!m) return null;
+  const extra = stretches(m.indices) - Math.max(1, words);
+  return extra > 0 ? { score: m.score - extra * SCATTER, indices: m.indices } : m;
+}
+
+/** Each term must start one of `words`: the sum of the best such matches, or null */
+function wordsScore(terms: string[], words: readonly string[]): number | null {
+  let total = 0;
+  for (const t of terms) {
+    let best = NONE;
+    for (const w of words) {
+      if (!w.startsWith(t)) continue;
+      const m = matchNormalized(t, w);
+      if (m && m.score > best) best = m.score;
+    }
+    if (best === NONE) return null;
+    total += best;
+  }
+  return total;
+}
+
 /** The items that match `query`, best first (input order, capped, for an empty query) */
 export function rank<T extends Candidate>(items: readonly T[], query: string, { limit = 80 }: RankOptions = {}): Ranked<T>[] {
   const q = normalizeQuery(query);
   if (!q) return items.slice(0, limit).map((item) => ({ item, score: 0, indices: [] }));
+  const queryWords = query.trim().split(/\s+/).length;
+  const terms = q.length >= WORDS_MIN ? wordsOf(query).filter((t) => t.length >= 2) : [];
   const found: { r: Ranked<T>; order: number }[] = [];
   items.forEach((item, order) => {
     let best: Ranked<T> | null = null;
-    const m = matchNormalized(q, item.name);
-    if (m) best = { item, score: m.score, indices: m.indices };
-    for (const alt of item.alts ?? []) {
-      const a = matchNormalized(q, alt);
-      // the name's highlight stays when the name fits too
-      if (a && (!best || a.score - ALT_PENALTY > best.score)) best = { item, score: a.score - ALT_PENALTY, indices: m?.indices ?? [], via: alt };
+    const m = fit(q, queryWords, item.name);
+    if (m) best = { item, score: m.score, indices: m.indices, field: "name" };
+    const other = (texts: string[] | undefined, penalty: number, field: MatchField) => {
+      for (const text of texts ?? []) {
+        const a = fit(q, queryWords, text);
+        // the name's highlight stays when the name fits too
+        if (a && (!best || a.score - penalty > best.score))
+          best = { item, score: a.score - penalty, indices: m?.indices ?? [], via: text, field };
+      }
+    };
+    other(item.alts, ALT_PENALTY, "alt");
+    other(item.phrases, PHRASE_PENALTY, "phrase");
+    if (terms.length && item.words?.length) {
+      const w = wordsScore(terms, item.words);
+      if (w !== null && (!best || w - WORDS_PENALTY > best.score))
+        best = { item, score: w - WORDS_PENALTY, indices: m?.indices ?? [], field: "words" };
     }
     if (best) found.push({ r: best, order });
   });

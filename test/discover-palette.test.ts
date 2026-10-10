@@ -17,7 +17,10 @@ import {
   type PaletteItem,
 } from "../src/ui/discover/palette-items.ts";
 import { rank } from "../src/ui/discover/fuzzy.ts";
-import type { FunctionsCatalog, SnippetsCatalog, SoundsCatalog } from "../src/ui/discover/catalog.ts";
+import { insertionFor } from "../src/ui/discover/insert.ts";
+import { intentItems } from "../src/ui/discover/palette-items.ts";
+import { readFileSync } from "node:fs";
+import type { FunctionsCatalog, IntentsCatalog, SnippetsCatalog, SoundsCatalog } from "../src/ui/discover/catalog.ts";
 
 const stopped: ActionState = { playing: false, loop: false, codeView: true, mode: "view", sections: null };
 const ids = (items: PaletteItem[]) => items.map((i) => i.id);
@@ -58,6 +61,18 @@ describe("actions", () => {
   test("actions carry the stage key that does the same thing", () => {
     assert.equal(byId(actionItems(stopped), "play").hint, "Space");
     assert.equal(byId(actionItems(stopped), "library").hint, "B");
+  });
+
+  test("sound previews: the name says the current state (off unless told), Enter flips it", () => {
+    const off = byId(actionItems(stopped), "previews");
+    assert.equal(off.name, "sound previews: off");
+    assert.deepEqual(off.run, { type: "action", action: "previews" });
+    assert.match(off.detail, /turn them on/);
+    assert.ok(off.alts?.includes("previews"));
+    const on = byId(actionItems({ ...stopped, previews: true }), "previews");
+    assert.equal(on.name, "sound previews: on");
+    assert.match(on.detail, /turn them off/);
+    assert.equal(rank(actionItems(stopped), "previews")[0].item.id, "previews");
   });
 });
 
@@ -262,5 +277,115 @@ describe("helpers", () => {
       groups[0].results.map((r) => r.item.id),
       ["saw", "sawtooth"]
     );
+  });
+});
+
+// ── search by sound: intents (the real catalog) ───────────────────────────────
+
+const read = <T>(file: string): T => JSON.parse(readFileSync(new URL(`../src/catalog/${file}`, import.meta.url), "utf8")) as T;
+const realIntents = read<IntentsCatalog>("intents.json");
+const realItems: PaletteItem[] = [
+  ...actionItems(stopped),
+  ...soundItems(read<SoundsCatalog>("sounds.json")),
+  ...bankItems(read<SoundsCatalog>("sounds.json")),
+  ...snippetItems(read<SnippetsCatalog>("snippets.json")),
+  ...intentItems(realIntents),
+  ...functionItems(read<FunctionsCatalog>("functions.json"), () => true, realIntents),
+];
+const top = (query: string, n = 5) => rank(realItems, query).slice(0, n).map((r) => `${r.item.kind}:${r.item.id}`);
+
+describe("intents", () => {
+  const intents: IntentsCatalog = {
+    intents: [
+      {
+        id: "wetter",
+        phrases: ["wetter", "more reverb", "reverb"],
+        functions: ["room", "size", "delay"],
+        call: "room(0.5)",
+        recipe: 'note("c3 e3").s("piano").room(0.8)',
+        tip: "room 0–1 is the send; size grows the space",
+      },
+      {
+        id: "acid-bass",
+        phrases: ["acid bass", "303"],
+        functions: ["lpf", "lpq"],
+        call: "lpf(400).lpq(12)",
+        recipe: 'note("a1*8").s("sawtooth").lpf(400).lpq(12)',
+        tip: "resonance and a moving cutoff",
+        snippets: ["acid-303-line"],
+        role: "acid",
+      },
+    ],
+  };
+
+  test("a row per intent: the first phrase, an arrow to its functions, the tip", () => {
+    const wetter = byId(intentItems(intents), "wetter");
+    assert.equal(wetter.kind, "intent");
+    assert.equal(wetter.name, "wetter");
+    assert.equal(wetter.suffix, " → room · size · delay");
+    assert.equal(wetter.detail, "room 0–1 is the send; size grows the space");
+    assert.ok(wetter.alts?.includes("more reverb") && wetter.alts.includes("reverb"));
+  });
+
+  test("Shift+Enter plays the recipe (two bars); Enter inserts the call or the recipe; ⌥Enter only with a role", () => {
+    const [wetter, acid] = intentItems(intents);
+    assert.deepEqual(wetter.play, { type: "code", code: 'note("c3 e3").s("piano").room(0.8)', cycles: 2 });
+    assert.deepEqual(wetter.run, { type: "insert", item: { type: "intent", call: "room(0.5)", code: 'note("c3 e3").s("piano").room(0.8)' } });
+    assert.equal(wetter.track, undefined);
+    assert.deepEqual(acid.track, { role: "acid", snippet: "acid-303-line" });
+  });
+
+  test("Enter: the call after an expression, the recipe where an expression starts, nothing inside a string", () => {
+    const { run } = byId(intentItems(intents), "wetter");
+    assert.equal(run.type, "insert");
+    if (run.type !== "insert") return;
+    const after = 's("bd")';
+    assert.deepEqual(insertionFor(after, after.length, run.item), { text: ".room(0.5)", caret: ".room(0.5)".length });
+    const start = "const pad = ";
+    const recipe = 'note("c3 e3").s("piano").room(0.8)';
+    assert.deepEqual(insertionFor(start, start.length, run.item), { text: recipe, caret: recipe.length });
+    assert.equal(insertionFor('s("bd ")', 6, run.item), null);
+    // on a line of its own (no caret placed yet): always the recipe
+    assert.equal(insertionFor(after, 0, run.item, 0, { ownLine: true })?.text, recipe);
+  });
+
+  test("an intent's phrases find its main function too, marked as a phrase match", () => {
+    const fns = functionItems(read<FunctionsCatalog>("functions.json"), () => true, intents);
+    assert.ok(byId(fns, "room").phrases?.includes("reverb"));
+    assert.equal(byId(fns, "size").phrases, undefined, "only the main function");
+    const [r] = rank(fns.filter((f) => f.id === "room"), "more reverb");
+    assert.equal(r.via, "more reverb");
+    assert.equal(r.field, "phrase");
+  });
+
+  test('"wetter" ranks the intent first', () => {
+    assert.equal(top("wetter")[0], "intent:wetter");
+  });
+
+  test('"reverb": the intent, then room and roomsize near the top; no fuzzy fluke among them', () => {
+    const t = top("reverb", 8);
+    assert.equal(t[0], "intent:wetter", t.join(", "));
+    assert.ok(t.slice(0, 3).includes("function:room"), t.join(", "));
+    assert.ok(t.includes("function:roomsize"), t.join(", "));
+    assert.ok(!t.some((id) => id.startsWith("snippet:")), t.join(", "));
+    const roomRank = rank(realItems, "reverb").findIndex((r) => r.item.id === "room" && r.item.kind === "function");
+    const crash = rank(realItems, "reverb").findIndex((r) => r.item.id === "fx-crash-on-one");
+    assert.ok(crash === -1 || crash > roomRank + 5, `the crash snippet at ${crash}`);
+  });
+
+  test('"acid bass", "wobble", "lo-fi drums", "swing": the matching intent first', () => {
+    assert.equal(top("acid bass")[0], "intent:acid-bass");
+    assert.equal(top("wobble")[0], "intent:wobble");
+    assert.equal(top("lo-fi drums")[0], "intent:lofi-drums");
+    assert.equal(top("swing")[0], "intent:swing");
+    assert.ok(top("swing", 3).includes("function:swing"), top("swing").join(", "));
+  });
+
+  test("a summary word finds a function, below its name matches (room's summary says reverb, dry's is SuperDirt only)", () => {
+    const fns = functionItems(read<FunctionsCatalog>("functions.json"), () => true);
+    const found = rank(fns, "reverb").map((r) => r.item.id);
+    assert.ok(found.includes("room") && found.includes("roomsize"), found.slice(0, 10).join(", "));
+    assert.ok(found.indexOf("room") < found.indexOf("dry"), "SuperDirt-only sinks");
+    assert.equal(rank(fns, "lpf")[0].item.id, "lpf", "names still win");
   });
 });

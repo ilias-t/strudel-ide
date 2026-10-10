@@ -5,15 +5,23 @@
 // A lazy chunk (./hooks.ts toggles it, even from inside Monaco). A small
 // graphite unit near the top of a dimmed room, holding one black-glass screen:
 // a search line and a listbox of results grouped by kind (actions, songs,
-// sounds, drum machines, functions, snippets). Actions and songs need nothing
-// loaded; the catalog (./catalog.ts) loads on the first open behind a
-// "loading…" row.
+// search by sound, sounds, drum machines, functions, snippets). Actions and
+// songs need nothing loaded; the catalog (./catalog.ts) loads on the first
+// open behind a "loading…" row.
+//
+// Search by sound: intents.json maps how people describe a sound ("wetter",
+// "wobble", "acid bass") to functions and a recipe. Each intent is a row of
+// its own, and its phrases find its main function too (fuzzy.ts ranks names,
+// then synonyms and phrases, then summary words well below).
 //
 //   ↵        run the action / switch song / insert at the editor's caret
-//            (closing first; inserting enters edit mode and focuses Monaco)
-//   ⇧↵       audition: a sound, a drum machine, a snippet, a function's
-//            first example when previewable() (the palette stays open)
-//   ⌥↵       a snippet: open the track builder with it
+//            (closing first; inserting enters edit mode and focuses Monaco);
+//            an intent inserts its call after an expression (.room(0.5)),
+//            its recipe where an expression starts
+//   ⇧↵       audition: a sound, a drum machine, a snippet, an intent's recipe
+//            (two bars), a function's first example when previewable() (the
+//            palette stays open)
+//   ⌥↵       a snippet, or an intent with a role: open the track builder with it
 //   ↑↓ PgUp PgDn move (↑↓ wrap), Esc / a click on the dim / ⌘K again close
 //
 // ARIA: the input is a combobox (aria-activedescendant follows the active
@@ -27,15 +35,17 @@ import "./palette.css";
 import * as player from "../../engine/player";
 import { askOpen } from "../ask";
 import { auditionSound, previewCode, previewable } from "./audition";
-import { loadFunctions, loadSnippets, loadSounds } from "./catalog";
+import { loadFunctions, loadIntents, loadSnippets, loadSounds } from "./catalog";
 import { rank, type Ranked } from "./fuzzy";
 import type { Discovery, FeatureHandle } from "./hooks";
+import { previewsEnabled, togglePreviews } from "./preview-setting";
 import {
   KIND_TAG,
   actionItems,
   bankItems,
   functionItems,
   groupResults,
+  intentItems,
   snippetItems,
   songItems,
   soundItems,
@@ -88,7 +98,7 @@ export function createPalette(d: Discovery): FeatureHandle {
   const search = el("div", "pal-search");
   const led = el("span", "pal-led");
   led.setAttribute("aria-hidden", "true");
-  const label = el("label", "sr-only", "Search actions, songs, sounds, drum machines, functions and snippets");
+  const label = el("label", "sr-only", "Search actions, songs, sounds, drum machines, functions and snippets, or describe a sound");
   label.htmlFor = "palette-input";
   const input = el("input", "pal-input");
   input.id = "palette-input";
@@ -160,6 +170,7 @@ export function createPalette(d: Discovery): FeatureHandle {
         codeView: s.codeView,
         mode: d.host.mode(),
         sections: s.sections,
+        previews: previewsEnabled(),
       }),
       // named and marked like the stage's picker: the name it plays under now, ⚠ when it didn't build
       ...songItems(
@@ -172,13 +183,14 @@ export function createPalette(d: Discovery): FeatureHandle {
   function loadCatalog() {
     if (catalog === "loading" || catalog === "ready") return;
     catalog = "loading";
-    Promise.all([loadSounds(), loadFunctions(), loadSnippets()]).then(
-      ([sounds, functions, snippets]) => {
+    Promise.all([loadSounds(), loadFunctions(), loadSnippets(), loadIntents()]).then(
+      ([sounds, functions, snippets, intents]) => {
         const s = soundItems(sounds);
         const b = bankItems(sounds);
-        const f = functionItems(functions, previewable);
+        const f = functionItems(functions, previewable, intents);
         const n = snippetItems(snippets);
-        catalogItems = [...s, ...b, ...n, ...f];
+        const i = intentItems(intents);
+        catalogItems = [...i, ...s, ...b, ...n, ...f];
         counts = { sounds: s.length, banks: b.length, functions: f.length, snippets: n.length };
         catalog = "ready";
         if (open) render({ keep: true });
@@ -220,8 +232,9 @@ export function createPalette(d: Discovery): FeatureHandle {
     const name = el("span", "pal-name");
     name.append(highlighted(item.name, r.indices));
     if (item.suffix) name.append(el("span", "pal-suffix", item.suffix));
-    // a function found by a synonym says which (a bank's aliases are in its detail already)
-    const detailText = r.via && item.kind === "function" ? `aka ${r.via} · ${item.detail}` : item.detail;
+    // a function found by a synonym or an intent's phrase says which (a bank's aliases are in its detail already)
+    const via = r.via && item.kind === "function" ? (r.field === "phrase" ? `for “${r.via}”` : `aka ${r.via}`) : "";
+    const detailText = via ? `${via} · ${item.detail}` : item.detail;
     const detail = el("span", "pal-detail", detailText);
     if (item.current) detail.prepend(el("span", "pal-current"));
     opt.append(tag, name, detail);
@@ -271,7 +284,8 @@ export function createPalette(d: Discovery): FeatureHandle {
     else if (!query.trim())
       setNote(
         "palette-hint",
-        `type to search ${counts.sounds} sounds, ${counts.banks} drum machines, ${counts.functions} functions and ${counts.snippets} snippets`
+        `type to search ${counts.sounds} sounds, ${counts.banks} drum machines, ${counts.functions} functions and ${counts.snippets} snippets`,
+        "or say how it should sound: wetter, wobble, acid bass"
       );
     else setNote(null);
 
@@ -345,7 +359,7 @@ export function createPalette(d: Discovery): FeatureHandle {
     const rec =
       p.type === "sound"
         ? await auditionSound(p.name, { pitched: p.pitched, ...(p.bank ? { bank: p.bank } : {}) })
-        : await previewCode(p.code, { label: item.name });
+        : await previewCode(p.code, { label: item.name, ...(p.cycles ? { cycles: p.cycles } : {}) });
     if (rec.status === "error") say(rec.error ?? "it didn't play");
   }
 
@@ -394,6 +408,9 @@ export function createPalette(d: Discovery): FeatureHandle {
       case "unmute":
         player.unmuteAll();
         break;
+      case "previews":
+        d.host.toast(togglePreviews() ? "sound previews on: the editor's sound suggestions play as you move" : "sound previews off");
+        break;
       case "help":
         d.host.showHelp();
         break;
@@ -401,7 +418,7 @@ export function createPalette(d: Discovery): FeatureHandle {
   }
 
   /** Actions that leave focus where it was before the palette opened */
-  const KEEPS_FOCUS = new Set(["play", "loop", "jump", "next-section", "previous-section", "code-view", "follow", "unmute"]);
+  const KEEPS_FOCUS = new Set(["play", "loop", "jump", "next-section", "previous-section", "code-view", "follow", "unmute", "previews"]);
 
   async function run(r: Result | undefined, how: "run" | "play" | "track") {
     if (!r) return;

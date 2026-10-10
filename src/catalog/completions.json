@@ -777,8 +777,11 @@
 "n":["scale","s","add","gain","slow","orbit","lpf","release","room","sustain","delay","attack","decay","off","hpf","rsize","chord","voicing","delayfeedback","delaytime"],
 "note":["s","gain","lpf","sustain","decay","release","sound","room","attack","hpf","lpenv","struct","delay","delaytime","orbit","scope","delayfeedback","lpq","clip","velocity"],
 "perlin":["range","slow","fast","floor","mul","segment"],
+"polyrhythm":["orbit","room","rsize","bank","hpf","gain","pan","s","scale","sometimesBy","velocity","attack","delay","delayfeedback","delaytime","lpf","note","nudge","release","sustain"],
+"pr":["orbit","room","rsize","bank","hpf","gain","pan","s","scale","sometimesBy","velocity","attack","delay","delayfeedback","delaytime","lpf","note","nudge","release","sustain"],
 "s":["gain","bank","hpf","pan","room","lpf","velocity","sustain","n","release","duckattack","duckorbit","orbit","attack","decay","duckdepth","slow","shape","sometimesBy","degradeBy"],
 "saw":["slow","range","rangex","segment"],
 "sine":["slow","range","rangex","fast","late","mul","segment"],
+"sound":["gain","bank","hpf","pan","room","lpf","velocity","sustain","n","release","duckattack","duckorbit","orbit","attack","decay","duckdepth","slow","shape","sometimesBy","degradeBy"],
 "stack":["orbit","room","rsize","bank","hpf","gain","pan","s","scale","sometimesBy","velocity","attack","delay","delayfeedback","delaytime","lpf","note","nudge","release","sustain"]
 }}

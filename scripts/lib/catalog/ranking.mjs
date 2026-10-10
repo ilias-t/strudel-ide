@@ -152,19 +152,35 @@ export function buildRanking(counts, functions) {
   const order = [...names].sort((a, b) => score(b) - score(a) || byCodePoint(a, b));
   const rank = Object.fromEntries(order.map((n, i) => [n, i]));
 
-  const after = {};
-  const heads = new Set(SOURCE_KINDS.flatMap((k) => Object.keys(counts.after[k] ?? {})));
-  for (const head of [...heads].sort(byCodePoint)) {
-    if (!known.has(head)) continue;
-    const methods = {};
-    for (const [m, n] of Object.entries(total(Object.fromEntries(SOURCE_KINDS.map((k) => [k, counts.after[k]?.[head] ?? {}])))))
-      if (known.has(m)) methods[m] = n;
+  // an alias head (sound, m) counts for its target (s, mini), and gets the target's list
+  const aliasOf = new Map(functions.filter((f) => f.aliasOf && known.has(f.aliasOf)).map((f) => [f.name, f.aliasOf]));
+  const canonical = (name, seen = new Set()) => (aliasOf.has(name) && !seen.has(name) ? canonical(aliasOf.get(name), seen.add(name)) : name);
+  /** canonical head → name → weighted calls */
+  const byHead = new Map();
+  for (const k of SOURCE_KINDS) {
+    for (const [head, methods] of Object.entries(counts.after[k] ?? {})) {
+      if (!known.has(head)) continue;
+      const to = canonical(head);
+      if (!byHead.has(to)) byHead.set(to, {});
+      for (const [m, n] of Object.entries(methods)) if (known.has(m)) bump(byHead.get(to), m, n * WEIGHTS[k]);
+    }
+  }
+  const lists = new Map();
+  for (const [head, methods] of byHead) {
     const uses = Object.values(methods).reduce((a, b) => a + b, 0);
     if (uses < AFTER_MIN_USES) continue;
-    after[head] = Object.entries(methods)
-      .sort(([a, x], [b, y]) => y - x || byCodePoint(a, b))
-      .slice(0, AFTER_TOP)
-      .map(([m]) => m);
+    lists.set(
+      head,
+      Object.entries(methods)
+        .sort(([a, x], [b, y]) => y - x || byCodePoint(a, b))
+        .slice(0, AFTER_TOP)
+        .map(([m]) => m),
+    );
+  }
+  const after = {};
+  for (const name of [...names].sort(byCodePoint)) {
+    const list = lists.get(canonical(name));
+    if (list) after[name] = list;
   }
   return { rank, after };
 }

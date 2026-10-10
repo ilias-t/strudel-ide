@@ -81,7 +81,8 @@
 //                 its category's page). Aliases link where their target does. Absent: internal/other.
 //   after[head]   for a chain head (a call or value a chain starts from: s, note, n, chord, mini, stack,
 //                 sine…) with ≥ 10 weighted method calls: its top 20 methods by weighted calls in chains
-//                 starting there (after.s: gain bank hpf pan room lpf…). Ties: code point.
+//                 starting there (after.s: gain bank hpf pan room lpf…). Ties: code point. An alias
+//                 head's chains count for its target, and the alias carries the same list (after.sound = after.s).
 //   Built in scripts/lib/catalog/completions.mjs (+ ranking.mjs, ranges.mjs, doc-links.mjs).
 // ─── theory.json ─────────────────────────────────────────────────────────────
 // { scales: [{ name, intervals, common? }], chords: { [symbol]: intervals }, vowels, voicingDicts }

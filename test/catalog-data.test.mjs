@@ -73,6 +73,17 @@ describe("buildRanking", () => {
     assert.deepEqual(order.slice(6), ["yak", "aardvark"]);
   });
 
+  test("an alias head's chains count for its target, and the alias gets the same list", () => {
+    const { after } = buildRanking(
+      {
+        usage: { songs: {}, starters: {}, snippets: {}, examples: {} },
+        after: { songs: { zebra: { yak: 6 }, zeb: { aardvark: 7 } }, starters: {}, snippets: {}, examples: {} },
+      },
+      [...names, { name: "zeb", aliasOf: "zebra" }],
+    );
+    assert.deepEqual(after, { zeb: ["aardvark", "yak"], zebra: ["aardvark", "yak"] });
+  });
+
   test("after keeps heads with enough uses, their top methods in order, unknown names dropped", () => {
     const { after } = buildRanking(
       {
@@ -273,6 +284,8 @@ describe("rank and after", () => {
   test("after.s starts with gain; note, n and chord have lists", () => {
     assert.equal(completions.after.s[0], "gain");
     assert.ok(completions.after.s.includes("bank"));
+    // an alias head shares its target's list (sound(…) chains count towards s)
+    assert.deepEqual(completions.after.sound, completions.after.s);
     for (const head of ["note", "n", "chord", "mini", "sine"]) assert.ok(completions.after[head]?.length >= 3, head);
     for (const list of Object.values(completions.after)) {
       assert.ok(list.length <= 20);
@@ -330,6 +343,7 @@ describe("ranges", () => {
       assert.deepEqual(f.range, m.range, f.name);
       assert.equal(f.docUrl, m.docUrl, f.name);
       if (f.aliasOf && byName.has(f.aliasOf)) {
+        assert.equal(m.availability, meta[f.aliasOf].availability, `${f.name} → ${f.aliasOf}`);
         assert.deepEqual(m.range, meta[f.aliasOf].range, `${f.name} → ${f.aliasOf}`);
         assert.equal(m.docUrl, meta[f.aliasOf].docUrl, `${f.name} → ${f.aliasOf}`);
       }

@@ -246,8 +246,8 @@ export function diagnose(text: string, registry: SoundRegistry, opts: DiagnoseOp
   }
 
   function flagType(type: string, start: number, end: number, names: ScaleNames) {
-    const fixes = didYouMean(type, names.list).map((f) => f.replaceAll(" ", ":"));
-    out.push({ severity: "warning", kind: "scale", start, end, fixes, message: `No scale "${type.replaceAll(" ", ":")}"${dym(fixes)}` });
+    const fixes = didYouMean(type, names.list).map((f) => f.replace(/ /g, ":"));
+    out.push({ severity: "warning", kind: "scale", start, end, fixes, message: `No scale "${type.replace(/ /g, ":")}"${dym(fixes)}` });
   }
 }
 

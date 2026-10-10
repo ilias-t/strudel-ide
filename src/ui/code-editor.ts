@@ -9,6 +9,8 @@
 //   setRanges()   lit tokens: an underline in the track colour
 //   flash()       a hap started: a brief hard invert (dark text on the colour)
 //   setErrorLine  the player's error line: red wavy underline
+//   warnings      unknown sounds, banks and scales: a dotted amber underline
+//                 with "did you mean" quick fixes (./complete/), never red
 //   knob chips    a content widget per knob(…) call, sitting on a reserved
 //                 gap (injected text) so it never covers code
 //   follow        glides to the busiest lit region, like the code view
@@ -25,6 +27,7 @@ import "monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution"
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
 import { setupLanguage, songModelUri } from "./editor-lang";
+import { registerStrudelLanguage } from "./complete";
 import { tokenize } from "./tokenize";
 import { findKnobCalls } from "../live/knob-calls";
 import type { Range } from "../live/highlights";
@@ -270,6 +273,8 @@ export class CodeEditor implements CodeSurface {
     this.errorDecos = this.editor.createDecorationsCollection();
     this.syntaxDecos = this.editor.createDecorationsCollection();
     this.slotDecos = this.editor.createDecorationsCollection();
+    // Strudel support: calm warnings for names that won't play, with quick fixes (src/ui/complete/)
+    this.disposables.push(registerStrudelLanguage(monaco, this.editor));
 
     // ⌘/Ctrl+Enter: evaluate now (Monaco would insert a line)
     this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => o.onCommit());

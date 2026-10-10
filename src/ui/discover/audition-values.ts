@@ -17,8 +17,9 @@
 //
 // Pitched samples and synths play a note (the caller's, e.g. the song's key
 // root, else c3); drums never do. All sound auditions share one cut group, so
-// a new one chokes one already sounding (the bus moves it to cut groups of
-// the auditions' own: ./audition-bus.ts).
+// a new one chokes a sample already sounding (the bus moves it to cut groups
+// of the auditions' own: ./audition-bus.ts). superdough cuts only samples:
+// ./audition-voices.ts silences synths (every voice) when the next one starts.
 //
 // Pure apart from the setting's storage: Node tests import it.
 

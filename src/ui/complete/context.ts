@@ -180,6 +180,8 @@ interface ChainInfo {
   /** banks of this chain and of the chains it's nested in (stack(s("bd")).bank("X")) */
   banks: string[];
   soundsInChain: string[];
+  /** the root of the chain's first .scale("D:minor") */
+  scaleRoot?: string;
 }
 
 interface Scan {
@@ -355,7 +357,14 @@ function chainInfo(sc: Scan, head: Call): ChainInfo {
   const calls = chainFrom(sc, head);
   const banks: string[] = [];
   const sounds: string[] = [];
+  let scaleRoot: string | undefined;
   for (const c of calls) {
+    if (c.name === "scale" && scaleRoot === undefined) {
+      // "D:minor", "<C:major D:minor>": the first root
+      const v = firstArgString(sc, c);
+      const root = v === undefined ? undefined : /^[A-Ga-g][#b]?\d?$/.exec(soundWords(v)[0] ?? "")?.[0];
+      if (root) scaleRoot = root;
+    }
     if (c.name === "bank") {
       const v = firstArgString(sc, c);
       if (v !== undefined) banks.push(...soundWords(v));
@@ -377,6 +386,7 @@ function chainInfo(sc: Scan, head: Call): ChainInfo {
   const outer = enclosingCall(sc, head.nameIndex);
   if (outer) banks.push(...chainInfo(sc, chainHead(sc, outer)).banks);
   const info: ChainInfo = { calls, banks: [...new Set(banks)], soundsInChain: [...new Set(sounds)] };
+  if (scaleRoot) info.scaleRoot = scaleRoot;
   sc.chains.set(head.nameIndex, info);
   return info;
 }
@@ -548,7 +558,28 @@ function contextOf(sc: Scan, si: number, offset: number): StringContext | null {
   };
   const track = trackNameFrom(sc, si);
   if (track !== undefined) ctx.trackName = track;
+  if (info.scaleRoot) ctx.scaleRoot = info.scaleRoot;
   return ctx;
+}
+
+/**
+ * The calls of the chain a member access at `offset` continues, up to its
+ * receiver: `s("bd").gain(1).|` (or `.ga|`) → s, gain. Null when the caret
+ * isn't after `<call>(…).`: an identifier receiver (`pat.`), a string, a
+ * number, or no dot at all.
+ */
+export function callChainBefore(text: string, offset: number): CallRef[] | null {
+  const sc = scanCached(text);
+  const { toks } = sc;
+  let i = lastTokenBefore(toks, offset);
+  if (i >= 0 && toks[i].kind === "id" && toks[i].end === offset) i--; // the word being typed
+  if (i < 1 || toks[i].text !== "." || toks[i - 1].text !== ")") return null;
+  const open = sc.match[i - 1];
+  const receiver = open > 0 ? callAt(sc, open - 1) : null;
+  if (!receiver) return null;
+  const calls = chainFrom(sc, chainHead(sc, receiver));
+  const end = calls.findIndex((c) => c.nameIndex === receiver.nameIndex);
+  return calls.slice(0, end + 1).map(ref);
 }
 
 /** The context of the string literal holding `offset`, or null outside strings, outside calls and in templates with ${…} */

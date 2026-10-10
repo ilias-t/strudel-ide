@@ -78,6 +78,8 @@ export interface StringContext {
   soundsInChain: string[];
   /** The track this string belongs to, from `const hats = …` or a record key `hats: …` */
   trackName?: string;
+  /** The root of the chain's .scale("D:minor") ("D"), when it has one: previews of pitched sounds play it */
+  scaleRoot?: string;
 }
 
 /** The live sound registry: what can actually play right now */

@@ -10,6 +10,9 @@
 .m-library {
   padding: 12px 14px 14px;
   display: grid;
+  /* one column the unit's width: an auto column grows to the content's width
+     and pushes the screen's right edge out of a narrow (phone) drawer */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 10px;
 }
@@ -102,6 +105,7 @@
 
 .lib-screen {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
   overflow: hidden;

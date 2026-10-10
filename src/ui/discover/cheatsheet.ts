@@ -538,7 +538,7 @@ export function createCheatSheet(d: Discovery): FeatureHandle {
     if (opts.query !== undefined) {
       query = opts.query;
       search.value = query;
-    }
+    } else query = search.value; // typed while the chunk loaded (hooks.ts focused the search at once)
     render();
     await load();
   }

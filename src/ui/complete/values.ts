@@ -386,7 +386,14 @@ function noteItems(prefix: string, range: Range, offset: number): ValueItem[] {
   return out;
 }
 
-/** The step of a string around the caret: the run between spaces and brackets ("C:minor:pentatonic", "Dm7") */
+/** Mini-notation modifiers after a value (*2 /2 ! @2 ?0.3 %4): never part of a scale or chord name */
+const MODIFIER = /[*/!@?%]/;
+
+/**
+ * The step of a string around the caret: the run between spaces and brackets,
+ * up to its modifiers ("C:minor:pentatonic" in "C:minor:pentatonic*2", "Dm7"
+ * in "Dm7@3"). `before`: the step up to the caret (not past the modifiers).
+ */
 export function stepAt(ctx: StringContext, offset: number): { start: number; end: number; before: string } {
   const base = ctx.string.start + 1;
   const v = ctx.value;
@@ -394,9 +401,9 @@ export function stepAt(ctx: StringContext, offset: number): { start: number; end
   const caret = Math.max(0, Math.min(offset - base, v.length));
   let a = caret;
   while (a > 0 && !stop(v[a - 1])) a--;
-  let b = caret;
-  while (b < v.length && !stop(v[b])) b++;
-  return { start: base + a, end: base + b, before: v.slice(a, caret) };
+  let b = a;
+  while (b < v.length && !stop(v[b]) && !MODIFIER.test(v[b])) b++;
+  return { start: base + a, end: base + b, before: v.slice(a, Math.min(caret, b)) };
 }
 
 function scaleItems(ctx: StringContext, offset: number, theory: Theory | null): ValueItem[] {

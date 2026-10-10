@@ -272,8 +272,16 @@ test("hear while browsing: off by default; ⌥P, three fast arrows: one preview;
 
   // three fast arrows: one preview, of the row where they stopped
   const on = (await auditions(page)).length;
-  // sent back to back (no round trip to the test between them): a busy machine still delivers them within the 120 ms pause
-  await Promise.all([0, 1, 2].map(() => page.keyboard.press("ArrowDown")));
+  // dispatched in one go inside the page, so a busy machine can't space them past the 120 ms pause
+  // (Playwright's presses are round trips each: under load two of them were once 120 ms apart)
+  await page.evaluate(() => {
+    const target = document.activeElement!;
+    for (let i = 0; i < 3; i++) {
+      for (const type of ["keydown", "keyup"]) {
+        target.dispatchEvent(new KeyboardEvent(type, { key: "ArrowDown", code: "ArrowDown", keyCode: 40, which: 40, bubbles: true, cancelable: true }));
+      }
+    }
+  });
   await expect.poll(() => previewsSince(page, on).then((p) => p.length)).toBe(1);
   await page.waitForTimeout(500);
   const [one] = await previewsSince(page, on);

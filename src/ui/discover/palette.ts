@@ -161,7 +161,11 @@ export function createPalette(d: Discovery): FeatureHandle {
         mode: d.host.mode(),
         sections: s.sections,
       }),
-      ...songItems(player.allSongs(), player.currentSongId_()),
+      // named and marked like the stage's picker: the name it plays under now, ⚠ when it didn't build
+      ...songItems(
+        player.allSongs().map(({ id, song }) => ({ id, song: player.playingSongOf(id) ?? song, broken: !!player.songProblem(id) })),
+        player.currentSongId_()
+      ),
     ];
   }
 

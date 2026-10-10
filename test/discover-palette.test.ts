@@ -76,6 +76,20 @@ describe("songs", () => {
     assert.deepEqual(items[0].run, { type: "song", id: "acid-rain" });
     assert.ok(items[0].alts?.includes("acid-rain"));
   });
+
+  test("a song that didn't build is marked ⚠ like the picker, and still opens (to be fixed)", () => {
+    const items = songItems(
+      [
+        { id: "draft", song: { name: "Draft" }, broken: true },
+        { id: "dusk", song: { name: "Dusk", bpm: 90 } },
+      ],
+      "dusk"
+    );
+    assert.match(byId(items, "draft").detail ?? "", /^⚠ didn't build/);
+    assert.equal(byId(items, "draft").name, "Draft");
+    assert.deepEqual(byId(items, "draft").run, { type: "song", id: "draft" });
+    assert.doesNotMatch(byId(items, "dusk").detail ?? "", /⚠/);
+  });
 });
 
 const sounds: SoundsCatalog = {

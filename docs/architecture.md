@@ -88,9 +88,10 @@ only the stage's own editor and its localStorage are left.
   - `editor-source.ts`: the session's path into the player (`evalSource`).
   - `song-saver.ts`: the debounced autosave into the songs store.
 - **Discovery** (`src/ui/discover/`). The library (**B**), the ⌘/Ctrl+K
-  palette and the track builder (the mixer's **+ track**). Only `hooks.ts` is
-  on the boot path: it takes the keys and lazy-loads each feature, with its
-  CSS and the catalog JSON in `src/catalog/`, the first time it opens.
+  palette and the track builder (the mixer's **+ track**). Only `hooks.ts`
+  (and the pure `insert.ts` it uses) is on the boot path: it takes the keys
+  and lazy-loads each feature, with its CSS and the catalog JSON in
+  `src/catalog/`, the first time it opens.
   Everything they put in a song goes into the editor as an edit you made
   (`CodeEditor.applyEdits`, one undo step): the song's `EditSession` takes the
   buffer, evaluates it as typing and the autosave keeps it. While your editor
@@ -207,7 +208,7 @@ them in parallel. What the page loads lazily:
 
 | What | Loaded when |
 | --- | --- |
-| Monaco and the editor's TypeScript libs (`code-editor.ts`, `editor-lang.ts`) | you first press **E** (or the last visit ended in edit mode) |
+| Monaco and the editor's TypeScript libs (`code-editor.ts`, `editor-lang.ts`) | you first press **E**, or first insert from the library, the palette or the track builder (or the last visit ended in edit mode) |
 | The compiler (`compile/client.ts`, its worker, TypeScript) | the first `evalSource` / `addSong`: typing, a stored song, or a share link |
 | A share link's song | after "open it" on the stage's card |
 | The library, the palette, the track builder and the catalog they read | each the first time it opens (**B**, ⌘/Ctrl+K, **+ track**); the track builder also loads the compiler |

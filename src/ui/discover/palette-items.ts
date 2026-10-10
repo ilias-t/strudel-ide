@@ -136,8 +136,16 @@ export function actionItems(s: ActionState): PaletteItem[] {
 
 // ── songs ──────────────────────────────────────────────────────────────────
 
-export function songItems(songs: { id: string; song: { name?: string; bpm?: number } }[], currentId: string): PaletteItem[] {
-  return songs.map(({ id, song }) => {
+/**
+ * One item per song. `song` is the song as it plays now (an edit may rename it);
+ * `broken`: a user song that didn't build (a silent placeholder), marked ⚠ like
+ * the stage's picker. It still opens, so it can be fixed.
+ */
+export function songItems(
+  songs: { id: string; song: { name?: string; bpm?: number }; broken?: boolean }[],
+  currentId: string
+): PaletteItem[] {
+  return songs.map(({ id, song, broken }) => {
     const current = id === currentId;
     const bpm = song.bpm ? `${song.bpm} bpm` : "";
     return {
@@ -145,7 +153,9 @@ export function songItems(songs: { id: string; song: { name?: string; bpm?: numb
       id,
       name: song.name || id,
       alts: [id],
-      detail: current ? ["the song you're on", bpm].filter(Boolean).join(" · ") : ["switch to it", bpm].filter(Boolean).join(" · "),
+      detail: [broken ? "⚠ didn't build" : "", current ? "the song you're on" : "switch to it", broken ? "" : bpm]
+        .filter(Boolean)
+        .join(" · "),
       weight: KIND_WEIGHT.song,
       run: { type: "song", id },
       ...(current ? { current: true as const } : {}),

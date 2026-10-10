@@ -6,6 +6,8 @@
 //   - Enter runs an action, switches song or inserts at the caret (entering
 //     edit mode first); Shift+Enter auditions; Esc closes and gives focus back
 //   - the stage's shortcuts never fire under it
+//   - search by sound: intent rows (wobble, wetter, acid bass) play, insert
+//     and open the track builder; the sound previews action is remembered
 
 import type { Locator, Page } from "@playwright/test";
 import { FIXTURE_ID } from "./fixture.ts";
@@ -286,4 +288,102 @@ test("the stage's shortcuts don't fire while the palette is open", async ({ play
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("palette")).toBeHidden();
   expect((await player.state()).playing).toBe(true);
+});
+
+// ── search by sound ─────────────────────────────────────────────────────────
+
+/** The kind:id of the first `n` rows */
+const topRows = (page: Page, n: number) =>
+  options(page).evaluateAll((els, n) => els.slice(0, n).map((e) => `${e.getAttribute("data-kind")}:${e.getAttribute("data-id")}`), n);
+
+test("search by sound: wobble is an intent row; Shift+Enter plays its recipe and keeps the palette open", async ({ player, page }) => {
+  await player.boot();
+  await openPalette(page);
+  await catalogLoaded(page);
+  await search(page, "wobble", { kind: "intent", id: "wobble" });
+  const row = options(page).first();
+  await expect(row).toContainText("→ lpf · sine · range · segment");
+  await expect(row).toContainText("a sine on the cutoff");
+  await expect(page.locator("#palette-group-intent")).toHaveText("By sound");
+
+  const before = (await page.evaluate(() => window.__strudelDiscover!.auditions())).length;
+  await page.keyboard.press("Shift+Enter");
+  await expect
+    .poll(async () => {
+      const recs = await page.evaluate(() => window.__strudelDiscover!.auditions());
+      return recs.length > before ? { label: recs[recs.length - 1].label, kind: recs[recs.length - 1].kind } : null;
+    })
+    .toEqual({ label: "wobble", kind: "pattern" });
+  expect(await isOpen(page)).toBe(true);
+  await expect(input(page)).toBeFocused();
+});
+
+test("search by sound: reverb puts wetter first and room among the top rows; ⌥Enter on acid bass opens the track builder", async ({ player, page }) => {
+  await player.boot();
+  await openPalette(page);
+  await catalogLoaded(page);
+  await search(page, "reverb", { kind: "intent", id: "wetter" });
+  const rows = await topRows(page, 8);
+  expect(rows, rows.join(", ")).toContain("function:room");
+  expect(rows.some((r) => r.startsWith("snippet:")), rows.join(", ")).toBe(false);
+  // room says why it's here
+  await expect(page.locator('[data-testid="palette-option"][data-kind="function"][data-id="room"]')).toContainText("for “reverb”");
+
+  // an intent with a role: ⌥Enter opens the track builder on its snippet
+  await search(page, "acid bass", { kind: "intent", id: "acid-bass" });
+  await page.keyboard.press("Alt+Enter");
+  await expect(page.getByTestId("palette")).toBeHidden();
+  await expect(page.locator("[data-testid=builder-role][data-role=acid]")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("[data-testid=builder-snippet][data-id=acid-303-line]")).toHaveAttribute("aria-pressed", "true");
+});
+
+test("search by sound: Enter on wetter after an expression inserts .room(0.5)", async ({ player, page }) => {
+  await player.boot();
+  expect(await player.select(FIXTURE_ID)).toBe(true);
+  await enterEdit(page);
+  await page.evaluate(() => {
+    const e = window.__strudelEditor!;
+    const text = e.value()!;
+    e.focus(text.indexOf(".gain(0.5)") + ".gain(0.5)".length);
+  });
+  await openPalette(page);
+  await catalogLoaded(page);
+  await search(page, "wetter", { kind: "intent", id: "wetter" });
+  await page.keyboard.press("Enter");
+
+  await expect(page.getByTestId("palette")).toBeHidden();
+  await expect.poll(() => editorText(page)).toContain(".gain(0.5).room(0.5)");
+  await expect(page.getByTestId("code-editor").locator(".monaco-editor textarea")).toBeFocused();
+});
+
+test("the sound previews action says its state, flips it, and is remembered after a reload", async ({ player, page }) => {
+  await player.boot();
+  await openPalette(page);
+  await search(page, "sound previews", { kind: "action", id: "previews" });
+  await expect(options(page).first()).toContainText("sound previews: off");
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("palette")).toBeHidden();
+
+  await openPalette(page);
+  await search(page, "sound previews", { kind: "action", id: "previews" });
+  await expect(options(page).first()).toContainText("sound previews: on");
+  await page.keyboard.press("Escape");
+
+  await page.reload();
+  await page.waitForFunction(
+    () => {
+      const s = window.__strudel?.getState();
+      return !!s && s.ready && s.loading === null;
+    },
+    null,
+    { timeout: 30_000 }
+  );
+  await openPalette(page);
+  await search(page, "sound previews", { kind: "action", id: "previews" });
+  await expect(options(page).first()).toContainText("sound previews: on");
+  // and back off
+  await page.keyboard.press("Enter");
+  await openPalette(page);
+  await search(page, "sound previews", { kind: "action", id: "previews" });
+  await expect(options(page).first()).toContainText("sound previews: off");
 });

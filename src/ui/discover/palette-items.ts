@@ -136,8 +136,8 @@ export function actionItems(s: ActionState): PaletteItem[] {
     action("follow", "follow the music", "scroll the code along with what plays", a("follow"), "F", ["scroll"]),
     action("unmute", "clear mutes and solos", "every track back in the mix", a("unmute"), "0", ["unmute", "unsolo", "reset mix"]),
     s.previews
-      ? action("previews", "sound previews: on", "the editor's sound suggestions play as you move through them · turn them off", a("previews"), undefined, ["previews", "hear while browsing", "mute previews"])
-      : action("previews", "sound previews: off", "hear the editor's sound suggestions as you move through them · turn them on", a("previews"), undefined, ["previews", "hear while browsing", "audition"]),
+      ? action("previews", "sound previews: on", "the editor's sound suggestions play as you browse · turn them off", a("previews"), undefined, ["previews", "hear while browsing", "mute previews"])
+      : action("previews", "sound previews: off", "hear the editor's sound suggestions as you browse · turn them on", a("previews"), undefined, ["previews", "hear while browsing", "audition"]),
     action("help", "keyboard shortcuts", "every key the stage knows", a("help"), "?", ["help", "keys"])
   );
   return items;

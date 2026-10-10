@@ -1,0 +1,16 @@
+{
+  "scales": [
+    { "name": "major", "intervals": ["1P", "2M", "3M", "4P", "5P", "6M", "7M"], "common": true },
+    { "name": "minor", "intervals": ["1P", "2M", "3m", "4P", "5P", "6m", "7m"], "common": true },
+    { "name": "dorian", "intervals": ["1P", "2M", "3m", "4P", "5P", "6M", "7m"], "common": true },
+    { "name": "lydian", "intervals": ["1P", "2M", "3M", "4A", "5P", "6M", "7M"] },
+    { "name": "mixolydian", "intervals": ["1P", "2M", "3M", "4P", "5P", "6M", "7m"] },
+    { "name": "major pentatonic", "intervals": ["1P", "2M", "3M", "5P", "6M"], "common": true },
+    { "name": "minor pentatonic", "intervals": ["1P", "3m", "4P", "5P", "7m"], "common": true },
+    { "name": "minor blues", "intervals": ["1P", "3m", "4P", "5d", "5P", "7m"] },
+    { "name": "harmonic minor", "intervals": ["1P", "2M", "3m", "4P", "5P", "6m", "7M"] }
+  ],
+  "chords": { "m7": ["1P", "3m", "5P", "7m"], "^7": ["1P", "3M", "5P", "7M"] },
+  "vowels": ["a", "e", "i", "o", "u"],
+  "voicingDicts": ["ireal", "lefthand"]
+}

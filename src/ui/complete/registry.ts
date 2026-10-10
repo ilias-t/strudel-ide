@@ -100,8 +100,8 @@ export function createRegistry({ soundMap, catalog = null, ready, debounceMs = 1
   const entryOf = (key: string): SoundEntry | undefined => {
     const k = key.toLowerCase();
     if (isJunk(k)) return undefined;
-    const e = soundMap.get()[k];
-    return e && Object.prototype.hasOwnProperty.call(soundMap.get(), k) ? e : undefined;
+    const map = soundMap.get();
+    return Object.prototype.hasOwnProperty.call(map, k) ? map[k] : undefined;
   };
 
   const settle = () => {

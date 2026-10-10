@@ -7,11 +7,11 @@
 // Shift+Enter plays (`play`), and for a snippet what Alt+Enter hands the
 // track builder (`track`).
 
-import type { Candidate, Ranked } from "./fuzzy.ts";
-import type { FunctionsCatalog, SnippetsCatalog, SoundsCatalog } from "./catalog.ts";
+import { wordsOf, type Candidate, type Ranked } from "./fuzzy.ts";
+import type { FunctionsCatalog, IntentsCatalog, SnippetsCatalog, SoundsCatalog } from "./catalog.ts";
 import type { InsertItem } from "./insert.ts";
 
-export type PaletteKind = "action" | "song" | "sound" | "bank" | "function" | "snippet";
+export type PaletteKind = "action" | "song" | "intent" | "sound" | "bank" | "function" | "snippet";
 
 export type ActionId =
   | "play"
@@ -26,6 +26,7 @@ export type ActionId =
   | "code-view"
   | "follow"
   | "unmute"
+  | "previews"
   | "help";
 
 export type PaletteRun =
@@ -35,7 +36,8 @@ export type PaletteRun =
 
 export type PalettePlay =
   | { type: "sound"; name: string; pitched?: boolean; bank?: string }
-  | { type: "code"; code: string };
+  /** `cycles`: how many bars previewCode() plays (default 1) */
+  | { type: "code"; code: string; cycles?: number };
 
 export interface PaletteItem extends Candidate {
   kind: PaletteKind;
@@ -54,12 +56,13 @@ export interface PaletteItem extends Candidate {
   track?: { role: string; snippet: string };
 }
 
-/** Tie-break order: actions and songs before the catalog */
-export const KIND_WEIGHT: Record<PaletteKind, number> = { action: 0, song: 1, sound: 2, bank: 2, snippet: 3, function: 4 };
+/** Tie-break order: actions and songs before the catalog, a way of describing a sound before what it names */
+export const KIND_WEIGHT: Record<PaletteKind, number> = { action: 0, song: 1, intent: 2, sound: 3, bank: 3, snippet: 4, function: 5 };
 
 export const KIND_LABEL: Record<PaletteKind, string> = {
   action: "Actions",
   song: "Songs",
+  intent: "By sound",
   sound: "Sounds",
   bank: "Drum machines",
   function: "Functions",
@@ -70,6 +73,7 @@ export const KIND_LABEL: Record<PaletteKind, string> = {
 export const KIND_TAG: Record<PaletteKind, string> = {
   action: "action",
   song: "song",
+  intent: "recipe",
   sound: "sound",
   bank: "bank",
   function: "function",
@@ -84,6 +88,8 @@ export interface ActionState {
   codeView: boolean;
   mode: "view" | "edit";
   sections: { name: string }[] | null;
+  /** "Hear sounds as you browse" (./preview-setting.ts): off unless given */
+  previews?: boolean;
 }
 
 const action = (
@@ -129,6 +135,9 @@ export function actionItems(s: ActionState): PaletteItem[] {
       : action("code-view", "show the code", "the song's code on the screen", a("code-view"), "C", ["code view"]),
     action("follow", "follow the music", "scroll the code along with what plays", a("follow"), "F", ["scroll"]),
     action("unmute", "clear mutes and solos", "every track back in the mix", a("unmute"), "0", ["unmute", "unsolo", "reset mix"]),
+    s.previews
+      ? action("previews", "sound previews: on", "the editor's sound suggestions play as you move through them · turn them off", a("previews"), undefined, ["previews", "hear while browsing", "mute previews"])
+      : action("previews", "sound previews: off", "hear the editor's sound suggestions as you move through them · turn them on", a("previews"), undefined, ["previews", "hear while browsing", "audition"]),
     action("help", "keyboard shortcuts", "every key the stage knows", a("help"), "?", ["help", "keys"])
   );
   return items;
@@ -247,24 +256,39 @@ export function compactSignature(sig: string): string {
   return `(${names.join(", ")})`;
 }
 
-export function functionItems(catalog: FunctionsCatalog, previewable: (code: string) => boolean): PaletteItem[] {
+/**
+ * One item per function. Found by its name, its synonyms, the phrases of the
+ * intents it's the main function of ("wetter" finds room), and the words of
+ * its summary (well below). Aliases, deprecated and SuperDirt-only functions
+ * sink below the rest on ties.
+ */
+export function functionItems(catalog: FunctionsCatalog, previewable: (code: string) => boolean, intents?: IntentsCatalog): PaletteItem[] {
   const category = new Map(catalog.categories.map((c) => [c.id, c.label]));
+  const phrases = new Map<string, string[]>();
+  for (const intent of intents?.intents ?? []) {
+    const main = intent.functions[0];
+    if (main) phrases.set(main, [...(phrases.get(main) ?? []), ...intent.phrases]);
+  }
   return catalog.functions.map((fn) => {
     const notes: string[] = [];
     if (fn.aliasOf) notes.push(`same as ${fn.aliasOf}`);
     if (fn.deprecated) notes.push("deprecated");
     if (fn.superdirtOnly) notes.push("SuperDirt only");
-    const summary = plainText(fn.summary) || category.get(fn.category) || fn.category;
+    const plain = plainText(fn.summary);
+    const summary = plain || category.get(fn.category) || fn.category;
     const example = fn.examples[0];
+    const said = !fn.aliasOf && phrases.get(fn.name);
     return {
       kind: "function",
       id: fn.name,
       name: fn.name,
       // an alias's synonyms are its target's: let the target answer to them
       ...(fn.synonyms.length && !fn.aliasOf ? { alts: fn.synonyms } : {}),
+      ...(said ? { phrases: said } : {}),
+      ...(plain ? { words: wordsOf(plain) } : {}),
       suffix: fn.kind === "value" ? "" : compactSignature(fn.signatures[0] ?? ""),
       detail: [...notes, summary].join(" · "),
-      weight: KIND_WEIGHT.function + (fn.aliasOf ? 1 : 0),
+      weight: KIND_WEIGHT.function + (fn.aliasOf || fn.deprecated || fn.superdirtOnly ? 1 : 0),
       run: { type: "insert", item: { type: "function", name: fn.name, kind: fn.kind, params: fn.params.length } },
       ...(example && previewable(example) ? { play: { type: "code" as const, code: example } } : {}),
     };
@@ -285,6 +309,38 @@ export function snippetItems(catalog: SnippetsCatalog): PaletteItem[] {
     play: { type: "code", code: s.code },
     track: { role: s.role, snippet: s.id },
   }));
+}
+
+// ── search by sound: intents ───────────────────────────────────────────────
+
+/**
+ * One row per intent: "wetter → room · size · delay", the tip as its detail.
+ * Its other phrases (and its id) find it. Enter inserts the call after an
+ * expression or the recipe where one starts (./insert.ts decides); Shift+Enter
+ * plays the recipe for two bars; Alt+Enter, for an intent with a role, opens
+ * the track builder on its first snippet.
+ */
+export function intentItems(catalog: IntentsCatalog): PaletteItem[] {
+  return catalog.intents.map((intent) => {
+    const [name = intent.id, ...rest] = intent.phrases;
+    const alts = [...new Set([...rest, intent.id.replace(/-/g, " ")])].filter((a) => a !== name);
+    const call = intent.call ?? `${intent.functions[0]}()`;
+    const recipe = intent.recipe;
+    const snippet = intent.snippets?.[0];
+    return {
+      kind: "intent",
+      id: intent.id,
+      name,
+      ...(alts.length ? { alts } : {}),
+      suffix: ` → ${intent.functions.join(" · ")}`,
+      detail: intent.tip ?? "",
+      weight: KIND_WEIGHT.intent,
+      // with no recipe, the call itself starts an expression (the functions are globals too)
+      run: { type: "insert", item: { type: "intent", call, code: recipe ?? call } },
+      ...(recipe ? { play: { type: "code" as const, code: recipe, cycles: 2 } } : {}),
+      ...(intent.role && snippet ? { track: { role: intent.role, snippet } } : {}),
+    };
+  });
 }
 
 // ── grouping ───────────────────────────────────────────────────────────────

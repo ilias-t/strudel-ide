@@ -154,6 +154,7 @@
 .pal-opt[data-kind="bank"] { --kind: var(--rose); }
 .pal-opt[data-kind="function"] { --kind: var(--cobalt-px); }
 .pal-opt[data-kind="snippet"] { --kind: var(--teal); }
+.pal-opt[data-kind="intent"] { --kind: var(--lilac); }
 
 /* the kind: a tiny lamp in its colour, and the word */
 .pal-tag {
@@ -190,7 +191,8 @@
 /* actions, songs and snippet titles are words; sounds, banks and functions are code */
 .pal-opt[data-kind="action"] .pal-name,
 .pal-opt[data-kind="song"] .pal-name,
-.pal-opt[data-kind="snippet"] .pal-name {
+.pal-opt[data-kind="snippet"] .pal-name,
+.pal-opt[data-kind="intent"] .pal-name {
   font-family: var(--ui);
   font-stretch: 90%;
   font-size: 13.5px;

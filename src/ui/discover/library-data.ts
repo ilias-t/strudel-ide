@@ -13,9 +13,11 @@
 //   functions        every term must match the name, a synonym, the alias
 //                    target, the summary or the category; ranked by where
 //                    each term matched (exact name, name prefix, name, synonym,
-//                    category, summary), ties by name
+//                    category, summary), ties by name; a query that is (or
+//                    starts) an intent's phrase (intents.json: "wetter") lists
+//                    that intent's functions first (room, size, delay)
 
-import type { BankInfo, FunctionInfo, FunctionsCatalog, SoundGroup, SoundInfo, SoundsCatalog } from "./catalog";
+import type { BankInfo, FunctionInfo, FunctionsCatalog, IntentsCatalog, SoundGroup, SoundInfo, SoundsCatalog } from "./catalog";
 import type { InsertItem } from "./insert";
 
 /** The query's words, lowercased */
@@ -83,16 +85,47 @@ function rank(fn: FunctionInfo, term: string, categoryLabel: string): number {
   return Infinity;
 }
 
-/** Functions matching `query`, best first (none for an empty query) */
-export function searchFunctions(cat: FunctionsCatalog, query: string): FunctionInfo[] {
+/** An intent's functions rank just below an exact name (a phrase typed whole) or a name prefix (a phrase's start) */
+const INTENT_EXACT = 0.5;
+const INTENT_PREFIX = 1.5;
+const INTENT_STEP = 0.01;
+
+/**
+ * Search by sound: the functions of the intents whose phrase is `query`
+ * ("wetter", "more reverb") or starts with it ("wobb"), each with the best
+ * score it gets from them, in the intents' own order
+ */
+function intentScores(intents: IntentsCatalog | undefined, words: string[]): Map<string, number> {
+  const scores = new Map<string, number>();
+  const q = words.join(" ");
+  if (!intents || q.length < 3) return scores;
+  for (const intent of intents.intents) {
+    const exact = intent.phrases.includes(q);
+    if (!exact && !intent.phrases.some((p) => p.startsWith(q))) continue;
+    intent.functions.forEach((name, i) => {
+      const score = (exact ? INTENT_EXACT : INTENT_PREFIX) + i * INTENT_STEP;
+      if (score < (scores.get(name) ?? Infinity)) scores.set(name, score);
+    });
+  }
+  return scores;
+}
+
+/**
+ * Functions matching `query`, best first (none for an empty query). With
+ * `intents`, a query that is (or starts) an intent's phrase lists that
+ * intent's functions first, after any function it names exactly.
+ */
+export function searchFunctions(cat: FunctionsCatalog, query: string, intents?: IntentsCatalog): FunctionInfo[] {
   const words = terms(query);
   if (!words.length) return [];
   const labels = new Map(cat.categories.map((c) => [c.id, c.label]));
+  const byIntent = intentScores(intents, words);
   const scored: { fn: FunctionInfo; score: number }[] = [];
   for (const fn of cat.functions) {
     const label = labels.get(fn.category) ?? "";
     let score = 0;
     for (const w of words) score += rank(fn, w, label);
+    score = Math.min(score, byIntent.get(fn.name) ?? Infinity);
     if (score !== Infinity) scored.push({ fn, score });
   }
   scored.sort((a, b) => a.score - b.score || (a.fn.name < b.fn.name ? -1 : a.fn.name > b.fn.name ? 1 : 0));

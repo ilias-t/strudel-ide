@@ -29,7 +29,7 @@
 
 import "./library.css";
 import type { Discovery, FeatureHandle, FeatureOptions } from "./hooks";
-import { loadFunctions, loadSounds, type FunctionInfo, type FunctionsCatalog, type SoundsCatalog } from "./catalog";
+import { loadFunctions, loadIntents, loadSounds, type FunctionInfo, type FunctionsCatalog, type IntentsCatalog, type SoundsCatalog } from "./catalog";
 import { auditionSound, previewCode, previewable, stopAudition, type AuditionRecord } from "./audition";
 import type { InsertItem } from "./insert";
 import {
@@ -81,6 +81,7 @@ export function createLibrary(d: Discovery): FeatureHandle {
   const openFunctions = new Set<string>();
   let sounds: SoundsCatalog | null = null;
   let functions: FunctionsCatalog | null = null;
+  let intents: IntentsCatalog | undefined; // search by sound: optional, the search works without it
   let loadError = false;
   let returnFocus: HTMLElement | null = null;
 
@@ -291,7 +292,7 @@ export function createLibrary(d: Discovery): FeatureHandle {
       }
       return;
     }
-    const found = searchFunctions(cat, query);
+    const found = searchFunctions(cat, query, intents);
     count.textContent = `${found.length} of ${cat.functions.length} functions`;
     for (const f of found.slice(0, RESULT_LIMIT)) list.append(functionRow(f, labels.get(f.category)));
     if (found.length > RESULT_LIMIT) message(`${found.length - RESULT_LIMIT} more: add a word to narrow the search.`);
@@ -452,6 +453,14 @@ export function createLibrary(d: Discovery): FeatureHandle {
       functions = c;
       if (tab === "functions") render();
     });
+    // search by sound: a missing intents file only loses that ranking
+    loadIntents().then(
+      (c) => {
+        intents = c;
+        if (tab === "functions" && functions) render();
+      },
+      (err: unknown) => console.warn("[library] intents didn't load", err)
+    );
     render();
     try {
       await Promise.all([s, f]);

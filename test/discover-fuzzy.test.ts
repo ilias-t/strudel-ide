@@ -110,6 +110,48 @@ describe("rank", () => {
     assert.equal(rank(items, "tr909")[0].via, undefined);
   });
 
+  test("phrases match like alternative names, a little lower, and say they're phrases", () => {
+    const items: Item[] = [
+      { id: "lpf", name: "lpf", phrases: ["darker"] },
+      { id: "dark", name: "x", alts: ["darker"] },
+    ];
+    const [first, second] = rank(items, "darker");
+    assert.equal(first.item.id, "dark");
+    assert.equal(first.field, "alt");
+    assert.equal(second.via, "darker");
+    assert.equal(second.field, "phrase");
+  });
+
+  test("description words: a whole word or a word's start finds the item, well below a name or an alternative name", () => {
+    const items: Item[] = [
+      { id: "room", name: "room", words: ["sets", "the", "level", "of", "reverb"] },
+      { id: "rev", name: "reverbish" },
+      { id: "alt", name: "x", alts: ["reverb"] },
+    ];
+    const ranked = rank(items, "reverb");
+    assert.deepEqual(ranked.map((r) => r.item.id), ["alt", "rev", "room"]);
+    assert.equal(ranked[2].field, "words");
+    assert.deepEqual(ranked[2].indices, []);
+    assert.equal(rank(items, "rev")[2]?.item.id, "room", "a word's start");
+    assert.deepEqual(rank([items[0]], "everb"), [], "not inside a word");
+    assert.deepEqual(rank([items[0]], "re"), [], "not for one or two letters");
+  });
+
+  test("every query word has to start a description word", () => {
+    const items: Item[] = [{ id: "hpf", name: "hpf", words: ["applies", "the", "high", "pass", "filter"] }];
+    assert.equal(rank(items, "high filter").length, 1);
+    assert.equal(rank(items, "high-pass").length, 1);
+    assert.equal(rank(items, "high reverb").length, 0);
+  });
+
+  test("a real word match beats a fuzzy fit scattered across a long title", () => {
+    const items: Item[] = [
+      { id: "crash", name: "Crash every 4 bars" },
+      { id: "room", name: "room", words: ["sets", "the", "level", "of", "reverb"] },
+    ];
+    assert.deepEqual(rank(items, "reverb").map((r) => r.item.id), ["room", "crash"]);
+  });
+
   test("caps the results", () => {
     const items: Item[] = Array.from({ length: 200 }, (_, i) => ({ id: String(i), name: `sound${i}` }));
     assert.equal(rank(items, "s", { limit: 80 }).length, 80);

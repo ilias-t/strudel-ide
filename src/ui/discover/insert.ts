@@ -27,7 +27,12 @@ export type InsertItem =
   /** A function (functions.json): kind decides method vs call; params = parameter count */
   | { type: "function"; name: string; kind: "method" | "function" | "both" | "value"; params: number }
   /** Code that goes in as written (a snippet, an example) */
-  | { type: "code"; code: string };
+  | { type: "code"; code: string }
+  /**
+   * Search by sound (intents.json): `.${call}` after an expression ("room(0.5)"),
+   * the recipe `code` where an expression starts, nothing inside a string
+   */
+  | { type: "intent"; call: string; code: string };
 
 export interface Insertion {
   text: string;
@@ -156,6 +161,7 @@ export function insertionFor(
   // a method on a line of its own has nothing to chain on (or chains onto the statement above)
   if (ownLine && item.type === "function" && item.kind === "method") return null;
   if (item.type === "code") return ctx === "expression" ? at(item.code) : null;
+  if (item.type === "intent") return ctx === "expression" ? at(item.code) : ctx === "chain" ? at(`.${item.call}`) : null;
   if (ctx === "string") return inString(rest, offset, item.name);
   switch (item.type) {
     case "sound": {

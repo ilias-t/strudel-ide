@@ -6,7 +6,7 @@
 
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { EditSession, type IncomingSource, type Owner, type SessionView } from "../src/ui/edit-session.ts";
+import { EditSession, emptyPatternCall, type IncomingSource, type Owner, type SessionView } from "../src/ui/edit-session.ts";
 import type { EvalIntent, EvalResult } from "../src/ui/editor-types.ts";
 import { contentVersion } from "../src/live/protocol.ts";
 
@@ -563,6 +563,23 @@ describe("races (rule 4)", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Rule 5: results
 // ─────────────────────────────────────────────────────────────────────────────
+
+describe("emptyPatternCall: an empty pattern string still being filled", () => {
+  const err = (line: number, column: number) => ({ message: "[mini] parse error at line 1: Expected", line, column });
+  test("an empty literal at the failing call, also when the argument starts on the next line", () => {
+    assert.equal(emptyPatternCall(err(1, 19), 'const d = s("bd").bank("");'), "bank");
+    assert.equal(emptyPatternCall(err(1, 19), 'const d = s("bd").bank(\n  ""\n);'), "bank");
+  });
+  test("only whitespace Strudel accepts counts as empty: a pasted em space is a real error", () => {
+    assert.equal(emptyPatternCall(err(1, 19), 'const d = s("bd").bank(" ");'), "bank");
+    assert.equal(emptyPatternCall(err(1, 19), 'const d = s("bd").bank("\u2003");'), null);
+  });
+  test("a literal with something in it, another message, or no location: not this case", () => {
+    assert.equal(emptyPatternCall(err(1, 19), 'const d = s("bd").bank("x");'), null);
+    assert.equal(emptyPatternCall({ message: "Unexpected token", line: 1, column: 19 }, 'const d = s("bd").bank("");'), null);
+    assert.equal(emptyPatternCall({ message: "[mini] parse error" }, 'const d = s("bd").bank("");'), null);
+  });
+});
 
 describe("results (rule 5)", () => {
   test("ok clears the marker and shows a short ok status", async () => {

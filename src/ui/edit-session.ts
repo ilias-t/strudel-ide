@@ -110,10 +110,14 @@ export function errorStatusText(error: EvalError): string {
  */
 export function emptyPatternCall(error: EvalError, text: string): string | null {
   if (!/^\[mini\] parse error/.test(error.message) || !error.line || !error.column) return null;
-  const line = text.split("\n")[error.line - 1] ?? "";
-  let at = Math.min(error.column - 1, line.length);
-  while (at > 0 && /[\w$]/.test(line[at - 1])) at--;
-  const m = /^([A-Za-z_$][\w$]*)\s*\(\s*(["'`])\s*\2\s*[,)]/.exec(line.slice(at));
+  const lines = text.split("\n");
+  if (error.line > lines.length) return null;
+  const lineStart = lines.slice(0, error.line - 1).reduce((n, l) => n + l.length + 1, 0);
+  let at = lineStart + Math.min(error.column - 1, lines[error.line - 1].length);
+  while (at > lineStart && /[\w$]/.test(text[at - 1])) at--;
+  // from the call on (its argument may start on the next line); inside the quotes only the
+  // whitespace Strudel turns into spaces, so a pasted odd space stays a real error
+  const m = /^([A-Za-z_$][\w$]*)\s*\(\s*(["'`])[ \t\n\r\xA0]*\2\s*[,)]/.exec(text.slice(at));
   return m ? m[1] : null;
 }
 

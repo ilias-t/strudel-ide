@@ -574,6 +574,15 @@ export function createLibrary(d: Discovery): FeatureHandle {
       root.classList.add("lib-enter");
     }
     if (opts.tab) tab = opts.tab;
+    // a category (the cheat sheet's "more"): the Functions tab, unfiltered, that category open
+    if (opts.category) {
+      tab = "functions";
+      openCategories.add(opts.category);
+      if (opts.query === undefined) {
+        query = "";
+        search.value = "";
+      }
+    }
     if (opts.query !== undefined) {
       query = opts.query;
       search.value = query;
@@ -584,6 +593,9 @@ export function createLibrary(d: Discovery): FeatureHandle {
       if (!wasOpen || loadError) await load();
       else render();
     } else render();
+    if (opts.category && tab === "functions") {
+      list.querySelector(`[data-testid=library-category][data-id="${CSS.escape(opts.category)}"]`)?.scrollIntoView({ block: "start" });
+    }
   }
 
   function close() {

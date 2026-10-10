@@ -73,7 +73,7 @@
             <span class="led link-led"></span><span class="label link-label">VS Code</span>
           </div>
           <a class="label source-link" href="https://github.com/ilias-t/strudel-ide" target="_blank" rel="noopener">source on <b>github</b></a>
-          <button class="key icon-button" id="help-button" data-testid="help-button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+          <button class="key icon-button" id="help-button" data-testid="help-button" aria-label="Cheat sheet" aria-controls="help-overlay" aria-expanded="false" aria-keyshortcuts="?" title="Cheat sheet: mini-notation, functions, sounds, keys (?)">?</button>
         </section>
       </header>
 
@@ -96,6 +96,7 @@
               <button class="chip code-share" id="code-share" data-testid="code-share" title="Copy a link with this song in it (the song travels in the link)">share</button>
               <button class="chip code-download" id="code-download" data-testid="code-download" title="Download this song as a .ts file">download</button>
             </span>
+            <button class="chip code-help" id="code-help" data-testid="help-key" aria-controls="help-overlay" aria-expanded="false" aria-keyshortcuts="?" title="Cheat sheet: mini-notation, functions, sounds, keys (? or F1 while editing)"><span class="code-help-label">help</span><kbd aria-hidden="true">?</kbd></button>
             <button class="chip code-library" id="code-library" data-testid="library-key" aria-controls="library" aria-expanded="false" aria-keyshortcuts="B" title="Browse, hear and insert sounds and functions (B)"><span class="code-library-label">library</span><kbd aria-hidden="true">B</kbd></button>
             <button class="chip code-mode" id="code-mode" data-testid="code-edit" aria-pressed="false" title="Edit the song here while it plays (E)"><span class="code-mode-label">edit</span><kbd aria-hidden="true">E</kbd></button>
           </div>
@@ -186,33 +187,57 @@
       </footer>
     </div>
 
-    <!-- ── Keyboard help: a printed card lying on the desk ──────────────────── -->
+    <!-- ── Cheat sheet: a printed card lying on the desk ─────────────────────
+         ?, the top bar's ?, the file bar's help key, F1 in the editor. The
+         card, its tabs and the Keys tab are here so it opens at once; the
+         other tabs fill in from src/ui/discover/cheatsheet.ts (lazy). ── -->
     <div class="help-overlay" id="help-overlay" data-testid="help-overlay" hidden>
-      <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
-        <h2 id="help-title">Quick reference</h2>
-        <dl class="help-keys">
-          <dt><kbd>Space</kbd></dt><dd>Play / stop</dd>
-          <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Previous / next song</dd>
-          <dt><kbd>1</kbd>–<kbd>9</kbd></dt><dd>Mute track 1–9</dd>
-          <dt><kbd>Shift</kbd> + <kbd>1</kbd>–<kbd>9</kbd></dt><dd>Solo track 1–9</dd>
-          <dt><kbd>0</kbd></dt><dd>Clear mutes and solos</dd>
-          <dt><kbd>[</kbd> <kbd>]</kbd></dt><dd>Jump to previous / next section on the next bar</dd>
-          <dt><kbd>L</kbd></dt><dd>Loop the current section</dd>
-          <dt><kbd>C</kbd></dt><dd>Show / hide the code</dd>
-          <dt><kbd>F</kbd></dt><dd>Follow the music in the code again</dd>
-          <dt><kbd>E</kbd></dt><dd>Edit the song here (or double-click the code)</dd>
-          <dt><kbd>B</kbd></dt><dd>Library: browse, hear and insert sounds and functions</dd>
-          <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd></dt><dd>Command palette: sounds, functions, snippets, songs, actions. Wins over the editor's own <kbd>⌘</kbd><kbd>K</kbd> chords</dd>
-          <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd></dt><dd>While editing: play the edit now</dd>
-          <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd></dt><dd>While editing: save (to the file locally, in this browser on the site)</dd>
-          <dt><kbd>Esc</kbd></dt><dd>While editing: hand the keys back to the stage</dd>
-          <dt><kbd>?</kbd></dt><dd>This card</dd>
-          <dt>Knobs</dt><dd>Drag or scroll (<kbd>Shift</kbd>: fine), arrow keys; double-click or <kbd>Delete</kbd> for the file's value</dd>
-        </dl>
-        <p class="help-note help-editing" data-testid="help-editing"><b>Editing.</b> Press <kbd>E</kbd> and type: it plays after a short pause, <kbd>⌘</kbd><kbd>↵</kbd> plays it now. <kbd>⌘</kbd><kbd>S</kbd> saves to <code>src/songs/</code> under <code>npm run dev</code>, or in this browser on the site, where edits are also kept as you type (<b>revert</b> brings the original back). <b>share</b> copies a link to the song; <b>download</b> saves the <code>.ts</code> file.</p>
-        <p class="help-note help-discover" data-testid="help-discover"><b>Finding things.</b> The library (<kbd>B</kbd>) and the palette (<kbd>⌘</kbd><kbd>K</kbd>) play a sound or an example with ▶ and insert it at the cursor (switching to editing first). <b>+ track</b> on the mixer adds a track to the song from a snippet.</p>
-        <p class="help-note">Click a section to jump there on the next bar. Or edit <code>src/songs/*.ts</code> in your editor; every save hot-swaps without stopping the music.</p>
-        <button class="key help-close" id="help-close">close</button>
+      <div class="help-card cheat-card" id="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title" tabindex="-1">
+        <div class="cheat-head">
+          <h2 id="help-title">Cheat sheet</h2>
+          <input class="cheat-search" id="cheat-search" data-testid="cheat-search" type="search" placeholder="rest, lpf, reverb, 909, palette…" aria-label="Search the cheat sheet" autocomplete="off" spellcheck="false" />
+          <button class="cheat-close help-close" id="help-close" data-testid="help-close" type="button" title="Close (Esc)">close <kbd aria-hidden="true">esc</kbd></button>
+        </div>
+        <div class="cheat-tabs" id="cheat-tabs" role="tablist" aria-label="Cheat sheet">
+          <button class="cheat-tab" id="cheat-tab-mini" data-testid="cheat-tab-mini" data-tab="mini" type="button" role="tab" aria-selected="true" aria-controls="cheat-panel-mini">Mini-notation</button>
+          <button class="cheat-tab" id="cheat-tab-functions" data-testid="cheat-tab-functions" data-tab="functions" type="button" role="tab" aria-selected="false" aria-controls="cheat-panel-functions" tabindex="-1">Functions</button>
+          <button class="cheat-tab" id="cheat-tab-sounds" data-testid="cheat-tab-sounds" data-tab="sounds" type="button" role="tab" aria-selected="false" aria-controls="cheat-panel-sounds" tabindex="-1">Sounds</button>
+          <button class="cheat-tab" id="cheat-tab-keys" data-testid="cheat-tab-keys" data-tab="keys" type="button" role="tab" aria-selected="false" aria-controls="cheat-panel-keys" tabindex="-1">Keys</button>
+        </div>
+        <div class="cheat-body" id="cheat-body">
+          <section class="cheat-panel" id="cheat-panel-mini" data-testid="cheat-panel-mini" role="tabpanel" aria-labelledby="cheat-tab-mini" tabindex="-1"><p class="cheat-loading">loading…</p></section>
+          <section class="cheat-panel" id="cheat-panel-functions" data-testid="cheat-panel-functions" role="tabpanel" aria-labelledby="cheat-tab-functions" tabindex="-1" hidden><p class="cheat-loading">loading…</p></section>
+          <section class="cheat-panel" id="cheat-panel-sounds" data-testid="cheat-panel-sounds" role="tabpanel" aria-labelledby="cheat-tab-sounds" tabindex="-1" hidden><p class="cheat-loading">loading…</p></section>
+          <section class="cheat-panel" id="cheat-panel-keys" data-testid="cheat-panel-keys" role="tabpanel" aria-labelledby="cheat-tab-keys" tabindex="-1" hidden>
+            <dl class="help-keys" id="help-keys">
+              <dt><kbd>Space</kbd></dt><dd>Play / stop</dd>
+              <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Previous / next song</dd>
+              <dt><kbd>1</kbd>–<kbd>9</kbd></dt><dd>Mute track 1–9</dd>
+              <dt><kbd>Shift</kbd> + <kbd>1</kbd>–<kbd>9</kbd></dt><dd>Solo track 1–9</dd>
+              <dt><kbd>0</kbd></dt><dd>Clear mutes and solos</dd>
+              <dt><kbd>[</kbd> <kbd>]</kbd></dt><dd>Jump to previous / next section on the next bar</dd>
+              <dt><kbd>L</kbd></dt><dd>Loop the current section</dd>
+              <dt><kbd>C</kbd></dt><dd>Show / hide the code</dd>
+              <dt><kbd>F</kbd></dt><dd>Follow the music in the code again</dd>
+              <dt><kbd>E</kbd></dt><dd>Edit the song here (or double-click the code)</dd>
+              <dt><kbd>B</kbd></dt><dd>Library: browse, hear and insert sounds and functions</dd>
+              <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd></dt><dd>Command palette: sounds, functions, snippets, songs, actions. Wins over the editor's own <kbd>⌘</kbd><kbd>K</kbd> chords</dd>
+              <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd></dt><dd>While editing: play the edit now</dd>
+              <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd></dt><dd>While editing: save (to the file locally, in this browser on the site)</dd>
+              <dt><kbd>Ctrl</kbd> + <kbd>Space</kbd></dt><dd>While editing: suggestions (sounds, notes, functions) at the cursor</dd>
+              <dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>.</kbd></dt><dd>While editing: quick fix for a warning, like a sound name it doesn't know</dd>
+              <dt><kbd>⌥</kbd>/<kbd>Alt</kbd> + <kbd>P</kbd></dt><dd>While a suggestion list is open: hear sounds as you browse (off by default)</dd>
+              <dt><kbd>Esc</kbd></dt><dd>While editing: hand the keys back to the stage</dd>
+              <dt><kbd>?</kbd> <kbd>F1</kbd></dt><dd>This sheet (<kbd>F1</kbd> while editing; <kbd>Esc</kbd> puts you back)</dd>
+              <dt>Knobs</dt><dd>Drag or scroll (<kbd>Shift</kbd>: fine), arrow keys; double-click or <kbd>Delete</kbd> for the file's value</dd>
+            </dl>
+            <p class="help-note help-editing" data-testid="help-editing"><b>Editing.</b> Press <kbd>E</kbd> and type: it plays after a short pause, <kbd>⌘</kbd><kbd>↵</kbd> plays it now. <kbd>⌘</kbd><kbd>S</kbd> saves to <code>src/songs/</code> under <code>npm run dev</code>, or in this browser on the site, where edits are also kept as you type (<b>revert</b> brings the original back). <b>share</b> copies a link to the song; <b>download</b> saves the <code>.ts</code> file.</p>
+            <p class="help-note help-discover" data-testid="help-discover"><b>Finding things.</b> This sheet, the library (<kbd>B</kbd>) and the palette (<kbd>⌘</kbd><kbd>K</kbd>) play a sound or an example with ▶ and insert it at the cursor (switching to editing first). <b>+ track</b> on the mixer adds a track to the song from a snippet.</p>
+            <p class="help-note">Click a section to jump there on the next bar. Or edit <code>src/songs/*.ts</code> in your editor; every save hot-swaps without stopping the music.</p>
+          </section>
+          <section class="cheat-results" id="cheat-results" data-testid="cheat-results" aria-label="Search results" hidden></section>
+        </div>
+        <p class="cheat-status" id="cheat-status" data-testid="cheat-status" role="status" aria-live="polite">▶ plays it at the song's tempo · insert puts it at the cursor · ↗ strudel.cc</p>
       </div>
     </div>
 

@@ -16,9 +16,9 @@ test.afterEach(async ({ player }) => {
 });
 
 /** Dev server module URLs that must wait until a feature opens */
-const LAZY_MODULES = /\/src\/ui\/discover\/(library|palette|track-builder|audition|catalog|fuzzy|snippet-sound)[^/]*\.ts|\/src\/catalog\/|\/src\/compile\/add-track/;
+const LAZY_MODULES = /\/src\/ui\/discover\/(library|palette|track-builder|audition|catalog|fuzzy|snippet-sound|cheatsheet|previewable)[^/]*\.ts|\/src\/catalog\/|\/src\/compile\/add-track/;
 /** Production chunk names that must wait until a feature opens */
-const LAZY_CHUNKS = /\/assets\/(library|palette|track-builder|audition|catalog|sounds|functions|snippets|fuzzy|snippet-sound|add-track)[-.][^/]*\.(js|css)$/;
+const LAZY_CHUNKS = /\/assets\/(library|palette|track-builder|audition|catalog|sounds|functions|snippets|fuzzy|snippet-sound|add-track|cheatsheet|previewable|completions|intents)[-.][^/]*\.(js|css)$/;
 
 test("dev: booting and playing loads no discovery feature or catalog; opening one loads it", async ({ player, page }) => {
   await player.boot();
@@ -106,6 +106,14 @@ test("production build under /strudel-ide/: boot requests no discovery chunk; th
   await expect
     .poll(() => requests.filter(local).some((url) => /\/assets\/palette[-.]/.test(url)), { message: "palette chunk on first open" })
     .toBe(true);
+  // the cheat sheet
+  await page.locator("body").press("Escape");
+  await page.locator("body").press("?");
+  await expect.poll(() => page.evaluate(() => window.__strudelDiscover!.isOpen("cheatsheet"))).toBe(true);
+  await expect
+    .poll(() => requests.filter(local).some((url) => /\/assets\/cheatsheet[-.][^/]*\.js$/.test(url)), { message: "cheat sheet chunk on first open" })
+    .toBe(true);
+  await expect(page.locator("[data-testid=cheat-row][data-kind=mini]").first()).toBeVisible();
   for (const url of requests.filter(local)) expect(new URL(url).pathname.startsWith(base), url).toBe(true);
   await player.stop();
 });

@@ -860,7 +860,8 @@ code {
   color: var(--amber);
 }
 
-/* the view/edit key at the end of the file bar, and the library key before it */
+/* the view/edit key at the end of the file bar, and the library and help keys before it */
+.code-help,
 .code-library,
 .code-mode {
   display: inline-flex;
@@ -868,6 +869,7 @@ code {
   gap: 7px;
   padding: 0 4px 0 9px;
 }
+.code-help kbd,
 .code-library kbd,
 .code-mode kbd {
   padding: 0 4px;
@@ -881,18 +883,22 @@ code {
   background: var(--px);
   box-shadow: none;
 }
-/* editing fills the file bar (status, edited, revert…): the library key drops its B badge there */
+/* editing fills the file bar (status, edited, revert…): the library and help keys drop their badges there */
+.stage[data-code-mode="edit"] .code-help,
 .stage[data-code-mode="edit"] .code-library {
   padding-right: 9px;
 }
+.stage[data-code-mode="edit"] .code-help kbd,
 .stage[data-code-mode="edit"] .code-library kbd {
   display: none;
 }
+.code-help[aria-expanded="true"],
 .code-library[aria-expanded="true"] {
   color: var(--glass);
   background: var(--px);
   box-shadow: none;
 }
+.code-help[aria-expanded="true"] kbd,
 .code-library[aria-expanded="true"] kbd,
 .code-mode[aria-pressed="true"] kbd {
   background: rgba(0, 0, 0, 0.12);
@@ -1965,7 +1971,10 @@ code {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
-/* Help: a printed card lying on the desk                                      */
+/* Cheat sheet: a printed card lying on the desk                               */
+/* The card, its tabs and the Keys tab are static (index.html) and styled here */
+/* so they show at once; the rows the lazy chunk adds are in                   */
+/* src/ui/discover/cheatsheet.css. Ink on paper: outlines, never glass.        */
 /* ─────────────────────────────────────────────────────────────────────────── */
 
 .help-overlay {
@@ -1974,35 +1983,151 @@ code {
   z-index: 20;
   display: grid;
   place-items: center;
+  padding: 16px;
+  overflow: hidden;
   background: rgba(4, 4, 8, 0.35);
+  --ink: #232220;
+  --ink-soft: #3d3a35;
+  --ink-faint: #6b675f;
+  --rule: rgba(35, 34, 32, 0.14);
+  --pencil: rgba(35, 34, 32, 0.38);
 }
 
 .help-card {
   position: relative;
-  width: min(420px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
-  padding: 20px 22px 18px;
+  width: min(780px, 100%);
+  height: min(700px, calc(100vh - 32px));
+  height: min(700px, calc(100dvh - 32px));
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 16px 22px 10px;
   border-radius: 3px;
   background: linear-gradient(180deg, #efe9dc, #e4ddcd);
-  color: #232220;
-  transform: rotate(-1.6deg);
+  color: var(--ink);
+  transform: rotate(-0.5deg);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 24px 40px -10px rgba(0, 0, 0, 0.7), 0 4px 10px rgba(0, 0, 0, 0.4);
   font-stretch: 85%;
+  outline: none;
 }
 
 .help-card h2 {
-  margin-bottom: 12px;
   font-size: 18px;
   font-weight: 700;
   font-stretch: 75%;
   letter-spacing: -0.01em;
 }
 
+.cheat-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.cheat-search {
+  height: 28px;
+  min-width: 0;
+  padding: 0 9px;
+  border: 1px solid var(--pencil);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--ink);
+  font: 500 12px/1 var(--mono);
+}
+.cheat-search::placeholder {
+  color: #8f8a80;
+}
+.cheat-search:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: -1px;
+}
+
+.cheat-close {
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 5px 0 9px;
+  border: 1px solid var(--pencil);
+  border-radius: 3px;
+  background: none;
+  color: var(--ink);
+  font: 600 11.5px/1 var(--ui);
+  cursor: pointer;
+}
+.cheat-close kbd {
+  padding: 0 4px;
+  font-size: 9.5px;
+  line-height: 14px;
+}
+
+/* tabs: index tabs along the card's top rule */
+.cheat-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+  margin-top: 12px;
+  border-bottom: 1px solid var(--pencil);
+}
+.cheat-tab {
+  height: 30px;
+  padding: 0 10px;
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  font: 600 13px/1 var(--ui);
+  font-stretch: 85%;
+  cursor: pointer;
+}
+.cheat-tab:hover {
+  color: var(--ink);
+}
+.cheat-tab[aria-selected="true"] {
+  color: var(--ink);
+  box-shadow: inset 0 -2px 0 var(--ink);
+}
+/* while searching, the results stand in for every tab */
+.help-card[data-searching="true"] .cheat-tab[aria-selected="true"] {
+  color: var(--ink-faint);
+  box-shadow: inset 0 -2px 0 var(--pencil);
+}
+.help-card :focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.cheat-body {
+  min-height: 0;
+  display: grid;
+}
+.cheat-panel,
+.cheat-results {
+  grid-area: 1 / 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 2px 14px 0;
+}
+.cheat-panel:focus {
+  outline: none;
+}
+.cheat-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
 .help-keys {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 7px 14px;
+  margin-top: 12px;
   font-size: 12.5px;
 }
 
@@ -2019,26 +2144,65 @@ code {
   margin-top: 12px;
   font-size: 11.5px;
   line-height: 1.45;
-  color: #6b675f;
+  color: var(--ink-faint);
 }
 
 .help-editing,
 .help-discover {
-  color: #3d3a35;
+  color: var(--ink-soft);
 }
 
 .help-editing b,
 .help-discover b {
-  color: #232220;
+  color: var(--ink);
 }
 
 .help-note code {
-  color: #232220;
+  color: var(--ink);
 }
 
-.help-close {
-  margin-top: 14px;
-  float: right;
+.cheat-status {
+  padding-top: 7px;
+  border-top: 1px solid var(--rule);
+  font-size: 11px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cheat-status[data-kind="playing"] {
+  color: var(--ink);
+}
+.cheat-status[data-kind="error"] {
+  color: #a8321c;
+  white-space: normal;
+}
+
+@media (max-width: 900px) {
+  .help-card {
+    transform: none;
+    height: calc(100vh - 32px);
+    height: calc(100dvh - 32px);
+    padding: 12px 14px 8px;
+  }
+}
+
+@media (max-width: 560px) {
+  .cheat-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+  .cheat-search {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .help-keys {
+    gap: 6px 10px;
+    font-size: 12px;
+  }
+  .help-keys dt {
+    white-space: normal;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */

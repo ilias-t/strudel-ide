@@ -77,7 +77,6 @@ export function mountStage(): Stage {
   const codeFile = $("code-file");
   const codeStale = $("code-stale");
   const codeUnsaved = $("code-unsaved");
-  const help = $("help-overlay");
   const cueEl = $("cue");
   const songNo = $("song-no");
   const bpmDigits = new SegmentDisplay($("bpm-digits"), 3);
@@ -625,7 +624,7 @@ export function mountStage(): Stage {
       onChipsChanged: () => renderKnobs(),
       // hand the keyboard back to the stage's shortcuts
       onEscape: () => (document.activeElement as HTMLElement | null)?.blur(),
-      onHelp: () => showHelp(true),
+      onHelp: () => discover.showHelp(),
     });
     ed.setColorResolver(colorOfRange);
     return ed;
@@ -885,16 +884,6 @@ export function mountStage(): Stage {
   followToggle.addEventListener("change", () => player.setFollowEdits(followToggle.checked));
   audioHint.addEventListener("click", () => void engine.getAudioContext().resume());
 
-  const showHelp = (on: boolean) => {
-    help.hidden = !on;
-    if (on) $("help-close").focus();
-    else (document.activeElement as HTMLElement | null)?.blur();
-  };
-  $("help-button").addEventListener("click", () => showHelp(help.hidden));
-  $("help-close").addEventListener("click", () => showHelp(false));
-  help.addEventListener("click", (e) => {
-    if (e.target === help) showHelp(false);
-  });
 
   const toggleCodeView = () => player.setCodeView(!player.getState().codeView);
 
@@ -911,8 +900,8 @@ export function mountStage(): Stage {
   };
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !help.hidden) {
-      showHelp(false);
+    if (e.key === "Escape" && discover.helpOpen()) {
+      discover.hideHelp();
       return;
     }
     if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || ownsKey(e.target, e)) return;
@@ -929,7 +918,8 @@ export function mountStage(): Stage {
       const track = player.getState().tracks?.[Number(digit) - 1];
       if (track) player.toggleTrack(e.shiftKey ? "solo" : "mute", track);
     } else if (e.key === "?") {
-      showHelp(help.hidden);
+      if (discover.helpOpen()) discover.hideHelp();
+      else discover.showHelp();
     } else if (e.key === "c" || e.key === "C") {
       toggleCodeView();
     } else if (e.key === "l" || e.key === "L") {
@@ -946,8 +936,8 @@ export function mountStage(): Stage {
     }
   });
 
-  // ── discovery: library (B), palette (⌘K), track builder (src/ui/discover/, lazy) ──
-  mountDiscovery({
+  // ── discovery: library (B), palette (⌘K), track builder, cheat sheet (?, F1) (src/ui/discover/, lazy) ──
+  const discover = mountDiscovery({
     mode: () => mode,
     async editor() {
       await enterEdit();
@@ -961,7 +951,7 @@ export function mountStage(): Stage {
     editing: () => (mode === "edit" && editor && surface === editor ? { songId: shownSongId, editor } : null),
     exitEdit,
     toast,
-    showHelp: () => showHelp(true),
+    showHelp: () => discover.showHelp(),
     toggleCodeView,
     follow: () => surface.setFollowing(true),
   });

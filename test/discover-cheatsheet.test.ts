@@ -34,7 +34,10 @@ import {
 const read = <T>(file: string): T => JSON.parse(readFileSync(new URL(file, import.meta.url), "utf8")) as T;
 const sounds = read<SoundsCatalog>("../src/catalog/sounds.json");
 const functions = read<FunctionsCatalog>("../src/catalog/functions.json");
-const docs = read<{ base: string; pages: Record<string, { title: string; anchors: string[] }> }>("../scripts/lib/catalog/strudel-docs.json");
+type DocsPage = { title: string; anchors?: string[]; headings?: { id: string }[] };
+const docs = read<{ base: string; pages: Record<string, DocsPage> }>("../scripts/lib/catalog/strudel-docs.json");
+/** A page's heading ids, from either snapshot shape (anchors: string[], or headings: { id }[]) */
+const anchorsOf = (page: DocsPage): string[] => page.anchors ?? page.headings?.map((h) => h.id) ?? [];
 
 const completions: CompletionsCatalog = {
   functions: {
@@ -172,7 +175,7 @@ describe("links", () => {
     for (const { where, link } of allLinks()) {
       const page = docs.pages[link.page];
       assert.ok(page, `${where}: page ${link.page} not in strudel-docs.json`);
-      if (link.anchor) assert.ok(page.anchors.includes(link.anchor), `${where}: #${link.anchor} not on ${link.page}`);
+      if (link.anchor) assert.ok(anchorsOf(page).includes(link.anchor), `${where}: #${link.anchor} not on ${link.page}`);
     }
   });
 

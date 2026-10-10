@@ -326,7 +326,16 @@ export function createCheatSheet(d: Discovery): FeatureHandle {
     soundsFailed = false;
     const refresh = (t: SheetTab) => {
       filled.delete(t);
-      if (!root.hidden) render();
+      if (root.hidden) return;
+      // a row may have the keyboard: keep it on the same key in the new rows
+      const active = document.activeElement as HTMLElement | null;
+      const panel = panels.get(t)!;
+      const held = active && panel.contains(active) ? { id: active.closest("[data-id]")?.getAttribute("data-id"), key: active.dataset.testid } : null;
+      render();
+      if (held?.id && held.key) {
+        const again = panel.querySelector<HTMLElement>(`[data-id="${CSS.escape(held.id)}"] [data-testid="${CSS.escape(held.key)}"]`);
+        (again ?? card).focus({ preventScroll: true });
+      }
     };
     const c = completions
       ? Promise.resolve()

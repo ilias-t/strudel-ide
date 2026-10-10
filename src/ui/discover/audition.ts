@@ -15,7 +15,8 @@
 //   previewCode(code, { cycles })               a one-shot pattern: the
 //       expression is evaluated with the song globals (s, note, …), then its
 //       haps are fed to superdough a little ahead of time, cycle by cycle, at
-//       the song's tempo. A new audition stops the previous one.
+//       the song's tempo. A new audition stops the previous one, and its
+//       voices fade out in a few ms, synths too (./audition-voices.ts).
 //
 // Code that would touch the running engine (tempo, samples, hush, outputs,
 // visuals) is refused by previewable(); so is code that doesn't evaluate to a
@@ -25,6 +26,7 @@
 import { bpmToCps, engine, warmOrbits, type SoundEntry } from "../../engine/strudel";
 import * as player from "../../engine/player";
 import { AuditionBus } from "./audition-bus";
+import { AuditionVoices, type Trigger } from "./audition-voices";
 import { LOAD_WAIT_MS, previewsAllowed, soundValue, type SoundOptions } from "./audition-values";
 import { previewable } from "./previewable";
 
@@ -83,10 +85,34 @@ function currentCps(): number {
 
 let current: { stop(): void } | null = null;
 
-/** Stop the audition that's playing (notes already handed to the engine still ring out) */
+/** Every audition voice plays through a gate of its own, so a new audition or a stop silences it, synths too (./audition-voices.ts) */
+const voices = new AuditionVoices(() => new GainNode(engine.getAudioContext(), { gain: 1 }));
+
+/** Stop the audition that's playing: notes already handed to the engine fade out in a few ms */
 export function stopAudition() {
   current?.stop();
   current = null;
+  if (voices.size) voices.cut(engine.getAudioContext().currentTime);
+}
+
+/** The voices sounding or fading now, tagged with their record's id (tests) */
+export function auditionVoices() {
+  return voices.voices();
+}
+
+/** The part of superdough that finds a sound (re-exported by @strudel/web) */
+interface SoundLookup {
+  getSound(s: string): { onTrigger?: Trigger } | undefined;
+  getDefaultValue?(key: string): unknown;
+}
+const soundLookup = engine as unknown as SoundLookup;
+
+/** The onTrigger superdough would call for `value` (superdough.mjs: s, its default, the bank prefix), or null: superdough then has its say */
+function triggerOf(value: Record<string, unknown>): Trigger | null {
+  const s = value.s ?? soundLookup.getDefaultValue?.("s");
+  if (typeof s !== "string" || ["-", "~", "_"].includes(s)) return null;
+  const sound = soundLookup.getSound(value.bank ? `${String(value.bank)}_${s}` : s);
+  return typeof sound?.onTrigger === "function" ? sound.onTrigger : null;
 }
 
 /** Auditions' own orbit, so their orbit effects never reach the song (./audition-bus.ts) */
@@ -96,8 +122,11 @@ function play(rec: AuditionRecord, value: Record<string, unknown>, at: number, d
   const routed = bus.route(value);
   // with the duration superdough is given (it bounds a voice: ./audition-values.ts)
   rec.events.push({ ...routed, duration });
-  // superdough writes `duration` into the value: give it a copy
-  superdough({ ...routed }, at, duration, cps).catch((err: unknown) => {
+  // superdough writes `duration` into the value: give it a copy, with the voice's gate as its source
+  const sent: Record<string, unknown> = { ...routed };
+  const trigger = triggerOf(sent);
+  if (trigger) sent.source = voices.source(trigger, rec.id);
+  superdough(sent, at, duration, cps).catch((err: unknown) => {
     rec.status = "error";
     rec.error = err instanceof Error ? err.message : String(err);
   });

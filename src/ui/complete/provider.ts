@@ -20,7 +20,8 @@
 //
 // The member list is cached per word (the text before the word and after
 // the caret unchanged), so a list re-asked on every keystroke (an alias was
-// folded: `incomplete`) costs no worker round trip.
+// folded: `incomplete`) costs no worker round trip. A list with replacement
+// spans isn't: TypeScript computed them for the text it was asked about.
 //
 // Registered once per page however many editors mount (reference counted).
 
@@ -212,7 +213,8 @@ export function registerProviders(monaco: typeof Monaco, env: ProviderEnv): Prov
     const info = await w.getCompletionsAtPosition(uri, offset);
     tsCalls++;
     push(timings.ts, performance.now() - t0);
-    if (info) cache = { uri, wordStart, before, after, info };
+    // an entry with its own replacement span (a string's values, ?. and [""] members) is only right for this text: not cached
+    if (info) cache = info.entries.some((e) => e.replacementSpan) ? null : { uri, wordStart, before, after, info };
     return info;
   };
 

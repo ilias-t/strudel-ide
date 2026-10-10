@@ -905,6 +905,14 @@ export function mountStage(): Stage {
       return;
     }
     if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || ownsKey(e.target, e)) return;
+    if (discover.helpOpen()) {
+      // the cheat sheet is modal: nothing under it takes keys, even when focus fell out of it (? still closes it)
+      if (e.key === "?") {
+        e.preventDefault();
+        discover.hideHelp();
+      }
+      return;
+    }
     const digit = /^Digit([0-9])$/.exec(e.code)?.[1];
     if (e.code === "Space") {
       e.preventDefault();

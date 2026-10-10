@@ -87,6 +87,18 @@ test("a chord: its notes; ▶ plays it", () => {
   assert.ok(previewable((p as { code: string }).code));
 });
 
+test("a scale or chord with mini-notation modifiers after it: still its hover", () => {
+  assert.equal(hover('n("0").scale("C:min|or*2")')?.markdown.split("\n")[0], "**C minor**: C D Eb F G Ab Bb");
+  const h = hover('chord("<C^7 Dm|7@3>")')!;
+  assert.equal(h.markdown.split("\n")[0], "**Dm7**: D F A C");
+  const text = 'chord("<C^7 Dm7@3>")';
+  assert.equal(text.slice(h.range.start, h.range.end), "Dm7");
+});
+
+test("a chord name that is an Object property (constructor, __proto__, toString): no hover, no throw", () => {
+  for (const sym of ["constructor", "__proto__", "toString", "hasOwnProperty"]) assert.equal(hover(`chord("C${sym}|")`), null, sym);
+});
+
 test("a bank: its parts; ▶ plays bd on it", () => {
   const h = hover('s("sd").bank("TR9|09")')!;
   const parts = reg.bankParts("TR909");

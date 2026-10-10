@@ -4,7 +4,8 @@
 //     "bd:", only the banks that fit, notes, scale types
 //   - after a dot: the chain's common methods first, aliases folded (".cuto" shows cutoff → lpf),
 //     the ones that don't work here at the bottom with a reason, never struck through
-//   - TypeScript's own completions still work (a local const)
+//   - TypeScript's own completions still work (a local const); its values in a string, asked
+//     again after the word changed, replace just the word (no stale replacement span)
 //   - a hover on a sound has ▶, and clicking it plays (an audition record)
 //   - hear while browsing: off by default (arrowing plays nothing, the details pane says how to
 //     turn it on); ⌥P turns it on, three fast arrows play one preview, typing plays none,
@@ -198,6 +199,25 @@ test("after a dot: the chain's common methods first, cutoff → lpf, the rest si
 
   const t = await page.evaluate(() => window.__strudelComplete!.timings());
   console.log(`timings (median ms): in strings ${t.strings?.toFixed(2)}, member post-processing ${t.members?.toFixed(2)}, TypeScript ${t.ts?.toFixed(1)} (${t.tsCalls} calls)`);
+});
+
+test("TypeScript's values in a string, asked again after the word changed: accepting one replaces just the word", async ({ player, page }) => {
+  await editFixture(player);
+  // TypeScript's string items carry a replacement span (the string's text when asked): a later ask must not reuse it
+  await typeLine(page, 'const rm: "club" | "dusk" = "cl"; // rm');
+  await closeList(page);
+  await caretAt(page, '= "cl');
+  await openList(page);
+  expect(await labels(page)).toContain("club");
+  await closeList(page);
+  await page.keyboard.press("Backspace");
+  await page.keyboard.press("Backspace");
+  await closeList(page);
+  await openList(page);
+  expect(await labels(page)).toEqual(expect.arrayContaining(["club", "dusk"]));
+  while ((await rows(page)).find((r) => r.focused)?.label !== "club") await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  expect(await buffer(page)).toContain('const rm: "club" | "dusk" = "club"; // rm');
 });
 
 test("a hover on a sound shows ▶, and clicking it plays", async ({ player, page }) => {

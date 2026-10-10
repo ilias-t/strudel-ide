@@ -7,7 +7,9 @@
 // (Up/Down/PageUp/PageDown) plays it after a 120 ms pause on the row: quietly
 // and briefly (auditionSound 's `preview`). Opening the list, typing,
 // re-filtering, a re-query and the mouse never play: a focus change counts
-// only within 150 ms of a navigation key. Closing the list stops a preview.
+// only within 150 ms of a navigation key. Closing the list stops a preview;
+// so does turning previews off (one waiting on its row, or still loading,
+// never starts) and the editor going away.
 // Touch (a coarse pointer) never previews; neither does a screen reader,
 // unless previews were turned on in this session.
 //
@@ -65,6 +67,10 @@ export interface Browser {
   focus(p: SoundPreview | undefined): void;
   /** The list closed */
   hide(): void;
+  /** Previews turned off: cancel what was about to play, stop what played */
+  off(): void;
+  /** The editor is going: off(), and nothing plays or loads after it */
+  dispose(): void;
 }
 
 /** The gate: which focus changes play (pure; the clock and the audio are injected) */
@@ -72,30 +78,45 @@ export function createBrowser(deps: BrowserDeps): Browser {
   let navAt = -Infinity;
   let timer: unknown;
   let played = false;
+  let disposed = false;
   const cancel = () => {
     if (timer !== undefined) deps.clearTimer(timer);
     timer = undefined;
   };
+  const off = () => {
+    cancel();
+    navAt = -Infinity;
+    if (!played) return;
+    played = false;
+    deps.stop();
+  };
   return {
     keyDown(key) {
-      if (NAV_KEYS.has(key)) navAt = deps.now();
+      if (disposed) return;
+      // any other key (typing, which re-filters the list) ends the arrow's claim on the next focus change
+      navAt = NAV_KEYS.has(key) ? deps.now() : -Infinity;
     },
     focus(p) {
       cancel();
-      if (!p || !deps.enabled()) return;
+      // the focus change an arrow caused uses it up
+      const arrowed = deps.now() - navAt <= NAV_WINDOW_MS;
+      navAt = -Infinity;
+      if (disposed || !p || !deps.enabled()) return;
       deps.prefetch(p);
-      if (deps.now() - navAt > NAV_WINDOW_MS) return;
+      if (!arrowed) return;
       timer = deps.setTimer(() => {
         timer = undefined;
+        // previews may have been turned off during the pause
+        if (disposed || !deps.enabled()) return;
         played = true;
         deps.play(p);
       }, PREVIEW_DELAY_MS);
     },
-    hide() {
-      cancel();
-      if (!played) return;
-      played = false;
-      deps.stop();
+    hide: off,
+    off,
+    dispose() {
+      off();
+      disposed = true;
     },
   };
 }
@@ -202,6 +223,10 @@ export function wireBrowse(monaco: typeof Monaco, editor: Monaco.editor.IStandal
   let firstHintUntil = 0;
   let playedThisSession = false;
   let focused: StrudelCompletion | null = null;
+  /** Bumped by every stop: a preview whose audition module was still loading then never starts */
+  let generation = 0;
+  let hintTimer: ReturnType<typeof setTimeout> | undefined;
+  let disposed = false;
   const disposables: Monaco.IDisposable[] = [];
 
   const screenReader = () => editor.getOption(monaco.editor.EditorOption.accessibilitySupport) === monaco.editor.AccessibilitySupport.Enabled;
@@ -211,6 +236,7 @@ export function wireBrowse(monaco: typeof Monaco, editor: Monaco.editor.IStandal
   const widget = suggestWidget(editor);
   if (widget) relayoutDetails(widget);
   const refresh = () => {
+    if (disposed) return;
     const h = hint();
     for (const item of items()) {
       if (item.strudelDoc === undefined) continue;
@@ -240,19 +266,26 @@ export function wireBrowse(monaco: typeof Monaco, editor: Monaco.editor.IStandal
         playedThisSession = true;
         firstHintUntil = performance.now() + FIRST_HINT_MS;
         refresh();
-        setTimeout(refresh, FIRST_HINT_MS + 20);
+        hintTimer = setTimeout(refresh, FIRST_HINT_MS + 20);
       }
+      // stopped (the list closed, previews turned off, the editor went) while the module loaded: don't start
+      const turn = generation;
       void loadAudition()
-        .then((m) => m.auditionSound(p.sound, { preview: true, ...opts(p) }).then((rec) => ({ rec, failed: m.LOAD_FAILED })))
-        .then(({ rec, failed }) => {
-          if (rec.status !== "error" || rec.error !== failed || !item) return;
+        .then((m) => {
+          if (turn !== generation || disposed || !on()) return null;
+          return m.auditionSound(p.sound, { preview: true, ...opts(p) }).then((rec) => ({ rec, failed: m.LOAD_FAILED }));
+        })
+        .then((r) => {
+          if (!r || r.rec.status !== "error" || r.rec.error !== r.failed || !item) return;
           item.strudelNote = NOTE_LOAD_FAILED;
           refresh();
         })
         .catch(() => {});
     },
     stop() {
+      generation++;
       note({ type: "stop" });
+      // ends a started audition's turn too: one still unlocking or loading its sample never plays
       void loadAudition().then((m) => m.stopAudition());
     },
   });
@@ -283,13 +316,17 @@ export function wireBrowse(monaco: typeof Monaco, editor: Monaco.editor.IStandal
         const turnOn = !on();
         if (turnOn) toggledThisSession = true;
         if (turnOn !== previewsEnabled()) togglePreviews();
+        if (!on()) browser.off();
         note({ type: "toggle", on: on() });
         refresh();
       },
     })
   );
-  // the palette can flip it too
-  const unlisten = onPreviewsChange(() => refresh());
+  // the palette can flip it too; turned off, nothing waiting or loading plays, and what plays stops
+  const unlisten = onPreviewsChange(() => {
+    if (!on()) browser.off();
+    refresh();
+  });
   disposables.push({ dispose: unlisten });
 
   return {
@@ -299,6 +336,9 @@ export function wireBrowse(monaco: typeof Monaco, editor: Monaco.editor.IStandal
     refresh,
     log,
     dispose() {
+      browser.dispose();
+      disposed = true;
+      clearTimeout(hintTimer);
       for (const d of disposables.splice(0)) d.dispose();
     },
   };

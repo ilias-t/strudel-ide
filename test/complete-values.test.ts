@@ -183,6 +183,23 @@ describe("notes, scales, chords, the rest", () => {
     assert.match(byLabel(d.items, "Dm7").documentation!, /D F A C/);
   });
 
+  test("a scale or chord step ends where its modifiers start: accepting keeps *2, @3, !, ?, /2", () => {
+    const s = list('n("0").scale("C:mi|nr*2")');
+    const minor = byLabel(s.sorted, "minor");
+    assert.equal(s.text.slice(minor.range.start, minor.range.end), "minr");
+    const p = list('n("0").scale("<C:minor:pe|ntatonic@3 D:major>")');
+    const pent = byLabel(p.sorted, "minor pentatonic");
+    assert.equal(p.text.slice(pent.range.start, pent.range.end), "minor:pentatonic", "colons stay in a multi-word scale");
+    const r = list('n("0").scale("C|:minor!")');
+    const c = byLabel(r.sorted, "C:");
+    assert.equal(r.text.slice(c.range.start, c.range.end), "C:minor");
+    for (const mod of ["*2", "!", "?", "/2", "@3"]) {
+      const ch = list(`chord("<C^7 Dm|7${mod}>")`);
+      const dm7 = byLabel(ch.items, "Dm7");
+      assert.equal(ch.text.slice(dm7.range.start, dm7.range.end), "Dm7", mod);
+    }
+  });
+
   test("vowels, voicing dictionaries, struct, n()", () => {
     const vowels = list('s("saw").vowel("|")').items.filter((i) => i.kind !== "operator");
     assert.deepEqual(vowels.map((i) => i.label), theory.vowels);

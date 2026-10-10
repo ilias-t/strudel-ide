@@ -166,12 +166,20 @@ function scaleHover(ctx: StringContext, offset: number, env: HoverEnv): HoverInf
   return { range: { start: step.start, end: step.end }, markdown: `**${label}**: ${notes.join(" ")}\n\n${playLink({ type: "code", code, label })}` };
 }
 
+/** A chord symbol's intervals: theory.json's own entries only (not "constructor" or "__proto__" off Object) */
+function chordIntervals(theory: Theory | null, sym: string): string[] | null {
+  const chords = theory?.chords;
+  if (!chords || !Object.prototype.hasOwnProperty.call(chords, sym)) return null;
+  const intervals: unknown = chords[sym];
+  return Array.isArray(intervals) && intervals.every((i) => typeof i === "string") ? intervals : null;
+}
+
 function chordHover(ctx: StringContext, offset: number, env: HoverEnv): HoverInfo | null {
   const step = stepAt(ctx, offset);
   const value = ctx.value.slice(step.start - ctx.string.start - 1, step.end - ctx.string.start - 1);
   const m = /^([A-Ga-g][#b]?)(.*)$/.exec(value);
   if (!m) return null;
-  const intervals = env.theory?.chords[m[2]];
+  const intervals = chordIntervals(env.theory, m[2]);
   if (!intervals) return null;
   const root = m[1][0].toUpperCase() + m[1].slice(1);
   const code = `note("[${midiUp(root, intervals).join(",")}]").s("${voiceOf(ctx, env)}")`;

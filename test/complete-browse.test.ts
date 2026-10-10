@@ -121,3 +121,72 @@ test("previewsOn: the setting, but a screen reader keeps them off unless turned 
   assert.equal(previewsOn({ allowed: true, screenReader: true, toggledThisSession: false }), false);
   assert.equal(previewsOn({ allowed: true, screenReader: true, toggledThisSession: true }), true);
 });
+
+test("previews turned off while one waits on its row: it never plays", () => {
+  const { b, advance, plays, state } = setup();
+  b.keyDown("ArrowDown");
+  b.focus(row("bd"));
+  advance(PREVIEW_DELAY_MS / 2);
+  state.on = false; // ⌥P (or the palette) turned them off, before the pause ran out
+  advance(1000);
+  assert.deepEqual(plays(), []);
+});
+
+test("off(): cancels what was about to play and stops what played", () => {
+  const { b, advance, log, plays } = setup();
+  b.keyDown("ArrowDown");
+  b.focus(row("bd"));
+  b.off();
+  advance(1000);
+  assert.deepEqual(plays(), []);
+  b.keyDown("ArrowDown");
+  b.focus(row("sd"));
+  advance(PREVIEW_DELAY_MS);
+  assert.deepEqual(plays(), ["play sd"]);
+  b.off();
+  assert.equal(log[log.length - 1], "stop");
+});
+
+test("dispose(): nothing pending plays, what played stops, and later keys and rows do nothing", () => {
+  const { b, advance, log, plays } = setup();
+  b.keyDown("ArrowDown");
+  b.focus(row("bd"));
+  advance(PREVIEW_DELAY_MS);
+  b.keyDown("ArrowDown");
+  b.focus(row("sd"));
+  b.dispose();
+  assert.equal(log[log.length - 1], "stop");
+  advance(1000);
+  const n = log.length;
+  b.keyDown("ArrowDown");
+  b.focus(row("hh"));
+  advance(1000);
+  b.hide();
+  assert.deepEqual(plays(), ["play bd"]);
+  assert.equal(log.length, n, "no prefetch, play or stop after dispose");
+});
+
+test("typing right after an arrow: the re-filtered row doesn't play", () => {
+  const { b, advance, plays } = setup();
+  b.keyDown("ArrowDown");
+  b.focus(row("bd"));
+  advance(30);
+  b.keyDown("h"); // within the navigation window
+  b.focus(row("hh")); // the list re-filtered
+  advance(1000);
+  assert.deepEqual(plays(), []);
+});
+
+test("an arrow counts for the one focus change it causes, and not across the list closing", () => {
+  const { b, advance, plays } = setup();
+  b.keyDown("ArrowDown");
+  b.focus(row("bd"));
+  b.focus(row("sd")); // a re-query moved the focus right after: not the arrow's
+  advance(1000);
+  assert.deepEqual(plays(), []);
+  b.keyDown("ArrowDown");
+  b.hide();
+  b.focus(row("cp")); // a new list opened
+  advance(1000);
+  assert.deepEqual(plays(), []);
+});

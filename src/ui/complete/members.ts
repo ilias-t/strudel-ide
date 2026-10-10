@@ -130,7 +130,9 @@ export function rankMembers(entries: readonly TsEntry[], catalog: CompletionsCat
   const fns = catalog.functions;
   const names = new Set(entries.map((e) => e.name));
   const head = chain?.[0]?.name;
-  const after = head ? (catalog.after[head] ?? []) : [];
+  // own entries only: a chain head named constructor or toString isn't one of Object's
+  const listed = head && Object.prototype.hasOwnProperty.call(catalog.after, head) ? catalog.after[head] : undefined;
+  const after: readonly string[] = Array.isArray(listed) ? listed : [];
   const inChain = new Set((chain ?? []).slice(1).map((c) => c.name));
   const afterAt = new Map<string, number>();
   for (const n of after) {

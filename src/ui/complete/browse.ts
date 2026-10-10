@@ -85,6 +85,7 @@ export function createBrowser(deps: BrowserDeps): Browser {
   };
   const off = () => {
     cancel();
+    navAt = -Infinity;
     if (!played) return;
     played = false;
     deps.stop();
@@ -92,13 +93,17 @@ export function createBrowser(deps: BrowserDeps): Browser {
   return {
     keyDown(key) {
       if (disposed) return;
-      if (NAV_KEYS.has(key)) navAt = deps.now();
+      // any other key (typing, which re-filters the list) ends the arrow's claim on the next focus change
+      navAt = NAV_KEYS.has(key) ? deps.now() : -Infinity;
     },
     focus(p) {
       cancel();
+      // the focus change an arrow caused uses it up
+      const arrowed = deps.now() - navAt <= NAV_WINDOW_MS;
+      navAt = -Infinity;
       if (disposed || !p || !deps.enabled()) return;
       deps.prefetch(p);
-      if (deps.now() - navAt > NAV_WINDOW_MS) return;
+      if (!arrowed) return;
       timer = deps.setTimer(() => {
         timer = undefined;
         // previews may have been turned off during the pause

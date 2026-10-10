@@ -165,3 +165,28 @@ test("dispose(): nothing pending plays, what played stops, and later keys and ro
   assert.deepEqual(plays(), ["play bd"]);
   assert.equal(log.length, n, "no prefetch, play or stop after dispose");
 });
+
+test("typing right after an arrow: the re-filtered row doesn't play", () => {
+  const { b, advance, plays } = setup();
+  b.keyDown("ArrowDown");
+  b.focus(row("bd"));
+  advance(30);
+  b.keyDown("h"); // within the navigation window
+  b.focus(row("hh")); // the list re-filtered
+  advance(1000);
+  assert.deepEqual(plays(), []);
+});
+
+test("an arrow counts for the one focus change it causes, and not across the list closing", () => {
+  const { b, advance, plays } = setup();
+  b.keyDown("ArrowDown");
+  b.focus(row("bd"));
+  b.focus(row("sd")); // a re-query moved the focus right after: not the arrow's
+  advance(1000);
+  assert.deepEqual(plays(), []);
+  b.keyDown("ArrowDown");
+  b.hide();
+  b.focus(row("cp")); // a new list opened
+  advance(1000);
+  assert.deepEqual(plays(), []);
+});

@@ -309,10 +309,10 @@ describe("availability", () => {
     assert.equal(meta.mini.availability, "ok");
   });
 
-  test("every catalog name audition.ts refuses as a call is demoted (UNSAFE_BUCKETS covers it)", () => {
-    const src = readFileSync(join(root, "src/ui/discover/audition.ts"), "utf8");
+  test("every catalog name previewable() refuses as a call is demoted (UNSAFE_BUCKETS covers it)", () => {
+    const src = readFileSync(join(root, "src/ui/discover/previewable.ts"), "utf8");
     const unsafe = src.match(/const UNSAFE =\s*\/(.*)\/;/)?.[1];
-    assert.ok(unsafe, "UNSAFE not found in audition.ts");
+    assert.ok(unsafe, "UNSAFE not found in previewable.ts");
     const names = new Set([...unsafe.matchAll(/\(([\w|]+)\)/g)].flatMap((m) => m[1].split("|")));
     const notDemoted = [...names].filter((n) => byName.has(n) && meta[n].availability === "ok" && !UNSAFE_BUCKETS.ok?.includes(n));
     assert.deepEqual(notDemoted, []);

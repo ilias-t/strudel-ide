@@ -5,9 +5,9 @@
 import { sortKeys } from "./util.mjs";
 
 /**
- * Names src/ui/discover/audition.ts refuses to preview (its UNSAFE pattern) that the category table
+ * Names src/ui/discover/previewable.ts refuses to preview (its UNSAFE pattern) that the category table
  * files elsewhere, with the bucket they sink to. test/catalog-data.test.mjs reads UNSAFE from
- * audition.ts and fails if one of its names that is a function stays "ok" without being listed here.
+ * previewable.ts and fails if one of its names that is a function stays "ok" without being listed here.
  * `ok` lists the ones that are fine in a song even though a preview won't run them.
  */
 export const UNSAFE_BUCKETS = {

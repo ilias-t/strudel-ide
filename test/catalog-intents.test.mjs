@@ -34,11 +34,11 @@ function trackRoles() {
   return [...m[1].matchAll(/"(\w+)"/g)].map((x) => x[1]).filter((r) => r !== "other");
 }
 
-/** previewable() from src/ui/discover/audition.ts, built from its own regex (that module needs the browser engine) */
+/** previewable() from src/ui/discover/previewable.ts, built from its own regex */
 function previewableFromSource() {
-  const src = readFileSync(join(root, "src/ui/discover/audition.ts"), "utf8");
+  const src = readFileSync(join(root, "src/ui/discover/previewable.ts"), "utf8");
   const m = src.match(/const UNSAFE =\s*\/(.+)\/([a-z]*);\n/);
-  assert.ok(m, "UNSAFE not found in src/ui/discover/audition.ts");
+  assert.ok(m, "UNSAFE not found in src/ui/discover/previewable.ts");
   const unsafe = new RegExp(m[1], m[2]);
   assert.match(src, /return code\.trim\(\)\.length > 0 && !UNSAFE\.test\(code\);/, "previewable() changed: update this mirror");
   return (code) => code.trim().length > 0 && !unsafe.test(code);

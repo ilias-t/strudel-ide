@@ -259,6 +259,22 @@ test("Esc closes and gives focus back; so does a click on the dim", async ({ pla
   await expect(help).toBeFocused();
 });
 
+test("the keyboard-shortcuts action opens the cheat sheet on its Keys tab, whichever tab was used last", async ({ player, page }) => {
+  await player.boot();
+  // leave the sheet on another tab first
+  await page.locator("body").press("?");
+  await page.getByTestId("cheat-tab-sounds").click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("help-overlay")).toBeHidden();
+
+  await openPalette(page);
+  await catalogLoaded(page);
+  await search(page, "keyboard shortcuts", { kind: "action", id: "help" });
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("help-overlay")).toBeVisible();
+  await expect(page.getByTestId("cheat-tab-keys")).toHaveAttribute("aria-selected", "true");
+});
+
 test("the stage's shortcuts don't fire while the palette is open", async ({ player, page }) => {
   await player.boot({ fixture: { sections: true } });
   expect(await player.select(FIXTURE_ID)).toBe(true);

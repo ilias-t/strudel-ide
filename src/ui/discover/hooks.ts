@@ -10,6 +10,14 @@
 //   B (stage key), the file bar's "library" key   → ./library.ts
 //   ⌘/Ctrl+K anywhere, even in the editor          → ./palette.ts
 //   the mixer's "+ track" key, the palette          → ./track-builder.ts
+//   ? (stage key), the top bar's ?, the file bar's
+//   "help" key, F1 in the editor (stage.ts)         → ./cheatsheet.ts
+//
+// The cheat sheet's card is static markup in index.html (#help-overlay: its
+// tabs and the Keys tab), so it shows the moment it's asked for: this module
+// reveals it, focuses its search, keeps it modal (no stage shortcut fires
+// from inside, Tab stays inside) and closes it with Esc, giving focus back
+// where it was (the editor keeps its caret). The chunk fills the other tabs.
 //
 // ⌘/Ctrl+K is taken in the capture phase, before Monaco: the palette wins over
 // Monaco's own ⌘K chords (⌘K ⌘C etc. — comment is also ⌘/, which still works).
@@ -23,8 +31,9 @@
 import type { CodeEditor } from "../code-editor";
 import { askOpen } from "../ask";
 import { defaultInsertSpot, insertionFor, type InsertItem } from "./insert";
+import type { SheetTab } from "./cheatsheet-data";
 
-export type Feature = "library" | "palette" | "builder";
+export type Feature = "library" | "palette" | "builder" | "cheatsheet";
 export type Drawer = "library" | "builder";
 export type ToastKind = "ok" | "warn" | "error" | "pending";
 
@@ -46,6 +55,7 @@ export interface DiscoveryHost {
   editing(): { songId: string; editor: CodeEditor } | null;
   exitEdit(): void;
   toast(text: string, kind?: ToastKind): void;
+  /** Open the cheat sheet on its Keys tab (the palette's "keyboard shortcuts") */
   showHelp(): void;
   toggleCodeView(): void;
   /** Follow the music in the code again (F) */
@@ -63,8 +73,12 @@ export interface FeatureHandle {
 export interface FeatureOptions {
   /** library: which tab */
   tab?: "sounds" | "functions";
-  /** library: a search to start with */
+  /** library, cheat sheet: a search to start with */
   query?: string;
+  /** library: open the Functions tab on this category (functions.json id), expanded and in view */
+  category?: string;
+  /** cheat sheet: which tab */
+  sheet?: SheetTab;
   /** builder: start at this role (kick, bass, …) */
   role?: string;
   /** builder: start with this snippet id */
@@ -94,16 +108,70 @@ const loaders: Record<Feature, () => Promise<FeatureFactory>> = {
   library: () => import("./library").then((m) => m.createLibrary),
   palette: () => import("./palette").then((m) => m.createPalette),
   builder: () => import("./track-builder").then((m) => m.createTrackBuilder),
+  cheatsheet: () => import("./cheatsheet").then((m) => m.createCheatSheet),
 };
 
-const NAMES: Record<Feature, string> = { library: "library", palette: "palette", builder: "track builder" };
+const NAMES: Record<Feature, string> = { library: "library", palette: "palette", builder: "track builder", cheatsheet: "cheat sheet" };
 
 const $ = (id: string) => document.getElementById(id);
 
-export function mountDiscovery(host: DiscoveryHost) {
+/** What stage.ts drives the cheat sheet with (?, the top bar's ?, F1, Esc) */
+export interface DiscoveryControls {
+  showHelp(opts?: FeatureOptions): void;
+  hideHelp(): void;
+  helpOpen(): boolean;
+}
+
+/** Text fields keep every key (the stage's rule, src/ui/stage.ts) */
+const isTextField = (t: EventTarget | null) =>
+  t instanceof HTMLElement &&
+  (t.isContentEditable || /^(TEXTAREA|SELECT)$/.test(t.tagName) || (t instanceof HTMLInputElement && t.type !== "checkbox"));
+
+export function mountDiscovery(host: DiscoveryHost): DiscoveryControls {
   const stage = $("stage")!;
   const handles = new Map<Feature, Promise<FeatureHandle>>();
   const ready = new Map<Feature, FeatureHandle>();
+
+  // ── the cheat sheet's card (static in index.html; ./cheatsheet.ts fills it) ──
+  const sheet = $("help-overlay")!;
+  const sheetCard = $("help-card");
+  const sheetKeys = [$("help-button"), $("code-help")].filter((k): k is HTMLElement => !!k);
+  let sheetReturn: HTMLElement | null = null;
+  const visible = (el: HTMLElement) => el.isConnected && el.getClientRects().length > 0;
+
+  function revealSheet() {
+    if (!sheet.hidden) return;
+    const active = document.activeElement;
+    sheetReturn = active instanceof HTMLElement && active !== document.body && !sheet.contains(active) ? active : null;
+    sheet.hidden = false;
+    for (const k of sheetKeys) k.setAttribute("aria-expanded", "true");
+    const search = $("cheat-search") as HTMLInputElement | null;
+    search?.focus();
+    search?.select();
+  }
+
+  function hideSheet() {
+    if (sheet.hidden) return;
+    ready.get("cheatsheet")?.close();
+    const hadFocus = sheet.contains(document.activeElement) || document.activeElement === document.body;
+    sheet.hidden = true;
+    for (const k of sheetKeys) k.setAttribute("aria-expanded", "false");
+    const back = sheetReturn;
+    sheetReturn = null;
+    if (!hadFocus) return;
+    if (back && visible(back)) back.focus({ preventScroll: true });
+    else (document.activeElement as HTMLElement | null)?.blur();
+  }
+
+  /** The chunk didn't load: the Keys tab is static, show that */
+  function sheetFallback() {
+    for (const t of sheet.querySelectorAll<HTMLElement>("[role=tab]")) {
+      const on = t.dataset.tab === "keys";
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+    }
+    for (const p of sheet.querySelectorAll<HTMLElement>("[role=tabpanel]")) p.hidden = p.id !== "cheat-panel-keys";
+  }
 
   function handle(feature: Feature): Promise<FeatureHandle> {
     let p = handles.get(feature);
@@ -121,22 +189,26 @@ export function mountDiscovery(host: DiscoveryHost) {
   }
 
   async function open(feature: Feature, opts?: FeatureOptions) {
+    if (feature === "cheatsheet") revealSheet(); // at once: the chunk fills it in
     let h: FeatureHandle;
     try {
       h = await handle(feature);
     } catch (err) {
       console.warn(`[discover] the ${NAMES[feature]} didn't load`, err);
       host.toast(`the ${NAMES[feature]} didn't load: check your connection`, "error");
+      if (feature === "cheatsheet") sheetFallback();
       return;
     }
+    if (feature === "cheatsheet" && sheet.hidden) return; // closed while it loaded
     await h.open(opts);
   }
 
   function close(feature: Feature) {
-    ready.get(feature)?.close();
+    if (feature === "cheatsheet") hideSheet();
+    else ready.get(feature)?.close();
   }
 
-  const isOpen = (feature: Feature) => ready.get(feature)?.isOpen() ?? false;
+  const isOpen = (feature: Feature) => (feature === "cheatsheet" ? !sheet.hidden : (ready.get(feature)?.isOpen() ?? false));
   const toggle = (feature: Feature, opts?: FeatureOptions) => (isOpen(feature) ? close(feature) : open(feature, opts));
 
   let drawer: Drawer | null = null;
@@ -218,6 +290,46 @@ export function mountDiscovery(host: DiscoveryHost) {
   $("code-library")?.addEventListener("click", () => void toggle("library"));
   $("add-track")?.addEventListener("click", () => void open("builder"));
 
+  // the cheat sheet: its keys, the close key, a click on the dim; modal
+  for (const k of sheetKeys) k.addEventListener("click", () => void toggle("cheatsheet"));
+  $("help-close")?.addEventListener("click", () => hideSheet());
+  sheet.addEventListener("click", (e) => {
+    if (e.target === sheet) hideSheet();
+  });
+  sheet.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      hideSheet();
+      return;
+    }
+    if (e.key === "F1") {
+      e.preventDefault(); // already open (and not the browser's help)
+      e.stopPropagation();
+      return;
+    }
+    if (e.key === "Tab" && sheetCard) {
+      // keep Tab inside the card
+      const stops = [...sheetCard.querySelectorAll<HTMLElement>("button, input, a[href], [tabindex='0']")].filter(
+        (n) => !(n as HTMLButtonElement).disabled && n.tabIndex >= 0 && visible(n)
+      );
+      const first = stops[0];
+      const last = stops[stops.length - 1];
+      const at = document.activeElement;
+      if (first && last && (e.shiftKey ? at === first || at === sheetCard : at === last)) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      }
+      return;
+    }
+    if (e.metaKey || e.ctrlKey) return; // ⌘K (capture phase above) and the browser's own
+    e.stopPropagation(); // the stage's shortcuts never fire from in here
+    if (e.key === "?" && !isTextField(e.target)) {
+      e.preventDefault();
+      hideSheet();
+    }
+  });
+
   // tests and devtools
   window.__strudelDiscover = {
     open: (feature, opts) => open(feature, opts),
@@ -226,6 +338,12 @@ export function mountDiscovery(host: DiscoveryHost) {
     loaded: () => [...ready.keys()],
     insert: discovery.insert,
     auditions: async () => (await import("./audition")).auditions(),
+  };
+
+  return {
+    showHelp: (opts) => void open("cheatsheet", opts),
+    hideHelp: hideSheet,
+    helpOpen: () => !sheet.hidden,
   };
 }
 

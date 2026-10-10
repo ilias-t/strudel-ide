@@ -1,6 +1,1676 @@
 {
-  "scales": [],
-  "chords": {},
-  "vowels": [],
-  "voicingDicts": []
+  "scales": [
+    {
+      "name": "major",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4P",
+        "5P",
+        "6M",
+        "7M"
+      ],
+      "common": true
+    },
+    {
+      "name": "minor",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4P",
+        "5P",
+        "6m",
+        "7m"
+      ],
+      "common": true
+    },
+    {
+      "name": "dorian",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4P",
+        "5P",
+        "6M",
+        "7m"
+      ],
+      "common": true
+    },
+    {
+      "name": "mixolydian",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4P",
+        "5P",
+        "6M",
+        "7m"
+      ],
+      "common": true
+    },
+    {
+      "name": "phrygian",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "4P",
+        "5P",
+        "6m",
+        "7m"
+      ],
+      "common": true
+    },
+    {
+      "name": "lydian",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4A",
+        "5P",
+        "6M",
+        "7M"
+      ],
+      "common": true
+    },
+    {
+      "name": "locrian",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "4P",
+        "5d",
+        "6m",
+        "7m"
+      ],
+      "common": true
+    },
+    {
+      "name": "harmonic minor",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4P",
+        "5P",
+        "6m",
+        "7M"
+      ],
+      "common": true
+    },
+    {
+      "name": "melodic minor",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4P",
+        "5P",
+        "6M",
+        "7M"
+      ],
+      "common": true
+    },
+    {
+      "name": "major pentatonic",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "5P",
+        "6M"
+      ],
+      "common": true
+    },
+    {
+      "name": "minor pentatonic",
+      "intervals": [
+        "1P",
+        "3m",
+        "4P",
+        "5P",
+        "7m"
+      ],
+      "common": true
+    },
+    {
+      "name": "minor blues",
+      "intervals": [
+        "1P",
+        "3m",
+        "4P",
+        "5d",
+        "5P",
+        "7m"
+      ],
+      "common": true
+    },
+    {
+      "name": "major blues",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "3M",
+        "5P",
+        "6M"
+      ],
+      "common": true
+    },
+    {
+      "name": "chromatic",
+      "intervals": [
+        "1P",
+        "2m",
+        "2M",
+        "3m",
+        "3M",
+        "4P",
+        "5d",
+        "5P",
+        "6m",
+        "6M",
+        "7m",
+        "7M"
+      ],
+      "common": true
+    },
+    {
+      "name": "whole tone",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4A",
+        "5A",
+        "6A"
+      ],
+      "common": true
+    },
+    {
+      "name": "altered",
+      "intervals": [
+        "1P",
+        "2m",
+        "2A",
+        "3M",
+        "4A",
+        "6m",
+        "7m"
+      ]
+    },
+    {
+      "name": "augmented",
+      "intervals": [
+        "1P",
+        "2A",
+        "3M",
+        "5P",
+        "5A",
+        "7M"
+      ]
+    },
+    {
+      "name": "augmented heptatonic",
+      "intervals": [
+        "1P",
+        "2A",
+        "3M",
+        "4P",
+        "5P",
+        "5A",
+        "7M"
+      ]
+    },
+    {
+      "name": "balinese",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "4P",
+        "5P",
+        "6m",
+        "7M"
+      ]
+    },
+    {
+      "name": "bebop",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4P",
+        "5P",
+        "6M",
+        "7m",
+        "7M"
+      ]
+    },
+    {
+      "name": "bebop locrian",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "4P",
+        "5d",
+        "5P",
+        "6m",
+        "7m"
+      ]
+    },
+    {
+      "name": "bebop major",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4P",
+        "5P",
+        "5A",
+        "6M",
+        "7M"
+      ]
+    },
+    {
+      "name": "bebop minor",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "3M",
+        "4P",
+        "5P",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "composite blues",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "3M",
+        "4P",
+        "5d",
+        "5P",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "diminished",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4P",
+        "5d",
+        "6m",
+        "6M",
+        "7M"
+      ]
+    },
+    {
+      "name": "dorian #4",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4A",
+        "5P",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "dorian b2",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "4P",
+        "5P",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "double harmonic lydian",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "4A",
+        "5P",
+        "6m",
+        "7M"
+      ]
+    },
+    {
+      "name": "double harmonic major",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "4P",
+        "5P",
+        "6m",
+        "7M"
+      ]
+    },
+    {
+      "name": "egyptian",
+      "intervals": [
+        "1P",
+        "2M",
+        "4P",
+        "5P",
+        "7m"
+      ]
+    },
+    {
+      "name": "enigmatic",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "5d",
+        "6m",
+        "7m",
+        "7M"
+      ]
+    },
+    {
+      "name": "flamenco",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "3M",
+        "4A",
+        "5P",
+        "7m"
+      ]
+    },
+    {
+      "name": "flat six pentatonic",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "5P",
+        "6m"
+      ]
+    },
+    {
+      "name": "flat three pentatonic",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "5P",
+        "6M"
+      ]
+    },
+    {
+      "name": "half-whole diminished",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "3M",
+        "4A",
+        "5P",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "harmonic major",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4P",
+        "5P",
+        "6m",
+        "7M"
+      ]
+    },
+    {
+      "name": "hirajoshi",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "5P",
+        "6m"
+      ]
+    },
+    {
+      "name": "hungarian major",
+      "intervals": [
+        "1P",
+        "2A",
+        "3M",
+        "4A",
+        "5P",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "hungarian minor",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4A",
+        "5P",
+        "6m",
+        "7M"
+      ]
+    },
+    {
+      "name": "ichikosucho",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4P",
+        "5d",
+        "5P",
+        "6M",
+        "7M"
+      ]
+    },
+    {
+      "name": "in-sen",
+      "intervals": [
+        "1P",
+        "2m",
+        "4P",
+        "5P",
+        "7m"
+      ]
+    },
+    {
+      "name": "ionian pentatonic",
+      "intervals": [
+        "1P",
+        "3M",
+        "4P",
+        "5P",
+        "7M"
+      ]
+    },
+    {
+      "name": "iwato",
+      "intervals": [
+        "1P",
+        "2m",
+        "4P",
+        "5d",
+        "7m"
+      ]
+    },
+    {
+      "name": "kafi raga",
+      "intervals": [
+        "1P",
+        "3m",
+        "3M",
+        "4P",
+        "5P",
+        "6M",
+        "7m",
+        "7M"
+      ]
+    },
+    {
+      "name": "kumoijoshi",
+      "intervals": [
+        "1P",
+        "2m",
+        "4P",
+        "5P",
+        "6m"
+      ]
+    },
+    {
+      "name": "leading whole tone",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4A",
+        "5A",
+        "7m",
+        "7M"
+      ]
+    },
+    {
+      "name": "locrian #2",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4P",
+        "5d",
+        "6m",
+        "7m"
+      ]
+    },
+    {
+      "name": "locrian 6",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "4P",
+        "5d",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "locrian major",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4P",
+        "5d",
+        "6m",
+        "7m"
+      ]
+    },
+    {
+      "name": "locrian pentatonic",
+      "intervals": [
+        "1P",
+        "3m",
+        "4P",
+        "5d",
+        "7m"
+      ]
+    },
+    {
+      "name": "lydian #5P pentatonic",
+      "intervals": [
+        "1P",
+        "3M",
+        "4A",
+        "5A",
+        "7M"
+      ]
+    },
+    {
+      "name": "lydian #9",
+      "intervals": [
+        "1P",
+        "2A",
+        "3M",
+        "4A",
+        "5P",
+        "6M",
+        "7M"
+      ]
+    },
+    {
+      "name": "lydian augmented",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4A",
+        "5A",
+        "6M",
+        "7M"
+      ]
+    },
+    {
+      "name": "lydian diminished",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4A",
+        "5P",
+        "6M",
+        "7M"
+      ]
+    },
+    {
+      "name": "lydian dominant",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4A",
+        "5P",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "lydian dominant pentatonic",
+      "intervals": [
+        "1P",
+        "3M",
+        "4A",
+        "5P",
+        "7m"
+      ]
+    },
+    {
+      "name": "lydian minor",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4A",
+        "5P",
+        "6m",
+        "7m"
+      ]
+    },
+    {
+      "name": "lydian pentatonic",
+      "intervals": [
+        "1P",
+        "3M",
+        "4A",
+        "5P",
+        "7M"
+      ]
+    },
+    {
+      "name": "major augmented",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4P",
+        "5A",
+        "6M",
+        "7M"
+      ]
+    },
+    {
+      "name": "malkos raga",
+      "intervals": [
+        "1P",
+        "3m",
+        "4P",
+        "6m",
+        "7m"
+      ]
+    },
+    {
+      "name": "messiaen's mode #3",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "3M",
+        "4A",
+        "5P",
+        "6m",
+        "7m",
+        "7M"
+      ]
+    },
+    {
+      "name": "messiaen's mode #4",
+      "intervals": [
+        "1P",
+        "2m",
+        "2M",
+        "4P",
+        "4A",
+        "5P",
+        "6m",
+        "7M"
+      ]
+    },
+    {
+      "name": "messiaen's mode #5",
+      "intervals": [
+        "1P",
+        "2m",
+        "4P",
+        "4A",
+        "5P",
+        "7M"
+      ]
+    },
+    {
+      "name": "messiaen's mode #6",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4P",
+        "4A",
+        "5A",
+        "6A",
+        "7M"
+      ]
+    },
+    {
+      "name": "messiaen's mode #7",
+      "intervals": [
+        "1P",
+        "2m",
+        "2M",
+        "3m",
+        "4P",
+        "4A",
+        "5P",
+        "6m",
+        "6M",
+        "7M"
+      ]
+    },
+    {
+      "name": "minor #7M pentatonic",
+      "intervals": [
+        "1P",
+        "3m",
+        "4P",
+        "5P",
+        "7M"
+      ]
+    },
+    {
+      "name": "minor bebop",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4P",
+        "5P",
+        "6m",
+        "7m",
+        "7M"
+      ]
+    },
+    {
+      "name": "minor hexatonic",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4P",
+        "5P",
+        "7M"
+      ]
+    },
+    {
+      "name": "minor six diminished",
+      "intervals": [
+        "1P",
+        "2M",
+        "3m",
+        "4P",
+        "5P",
+        "6m",
+        "6M",
+        "7M"
+      ]
+    },
+    {
+      "name": "minor six pentatonic",
+      "intervals": [
+        "1P",
+        "3m",
+        "4P",
+        "5P",
+        "6M"
+      ]
+    },
+    {
+      "name": "mixolydian b6",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4P",
+        "5P",
+        "6m",
+        "7m"
+      ]
+    },
+    {
+      "name": "mixolydian pentatonic",
+      "intervals": [
+        "1P",
+        "3M",
+        "4P",
+        "5P",
+        "7m"
+      ]
+    },
+    {
+      "name": "mystery #1",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "5d",
+        "6m",
+        "7m"
+      ]
+    },
+    {
+      "name": "neopolitan major",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "4P",
+        "5P",
+        "6M",
+        "7M"
+      ]
+    },
+    {
+      "name": "neopolitan major pentatonic",
+      "intervals": [
+        "1P",
+        "3M",
+        "4P",
+        "5d",
+        "7m"
+      ]
+    },
+    {
+      "name": "oriental",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "4P",
+        "5d",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "pelog",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "5P",
+        "6m"
+      ]
+    },
+    {
+      "name": "persian",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "4P",
+        "5d",
+        "6m",
+        "7M"
+      ]
+    },
+    {
+      "name": "phrygian dominant",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "4P",
+        "5P",
+        "6m",
+        "7m"
+      ]
+    },
+    {
+      "name": "piongio",
+      "intervals": [
+        "1P",
+        "2M",
+        "4P",
+        "5P",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "prometheus",
+      "intervals": [
+        "1P",
+        "2M",
+        "3M",
+        "4A",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "prometheus neopolitan",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "4A",
+        "6M",
+        "7m"
+      ]
+    },
+    {
+      "name": "purvi raga",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "4P",
+        "4A",
+        "5P",
+        "6m",
+        "7M"
+      ]
+    },
+    {
+      "name": "ritusen",
+      "intervals": [
+        "1P",
+        "2M",
+        "4P",
+        "5P",
+        "6M"
+      ]
+    },
+    {
+      "name": "scriabin",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "5P",
+        "6M"
+      ]
+    },
+    {
+      "name": "six tone symmetric",
+      "intervals": [
+        "1P",
+        "2m",
+        "3M",
+        "4P",
+        "5A",
+        "6M"
+      ]
+    },
+    {
+      "name": "spanish heptatonic",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "3M",
+        "4P",
+        "5P",
+        "6m",
+        "7m"
+      ]
+    },
+    {
+      "name": "super locrian pentatonic",
+      "intervals": [
+        "1P",
+        "3m",
+        "4d",
+        "5d",
+        "7m"
+      ]
+    },
+    {
+      "name": "todi raga",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "4A",
+        "5P",
+        "6m",
+        "7M"
+      ]
+    },
+    {
+      "name": "ultralocrian",
+      "intervals": [
+        "1P",
+        "2m",
+        "3m",
+        "4d",
+        "5d",
+        "6m",
+        "7d"
+      ]
+    },
+    {
+      "name": "vietnamese 1",
+      "intervals": [
+        "1P",
+        "3m",
+        "4P",
+        "5P",
+        "6m"
+      ]
+    },
+    {
+      "name": "whole tone pentatonic",
+      "intervals": [
+        "1P",
+        "3M",
+        "5d",
+        "6m",
+        "7m"
+      ]
+    }
+  ],
+  "chords": {
+    "2": [
+      "1P",
+      "3M",
+      "5P",
+      "9M"
+    ],
+    "5": [
+      "1P",
+      "5P"
+    ],
+    "6": [
+      "1P",
+      "3M",
+      "5P",
+      "6M"
+    ],
+    "7": [
+      "1P",
+      "3M",
+      "5P",
+      "7m"
+    ],
+    "9": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9M"
+    ],
+    "11": [
+      "1P",
+      "5P",
+      "7m",
+      "9M",
+      "11P"
+    ],
+    "13": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9M",
+      "13M"
+    ],
+    "69": [
+      "1P",
+      "3M",
+      "5P",
+      "6M",
+      "9M"
+    ],
+    "add9": [
+      "1P",
+      "3M",
+      "5P",
+      "9M"
+    ],
+    "+": [
+      "1P",
+      "3M",
+      "5A"
+    ],
+    "o": [
+      "1P",
+      "3m",
+      "5d"
+    ],
+    "h": [
+      "1P",
+      "3m",
+      "5d",
+      "7m"
+    ],
+    "sus": [
+      "1P",
+      "4P",
+      "5P"
+    ],
+    "^": [
+      "1P",
+      "3M",
+      "5P"
+    ],
+    "-": [
+      "1P",
+      "3m",
+      "5P"
+    ],
+    "^7": [
+      "1P",
+      "3M",
+      "5P",
+      "7M"
+    ],
+    "-7": [
+      "1P",
+      "3m",
+      "5P",
+      "7m"
+    ],
+    "7sus": [
+      "1P",
+      "4P",
+      "5P",
+      "7m"
+    ],
+    "h7": [
+      "1P",
+      "3m",
+      "5d",
+      "7m"
+    ],
+    "o7": [
+      "1P",
+      "3m",
+      "5d",
+      "7d"
+    ],
+    "^9": [
+      "1P",
+      "3M",
+      "5P",
+      "7M",
+      "9M"
+    ],
+    "^13": [
+      "1P",
+      "3M",
+      "5P",
+      "7M",
+      "9M",
+      "13M"
+    ],
+    "^7#11": [
+      "1P",
+      "3M",
+      "5P",
+      "7M",
+      "11A"
+    ],
+    "^9#11": [
+      "1P",
+      "3M",
+      "5P",
+      "7M",
+      "9M",
+      "11A"
+    ],
+    "^7#5": [
+      "1P",
+      "3M",
+      "5A",
+      "7M"
+    ],
+    "-6": [
+      "1P",
+      "3m",
+      "5P",
+      "6M"
+    ],
+    "-69": [
+      "1P",
+      "3m",
+      "5P",
+      "6M",
+      "9M"
+    ],
+    "-^7": [
+      "1P",
+      "3m",
+      "5P",
+      "7M"
+    ],
+    "-^9": [
+      "1P",
+      "3m",
+      "5P",
+      "7M",
+      "9M"
+    ],
+    "-9": [
+      "1P",
+      "3m",
+      "5P",
+      "7m",
+      "9M"
+    ],
+    "-add9": [
+      "1P",
+      "3m",
+      "5P",
+      "9M"
+    ],
+    "-11": [
+      "1P",
+      "3m",
+      "5P",
+      "7m",
+      "9M",
+      "11P"
+    ],
+    "-7b5": [
+      "1P",
+      "3m",
+      "5d",
+      "7m"
+    ],
+    "h9": [
+      "1P",
+      "2M",
+      "3m",
+      "5d",
+      "7m"
+    ],
+    "-b6": [
+      "1P",
+      "3m",
+      "5P",
+      "6m"
+    ],
+    "-#5": [
+      "1P",
+      "3m",
+      "5A"
+    ],
+    "7b9": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9m"
+    ],
+    "7#9": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9A"
+    ],
+    "7#11": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "11A"
+    ],
+    "7b5": [
+      "1P",
+      "3M",
+      "5d",
+      "7m"
+    ],
+    "7#5": [
+      "1P",
+      "3M",
+      "5A",
+      "7m"
+    ],
+    "9#11": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9M",
+      "11A"
+    ],
+    "9b5": [
+      "1P",
+      "3M",
+      "5d",
+      "7m",
+      "9M"
+    ],
+    "9#5": [
+      "1P",
+      "3M",
+      "5A",
+      "7m",
+      "9M"
+    ],
+    "7b13": [
+      "1P",
+      "3M",
+      "7m",
+      "13m"
+    ],
+    "7#9#5": [
+      "1P",
+      "3M",
+      "5A",
+      "7m",
+      "9A"
+    ],
+    "7#9b5": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9A",
+      "11A"
+    ],
+    "7#9#11": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9A",
+      "11A"
+    ],
+    "7b9#11": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9m",
+      "11A"
+    ],
+    "7b9b5": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9m",
+      "11A"
+    ],
+    "7b9#5": [
+      "1P",
+      "3M",
+      "5A",
+      "7m",
+      "9m"
+    ],
+    "7b9#9": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9m",
+      "9A"
+    ],
+    "7b9b13": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9m",
+      "13m"
+    ],
+    "7alt": [
+      "1P",
+      "3M",
+      "5A",
+      "7m",
+      "9A"
+    ],
+    "13#11": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9M",
+      "11A",
+      "13M"
+    ],
+    "13b9": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9m",
+      "13M"
+    ],
+    "13#9": [
+      "1P",
+      "3M",
+      "5P",
+      "7m",
+      "9A",
+      "13M"
+    ],
+    "7b9sus": [
+      "1P",
+      "4P",
+      "5P",
+      "7m",
+      "9m"
+    ],
+    "7susadd3": [
+      "1P",
+      "3M",
+      "4P",
+      "5P",
+      "7m"
+    ],
+    "9sus": [
+      "1P",
+      "4P",
+      "5P",
+      "7m",
+      "9M"
+    ],
+    "13sus": [
+      "1P",
+      "4P",
+      "5P",
+      "7m",
+      "9M",
+      "13M"
+    ],
+    "7b13sus": [
+      "1P",
+      "4P",
+      "5P",
+      "6m",
+      "7m"
+    ],
+    "": [
+      "1P",
+      "3M",
+      "5P"
+    ],
+    "aug": [
+      "1P",
+      "3M",
+      "5A"
+    ],
+    "M": [
+      "1P",
+      "3M",
+      "5P"
+    ],
+    "m": [
+      "1P",
+      "3m",
+      "5P"
+    ],
+    "M7": [
+      "1P",
+      "3M",
+      "5P",
+      "7M"
+    ],
+    "m7": [
+      "1P",
+      "3m",
+      "5P",
+      "7m"
+    ],
+    "M9": [
+      "1P",
+      "3M",
+      "5P",
+      "7M",
+      "9M"
+    ],
+    "M13": [
+      "1P",
+      "3M",
+      "5P",
+      "7M",
+      "9M",
+      "13M"
+    ],
+    "M7#11": [
+      "1P",
+      "3M",
+      "5P",
+      "7M",
+      "11A"
+    ],
+    "M9#11": [
+      "1P",
+      "3M",
+      "5P",
+      "7M",
+      "9M",
+      "11A"
+    ],
+    "M7#5": [
+      "1P",
+      "3M",
+      "5A",
+      "7M"
+    ],
+    "m6": [
+      "1P",
+      "3m",
+      "5P",
+      "6M"
+    ],
+    "m69": [
+      "1P",
+      "3m",
+      "5P",
+      "6M",
+      "9M"
+    ],
+    "m^7": [
+      "1P",
+      "3m",
+      "5P",
+      "7M"
+    ],
+    "-M7": [
+      "1P",
+      "3m",
+      "5P",
+      "7M"
+    ],
+    "m^9": [
+      "1P",
+      "3m",
+      "5P",
+      "7M",
+      "9M"
+    ],
+    "-M9": [
+      "1P",
+      "3m",
+      "5P",
+      "7M",
+      "9M"
+    ],
+    "m9": [
+      "1P",
+      "3m",
+      "5P",
+      "7m",
+      "9M"
+    ],
+    "madd9": [
+      "1P",
+      "3m",
+      "5P",
+      "9M"
+    ],
+    "m11": [
+      "1P",
+      "3m",
+      "5P",
+      "7m",
+      "9M",
+      "11P"
+    ],
+    "m7b5": [
+      "1P",
+      "3m",
+      "5d",
+      "7m"
+    ],
+    "mb6": [
+      "1P",
+      "3m",
+      "5P",
+      "6m"
+    ],
+    "m#5": [
+      "1P",
+      "3m",
+      "5A"
+    ]
+  },
+  "vowels": [
+    "a",
+    "e",
+    "i",
+    "o",
+    "u",
+    "ae",
+    "aa",
+    "oe",
+    "ue",
+    "y",
+    "uh",
+    "un",
+    "en",
+    "an",
+    "on"
+  ],
+  "voicingDicts": [
+    "lefthand",
+    "triads",
+    "guidetones",
+    "legacy",
+    "ireal",
+    "ireal-ext"
+  ]
 }

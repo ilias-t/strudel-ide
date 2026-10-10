@@ -322,3 +322,42 @@ test('with the real catalog: function rows show ranges, and an idea answers "wet
   await search(page).fill("acid bass");
   await expect(results.getByTestId("cheat-row").first()).toHaveAttribute("data-kind", "intent");
 });
+
+test("the catalog arriving while a search result has the keyboard: it keeps it, and keys still never reach the stage", async ({ player, page }) => {
+  // hold the catalog back until a result has the keyboard
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route(/\/src\/catalog\/(sounds|completions|intents)\.json/, async (route) => {
+    await held;
+    await route.continue();
+  });
+  await player.boot();
+  expect(await player.select(FIXTURE_ID)).toBe(true);
+  await page.locator("body").press("?");
+  await search(page).fill("rest");
+  const results = page.getByTestId("cheat-results");
+  await expect(results.locator("[data-kind=mini]").first()).toHaveAttribute("data-id", "rest");
+  await search(page).press("ArrowDown");
+  const play = results.locator('[data-kind=mini][data-id="rest"]').getByTestId("cheat-play");
+  await expect(play).toBeFocused();
+
+  const arrived = Promise.all(["sounds", "completions", "intents"].map((n) => page.waitForResponse((r) => r.url().includes(`/src/catalog/${n}.json`))));
+  release(); // the results render again as each file comes in
+  await arrived;
+  await page.waitForTimeout(300);
+  await expect.poll(() => page.evaluate(() => !!document.activeElement?.closest("#help-card")), { message: "focus stays in the sheet" }).toBe(true);
+  await expect(play).toBeFocused();
+  await page.keyboard.press("1");
+  expect((await player.state()).muted ?? [], "no muting from under the sheet").toEqual([]);
+  await expect(sheet(page)).toBeVisible();
+
+  // focus fallen out of the sheet some other way: the stage still ignores keys while it's open (? still closes it)
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  const song = (await player.state()).songId;
+  for (const key of ["1", "ArrowRight", "c", "l"]) await page.keyboard.press(key);
+  expect((await player.state()).muted ?? [], "no muting").toEqual([]);
+  expect((await player.state()).songId, "no song stepping").toBe(song);
+  await expect(sheet(page)).toBeVisible();
+  await page.keyboard.press("?");
+  await expect(sheet(page)).toBeHidden();
+});

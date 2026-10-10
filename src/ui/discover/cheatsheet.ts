@@ -25,7 +25,9 @@
 // Keys inside: the tabs are a tablist (←→, Home, End); ↓ from the search
 // goes into the rows, ↑↓ move between rows and ←→ along one; a letter or
 // digit typed on a row goes to the search. hooks.ts keeps it modal (Esc,
-// Tab, no stage shortcut from inside). Text goes in with textContent only.
+// Tab, no stage shortcut from inside; stage.ts takes none while it's open).
+// Rows re-rendered as the catalog arrives keep the keyboard (rerender()).
+// Text goes in with textContent only.
 
 import "./cheatsheet.css";
 import type { Discovery, FeatureHandle, FeatureOptions } from "./hooks";
@@ -319,6 +321,25 @@ export function createCheatSheet(d: Discovery): FeatureHandle {
     else if (!filled.has(tab)) fill(tab);
   }
 
+  /**
+   * render() again as catalog data arrives. A row (in a tab or the search
+   * results) may have the keyboard: keep it on the same key in the new rows,
+   * or on the card, never on the page under the sheet.
+   */
+  function rerender() {
+    const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const region = active ? [results, ...panels.values()].find((r) => r.contains(active)) : undefined;
+    const held = active && region ? { id: active.closest("[data-id]")?.getAttribute("data-id"), key: active.dataset.testid } : null;
+    render();
+    if (!held || (active!.isConnected && card.contains(active))) return;
+    const view = query.trim() ? results : panels.get(tab)!;
+    const again =
+      held.id && held.key ? view.querySelector<HTMLElement>(`[data-id="${CSS.escape(held.id)}"] [data-testid="${CSS.escape(held.key)}"]`) : null;
+    if (!again) return card.focus({ preventScroll: true });
+    again.focus({ preventScroll: true });
+    again.scrollIntoView({ block: "nearest" });
+  }
+
   // ── loading ───────────────────────────────────────────────────────────────
   /** The catalog JSON, each file on its own: a failed one doesn't hold up the rest */
   function load(retry = false) {
@@ -326,16 +347,7 @@ export function createCheatSheet(d: Discovery): FeatureHandle {
     soundsFailed = false;
     const refresh = (t: SheetTab) => {
       filled.delete(t);
-      if (root.hidden) return;
-      // a row may have the keyboard: keep it on the same key in the new rows
-      const active = document.activeElement as HTMLElement | null;
-      const panel = panels.get(t)!;
-      const held = active && panel.contains(active) ? { id: active.closest("[data-id]")?.getAttribute("data-id"), key: active.dataset.testid } : null;
-      render();
-      if (held?.id && held.key) {
-        const again = panel.querySelector<HTMLElement>(`[data-id="${CSS.escape(held.id)}"] [data-testid="${CSS.escape(held.key)}"]`);
-        (again ?? card).focus({ preventScroll: true });
-      }
+      if (!root.hidden) rerender();
     };
     const c = completions
       ? Promise.resolve()
@@ -360,7 +372,7 @@ export function createCheatSheet(d: Discovery): FeatureHandle {
       ? Promise.resolve()
       : loadIntents().then((x) => {
           intents = x;
-          if (query.trim() && !root.hidden) render();
+          if (query.trim() && !root.hidden) rerender();
         });
     // completions and intents only add to rows that work without them
     loading = Promise.allSettled([c, s, i]);

@@ -8,7 +8,10 @@
 // and it works while stopped too, once the audio context runs. A click or a
 // key press is a user gesture, so the first audition can unlock audio.
 //
-//   auditionSound(name, { bank, n, pitched })   one hit, ~half a second
+//   auditionSound(name, { bank, n, pitched })   one hit, a bounded one-shot
+//   auditionSound(name, { preview: true, note }) a quiet short one, for
+//       hearing sounds while browsing (./audition-values.ts has the numbers)
+//   prefetchSound(name, opts)                   load its sample ahead of time
 //   previewCode(code, { cycles })               a one-shot pattern: the
 //       expression is evaluated with the song globals (s, note, …), then its
 //       haps are fed to superdough a little ahead of time, cycle by cycle, at
@@ -16,18 +19,24 @@
 //
 // Code that would touch the running engine (tempo, samples, hush, outputs,
 // visuals) is refused by previewable(); so is code that doesn't evaluate to a
-// pattern. Lazy: only the library, palette and track builder import this.
+// pattern. Lazy: only the library, palette, track builder and the editor's
+// suggestions import this.
 
-import { bpmToCps, engine, warmOrbits } from "../../engine/strudel";
+import { bpmToCps, engine, warmOrbits, type SoundEntry } from "../../engine/strudel";
 import * as player from "../../engine/player";
 import { AuditionBus } from "./audition-bus";
+import { LOAD_WAIT_MS, previewsAllowed, soundValue, type SoundOptions } from "./audition-values";
+
+export type { SoundOptions };
 
 export interface AuditionRecord {
   id: number;
   kind: "sound" | "pattern";
   label: string;
-  /** The values handed to superdough, in order */
+  /** The values handed to superdough, in order, each with the `duration` it was given */
   events: Record<string, unknown>[];
+  /** A hear-while-browsing preview (auditionSound's `preview`) */
+  preview?: boolean;
   /** "playing" until done; "error" with `error` when it couldn't play */
   status: "playing" | "done" | "stopped" | "error";
   error?: string;
@@ -84,7 +93,8 @@ const bus = new AuditionBus();
 
 function play(rec: AuditionRecord, value: Record<string, unknown>, at: number, duration: number, cps: number) {
   const routed = bus.route(value);
-  rec.events.push({ ...routed });
+  // with the duration superdough is given (it bounds a voice: ./audition-values.ts)
+  rec.events.push({ ...routed, duration });
   // superdough writes `duration` into the value: give it a copy
   superdough({ ...routed }, at, duration, cps).catch((err: unknown) => {
     rec.status = "error";
@@ -92,33 +102,98 @@ function play(rec: AuditionRecord, value: Record<string, unknown>, at: number, d
   });
 }
 
-export interface SoundOptions {
-  /** Play the bank's version of a drum part: s("bd").bank("RolandTR909") */
-  bank?: string;
-  /** Which file of the sound (n) */
-  n?: number;
-  /** A pitched sample or a synth: play a note */
-  pitched?: boolean;
+/** What a failed sample load says (the editor's details pane shows it) */
+export const LOAD_FAILED = "couldn't load this sample";
+
+/** The part of superdough's sampler that loads a sound's file (re-exported by @strudel/web) */
+interface SampleLoader {
+  /** Picks the file for value's n / note, fetches and decodes it once (cached by URL) */
+  getSampleBuffer(value: Record<string, unknown>, samples: SampleFiles): Promise<{ buffer: AudioBuffer }>;
+}
+type SampleFiles = NonNullable<NonNullable<SoundEntry["data"]>["samples"]>;
+const sampler = engine as unknown as SampleLoader;
+
+/** How loading a sound's file went: "none" for a sound without one (a synth) or one superdough doesn't know */
+type Load = "ready" | "failed" | "none";
+
+/** Load the sample file `value` plays (the one superdough will pick) */
+function loadSample(value: Record<string, unknown>): Promise<Load> {
+  // superdough plays `${bank}_${s}` and looks sounds up lowercased (superdough.mjs, registerSound)
+  const key = (value.bank ? `${String(value.bank)}_${String(value.s)}` : String(value.s)).toLowerCase().replace(/\s+/g, "_");
+  const data = engine.soundMap.get()[key]?.data;
+  if (data?.type !== "sample" || !data.samples) return Promise.resolve("none");
+  let loading: Promise<unknown>;
+  try {
+    loading = sampler.getSampleBuffer(value, data.samples);
+  } catch {
+    return Promise.resolve("failed");
+  }
+  return loading.then(
+    () => "ready" as const,
+    () => "failed" as const
+  );
 }
 
-/** One hit of `name`. Resolves with the record (status "error" when audio is locked) */
+/**
+ * Load `name`'s sample ahead of an audition (the editor calls it when a row
+ * gets focus): the audition that follows then plays at once. Resolves true
+ * once it's loaded (or the sound has no file to load), false if it can't load.
+ */
+export async function prefetchSound(name: string, opts: SoundOptions = {}): Promise<boolean> {
+  const { value } = soundValue(name, opts, { playing: false });
+  return (await loadSample(value)) !== "failed";
+}
+
+/** Whether hear-while-browsing may play: the setting is on, the pointer isn't coarse (./audition-values.ts) */
+export { previewsAllowed };
+
+/**
+ * One hit of `name`, bounded (./audition-values.ts): ▶ by default, or a quiet
+ * short `preview`. Waits for the sample to load (a preview only briefly: it
+ * gives up silently, status "stopped", if the file isn't in within 400 ms),
+ * and plays only if no newer audition started meanwhile. Resolves with the
+ * record: status "error" when audio is locked or the file won't load.
+ */
 export async function auditionSound(name: string, opts: SoundOptions = {}): Promise<AuditionRecord> {
+  const deadline = performance.now() + (opts.preview ? LOAD_WAIT_MS.preview : LOAD_WAIT_MS.play);
   stopAudition();
   const label = opts.bank ? `${name} · ${opts.bank}` : name;
   const rec = record("sound", label);
+  if (opts.preview) rec.preview = true;
   const turn = take(rec);
-  if (!(await unlock())) return fail(rec, "audio is locked: click the page first");
+  const release = () => {
+    if (current === turn) current = null;
+  };
+  const { value: wanted } = soundValue(name, opts, { playing: false });
+  const loaded = loadSample(wanted); // alongside unlocking
+  if (!(await unlock())) {
+    release();
+    return fail(rec, "audio is locked: click the page first");
+  }
   if (turn.stopped) return rec; // stopped, or a newer audition started, while audio unlocked
-  current = null;
+  const load = await Promise.race([loaded, sleep(Math.max(0, deadline - performance.now())).then(() => "slow" as const)]);
+  if (turn.stopped) return rec; // a newer audition took over while this one loaded
+  if (load === "failed") {
+    release();
+    return fail(rec, LOAD_FAILED);
+  }
+  if (load === "slow") {
+    release();
+    if (!opts.preview) return fail(rec, "the sample took too long to load");
+    turn.stop(); // a preview gives up silently; the load carries on, so the next one plays at once
+    return rec;
+  }
+  // the level depends on whether the song plays now; scheduled from now, after any wait
+  const { value, duration } = soundValue(name, opts, { playing: player.getState().playing });
   const ctx = engine.getAudioContext();
-  const value: Record<string, unknown> = { s: name, gain: 0.8 };
-  if (opts.bank) value.bank = opts.bank;
-  if (opts.n !== undefined) value.n = opts.n;
-  if (opts.pitched) value.note = 48; // c3
-  play(rec, value, ctx.currentTime + 0.03, opts.pitched ? 0.6 : 0.5, currentCps());
-  setTimeout(() => {
-    if (rec.status === "playing") rec.status = "done";
-  }, 600);
+  play(rec, value, ctx.currentTime + 0.03, duration, currentCps());
+  setTimeout(
+    () => {
+      if (rec.status === "playing") rec.status = "done";
+      release();
+    },
+    (duration + Number(value.release)) * 1000 + 100
+  );
   return rec;
 }
 

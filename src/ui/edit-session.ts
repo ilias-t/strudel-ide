@@ -81,7 +81,7 @@ export interface EditSessionOptions {
   ideName?: () => string;
 }
 
-type ResultStatus = { kind: "idle" | "ok" | "error" | "offline"; text: string };
+type ResultStatus = { kind: "idle" | "ok" | "error" | "offline" | "pending"; text: string };
 
 const IDLE: ResultStatus = { kind: "idle", text: "" };
 /** How many evaluated versions are remembered to recognise their echoes */
@@ -100,6 +100,21 @@ export function errorStatusText(error: EvalError): string {
   const first = error.message.split("\n", 1)[0].trim();
   const text = error.line ? `line ${error.line}: ${first}` : first;
   return text.length > STATUS_MAX ? `${text.slice(0, STATUS_MAX - 1).trimEnd()}…` : text;
+}
+
+/**
+ * A mini-notation parse error located at a call whose string is still empty:
+ * '.bank("")' right after the editor closed the quotes, before a value is
+ * picked from the suggestions. Returns the call name ("bank"), else null.
+ * While typing that is no error yet, so it gets no red marker.
+ */
+export function emptyPatternCall(error: EvalError, text: string): string | null {
+  if (!/^\[mini\] parse error/.test(error.message) || !error.line || !error.column) return null;
+  const line = text.split("\n")[error.line - 1] ?? "";
+  let at = Math.min(error.column - 1, line.length);
+  while (at > 0 && /[\w$]/.test(line[at - 1])) at--;
+  const m = /^([A-Za-z_$][\w$]*)\s*\(\s*(["'`])\s*\2\s*[,)]/.exec(line.slice(at));
+  return m ? m[1] : null;
 }
 
 export class EditSession {
@@ -316,6 +331,11 @@ export class EditSession {
       this.result = { kind: "offline", text: "not evaluated (engine pending)" };
     } else if (result.ok) {
       this.result = { kind: "ok", text: "live" };
+      this.marker = null;
+      this.markerText = null;
+    } else if (intent === "typing" && emptyPatternCall(result.error, text)) {
+      // still picking a value: the last good version keeps playing, nothing red
+      this.result = { kind: "pending", text: `waiting for a value in ${emptyPatternCall(result.error, text)}("")` };
       this.marker = null;
       this.markerText = null;
     } else {

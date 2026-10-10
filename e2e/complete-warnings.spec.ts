@@ -161,6 +161,17 @@ test("an unknown scale is a warning with a did-you-mean; scales that play are le
   ]);
 });
 
+test("an empty string still being filled (bank(\"\") as the quotes close) is no error: nothing red, a calm status", async ({ player, page }) => {
+  await editFixture(player);
+  await typeLine(page, 'const e = s("bd cp").bank("");');
+  await caretAt(page, '.bank("');
+  // the typing eval runs and fails on the empty pattern
+  await expect(page.getByTestId("code-status")).toHaveText('waiting for a value in bank("")');
+  const all = await page.evaluate(() => window.__strudelComplete!.markers());
+  expect(all.filter((m) => m.severity === "error"), JSON.stringify(all)).toEqual([]);
+  await expect(page.locator(".code-editor .squiggly-error")).toHaveCount(0);
+});
+
 test("never red: no Error marker from anyone on these words, a dotted underline, and an amber panel at most", async ({ player, page }) => {
   await editFixture(player);
   // let TypeScript check the fixture too (it starts with @ts-nocheck)

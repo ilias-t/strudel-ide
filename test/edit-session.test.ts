@@ -595,6 +595,26 @@ describe("results (rule 5)", () => {
     assert.equal(v.status.text, "line 12: Unexpected token");
   });
 
+  test("a typing error that is only an empty pattern string (bank(\"\") as the quotes close) is no error yet: no marker, a calm status", async () => {
+    const { session, timers, calls } = setup(disk("A"));
+    const text = 'const d = s("bd").bank("");';
+    session.edit(text);
+    timers.advance(400);
+    calls[0].resolve({ ok: false, error: { message: '[mini] parse error at line 1: Expected "<", "[" but "\"" found.', line: 1, column: 20 } });
+    await flush();
+    const v = session.view();
+    assert.equal(v.marker, null);
+    assert.equal(v.status.kind, "pending");
+    assert.equal(v.status.text, "waiting for a value in bank(\"\")");
+    // a real parse error in a string with something in it stays an error
+    session.edit('const d = s("bd [").bank("x");');
+    timers.advance(400);
+    calls[1].resolve({ ok: false, error: { message: "[mini] parse error at line 1: Expected", line: 1, column: 11 } });
+    await flush();
+    assert.equal(session.view().status.kind, "error");
+    assert.ok(session.view().marker);
+  });
+
   test("an error without a line shows just the message", async () => {
     const { session, timers, calls } = setup(disk("A"));
     session.edit("A1");

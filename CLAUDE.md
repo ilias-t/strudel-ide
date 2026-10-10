@@ -17,7 +17,8 @@ Songs are TypeScript files in `src/songs/`, played live by a browser stage that 
 ## Starters and the catalog
 
 - `src/starters/` holds one simple, editable song per genre (house, techno, lofi, ambient, dnb) for the "new song" flow, which copies one into `src/songs/`. Same `Song` format plus `export const meta = { id, genre, blurb }`, and the same house rules (`test/starters.test.ts` enforces them). The app's song picker doesn't list them. The audio tools and `check-songs` take them as `starters/<id>`.
-- `src/catalog/` is generated discovery data: `sounds.json` (every sound by bank and kind), `functions.json` (Strudel functions by category, with docs and IDE-form examples), `snippets.json` (working snippets by track role). Never edit it by hand. Edit `scripts/lib/catalog/` (category table, snippets) and run `npm run gen:catalog`. `gen:types` reruns it, and `check` fails when it's stale.
+- `src/catalog/` is generated discovery data: `sounds.json` (every sound by bank and kind), `functions.json` (Strudel functions by category, with docs, IDE-form examples, rank, range and strudel.cc link), `snippets.json` (working snippets by track role), `completions.json` and `theory.json` (what the editor's completions read), `intents.json` (search by sound: "wetter" → room, size, delay). Never edit it by hand. Edit `scripts/lib/catalog/` (category table, snippets, ranges, intents) and run `npm run gen:catalog`. `gen:types` reruns it, and `check` fails when it's stale. Two inputs are committed snapshots refreshed by hand: method usage (`node scripts/gen-catalog.mjs --recount` after songs change a lot) and strudel.cc's heading anchors (`node scripts/fetch-strudel-docs.mjs`).
+- `check-songs`, the editor's completions and warnings, and the stage agree on one list of sounds: `sounds.json` (an e2e checks the stage registers every one). A sound that's missing from it is missing everywhere: fix the generator, not one consumer.
 
 ## Verifying
 

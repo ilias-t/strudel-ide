@@ -100,6 +100,36 @@ them loads until you first open it.
 
 Inserting needs edit mode: from the read-only view, these switch to it first.
 
+### While you type
+
+The stage's editor knows what a string is for, and offers only what's loaded
+and fits:
+
+- Inside `s("…")`: the sounds that are registered (`bd ×8`, with the kind on
+  the right), sounds that fit the track's name first. Under `.bank("…")` only
+  that machine's parts; after `bd:` only its real variants. `.bank("")` lists
+  only the drum machines that have every part the pattern plays. Notes in
+  `note("…")`, `C:` then scale types in `.scale("…")`, chord symbols, voicing
+  dictionaries, vowels, and mini-notation help (`~ [ ] < >` at a new step,
+  `*2 /2 ! @2 ? : (3,8)` after one).
+- After a dot: every method, ranked: what usually follows the chain's first
+  call, then the most used. Each row shows its range or unit and its category.
+  Aliases fold under their main name (type `cuto` and `cutoff → lpf` shows);
+  functions that don't work here sink to the bottom with the reason.
+- An unknown sound, drum machine or scale gets a dotted amber underline, never
+  red: hover it for "did you mean", **Ctrl/⌘+.** to fix it. Nothing is flagged
+  while you're typing the word or before samples load.
+- Hover a sound, note, scale, chord or drum machine inside a string for what it
+  is, with ▶ to hear it.
+- **Hear as you browse**: with a sound list open, **⌥/Alt+P** turns on short,
+  quiet previews of the row you arrow to. It's off by default and the choice is
+  remembered; the list's details pane (**Ctrl+Space** again) says which.
+
+**Search by sound**: the palette, the cheat sheet and the library's function
+search also understand how a sound is described. "wetter", "wobble", "acid
+bass", "lo-fi drums", "swing" and about 80 more lead to the functions that get
+there, with a recipe to hear (**Shift+Enter** in the palette).
+
 ### In Cursor or VS Code
 
 On a local checkout, run `npm install` and `npm run dev`, then edit
@@ -208,7 +238,7 @@ or `off`).
 
 ```bash
 npm run check        # fast, no browser: types, songs, bridge relay, extension
-npm run test:e2e     # end-to-end in headless Chromium (~1 min)
+npm run test:e2e     # end-to-end in headless Chromium (~7 min)
 npm run test:e2e:ui  # the same in Playwright's UI mode
 npm run test:build   # production build (tsc + vite build into dist/)
 ```

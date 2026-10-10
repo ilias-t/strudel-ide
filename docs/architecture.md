@@ -87,6 +87,18 @@ only the stage's own editor and its localStorage are left.
     changes.
   - `editor-source.ts`: the session's path into the player (`evalSource`).
   - `song-saver.ts`: the debounced autosave into the songs store.
+  - `complete/`: the editor's Strudel language support, in the Monaco
+    chunk. A synchronous scanner (`context.ts`) tells which call a string
+    belongs to and what it holds (sounds, a bank, notes, a scale…), even
+    across a chain (`mini("c e").note()`). One completion provider replaces
+    TypeScript's: inside such a string it answers from the live sound
+    registry (superdough's `soundMap`, `registry.ts`) and `theory.json`;
+    elsewhere it asks the TypeScript worker and re-ranks and labels the
+    members with `completions.json`. Unknown sounds, banks and scales get
+    Warning markers (owner `strudel-sounds`, never Error) with quick
+    fixes; hovers explain names inside strings; `browse.ts` plays the row you
+    arrow to through Monaco's internal suggest-widget focus event
+    (feature-detected, guarded by an e2e test), when previews are on.
 - **Discovery** (`src/ui/discover/`). The library (**B**), the ⌘/Ctrl+K
   palette, the track builder (the mixer's **+ track**) and the cheat sheet
   (**?**, **F1** in the editor). Only `hooks.ts` (and the pure `insert.ts` it
@@ -95,7 +107,9 @@ only the stage's own editor and its localStorage are left.
   opens. The cheat sheet's card and Keys tab are static markup in
   `index.html`, so `hooks.ts` shows it at once and keeps it modal; its chunk
   fills the other tabs from curated rows (`cheatsheet-data.ts`, every example
-  and strudel.cc link tested) joined with the catalog.
+  and strudel.cc link tested) joined with the catalog. The palette, the
+  cheat sheet and the library's search also match how a sound is described
+  ("wetter", "acid bass": `intents.json`).
   Everything they put in a song goes into the editor as an edit you made
   (`CodeEditor.applyEdits`, one undo step): the song's `EditSession` takes the
   buffer, evaluates it as typing and the autosave keeps it. While your editor
@@ -103,11 +117,13 @@ only the stage's own editor and its localStorage are left.
   compiler worker (`src/compile/add-track.ts`), and drops it if you've left
   the song or edit mode by the time it's planned. Auditions play straight into
   the engine's output, beside the scheduler and on an orbit of their own, so
-  the song plays on untouched.
+  the song plays on untouched; each one is bounded (about a second, with a
+  release), so a long sample never rings on.
 - **Editor extension** (`vscode-extension/`). A client of the bridge; see
   [its README](../vscode-extension/README.md#how-it-works) for the protocol.
 - **Scripts** (`scripts/`). Work on the same song files from the terminal:
-  `check-songs` builds and queries every song in Node, `render` and `analyze`
+  `check-songs` builds and queries every song in Node (its known sounds
+  are `src/catalog/sounds.json`, the list the stage registers), `render` and `analyze`
   load the stage in headless Chromium to bounce and measure songs
   ([audio-tools.md](audio-tools.md)), and `export`/`import` convert to and
   from strudel.cc ([strudel-cc.md](strudel-cc.md)).
@@ -214,10 +230,10 @@ them in parallel. What the page loads lazily:
 
 | What | Loaded when |
 | --- | --- |
-| Monaco and the editor's TypeScript libs (`code-editor.ts`, `editor-lang.ts`) | you first press **E**, or first insert from the library, the palette or the track builder (or the last visit ended in edit mode) |
+| Monaco, the editor's TypeScript libs and its Strudel support (`code-editor.ts`, `editor-lang.ts`, `complete/`, with `sounds.json` and `theory.json`; `completions.json` on the first method list) | you first press **E**, or first insert from the library, the palette or the track builder (or the last visit ended in edit mode) |
 | The compiler (`compile/client.ts`, its worker, TypeScript) | the first `evalSource` / `addSong`: typing, a stored song, or a share link |
 | A share link's song | after "open it" on the stage's card |
-| The library, the palette, the track builder and the catalog they read | each the first time it opens (**B**, ⌘/Ctrl+K, **+ track**); the track builder also loads the compiler |
+| The library, the palette, the track builder, the cheat sheet and the catalog they read | each the first time it opens (**B**, ⌘/Ctrl+K, **+ track**, **?**); the track builder also loads the compiler |
 
 The songs store replays what's kept (`initSongsStore`) after the first build:
 overrides through `evalSource` (commit), user songs through `addSong`, then a
@@ -231,7 +247,7 @@ compiler (`e2e/production.spec.ts` checks this on a production build).
 | Where | What |
 | --- | --- |
 | `src/songs/*.ts` | The music, including each knob's default value. The source of truth. |
-| localStorage (`strudel-ide:*`) | The selected song, follow-edits, code view and edit mode, the first-visit hint, and per song: mute/solo, live knob values, and the browser's kept text (`my-song:<id>`: an override or a user song). Optionally an editor-scheme override. |
+| localStorage (`strudel-ide:*`) | The selected song, follow-edits, code view and edit mode, the first-visit hint, sound previews while browsing (off by default), and per song: mute/solo, live knob values, and the browser's kept text (`my-song:<id>`: an override or a user song). Optionally an editor-scheme override. |
 | URL hash | A share link's song, until it's opened. |
 | Stage memory | What's playing: the current build, the last good pattern, section jumps and loops, evaluated text standing in for songs, user songs, and each song's edit session. Rebuilt from localStorage on reload. |
 | Dev server memory | Recent unsaved buffers (live eval), and the latest stage state, replayed to editors that connect later. |

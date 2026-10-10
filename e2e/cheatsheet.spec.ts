@@ -305,3 +305,20 @@ test("at phone width (390×844) nothing scrolls sideways and every tab is reacha
   await expect(page.getByTestId("cheat-results")).toBeVisible();
   expect(await overflow(), "results: horizontal overflow").toEqual([]);
 });
+
+test('with the real catalog: function rows show ranges, and an idea answers "wetter" first', async ({ player, page }) => {
+  await player.boot();
+  await page.locator("body").press("?");
+  await tab(page, "functions").click();
+  await expect(row(page, "function", "lpf")).toContainText("20–20000 Hz");
+  await expect(row(page, "function", "room")).toContainText("0–1");
+
+  await search(page).fill("wetter");
+  const results = page.getByTestId("cheat-results");
+  const first = results.getByTestId("cheat-row").first();
+  await expect(first).toHaveAttribute("data-kind", "intent");
+  await expect(first).toHaveAttribute("data-id", "wetter");
+  await expect(first).toContainText("room");
+  await search(page).fill("acid bass");
+  await expect(results.getByTestId("cheat-row").first()).toHaveAttribute("data-kind", "intent");
+});

@@ -82,6 +82,22 @@ interface EngineApi {
   /** superdough(value, time, duration): play one event */
   superdough(value: Record<string, unknown>, time: number, duration: number): Promise<void>;
   logKey: string;
+  /** superdough's live sound registry: every sound that can play, by lowercased name (`<bank>_<part>` for banks) */
+  soundMap: SoundMapStore;
+  /** zzfx and its z_* sounds (initStrudel() only registers the synths) */
+  registerZZFXSounds(): void;
+}
+
+/** A sound in superdough's registry: `data.samples` is an array of URLs, or note → URLs for pitched samples */
+export interface SoundEntry {
+  data?: { type?: "sample" | "synth" | "wavetable" | string; samples?: string[] | Record<string, string[]>; [key: string]: unknown };
+}
+
+/** The nanostores map superdough keeps its sounds in */
+export interface SoundMapStore {
+  get(): Record<string, SoundEntry>;
+  /** Called on every change (once per sound while samples load: debounce); returns the unsubscribe */
+  listen(fn: (value: Record<string, SoundEntry>) => void): () => void;
 }
 
 export const engine = strudelWeb as unknown as EngineApi;
@@ -166,6 +182,16 @@ export function bpmToCps(bpm = 120) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Samples
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Sounds superdough has built in but initStrudel() doesn't register: zzfx and
+ * its z_* sounds. The catalog, the sound types and check-songs list them
+ * (scripts/lib/catalog/inputs.mjs registers the same set), so the stage must
+ * too. Call once, after initStrudel().
+ */
+export function registerBuiltInSounds() {
+  engine.registerZZFXSounds();
+}
 
 const SAMPLE_BASE = "https://strudel.b-cdn.net";
 const SAMPLE_MAPS = [

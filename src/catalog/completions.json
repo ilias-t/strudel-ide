@@ -1,0 +1,4507 @@
+{
+  "functions": {
+    "accelerate": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "superdirt"
+    },
+    "activeLabel": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual",
+      "aliasOf": "label"
+    },
+    "ad": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "add": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "addVoicings": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "adsr": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "aliasBank": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "almostAlways": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "almostNever": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "always": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "amp": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "superdirt"
+    },
+    "analyze": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "anchor": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "and": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "angle": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual",
+      "aliasOf": "from"
+    },
+    "animate": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "appBoth": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "appLeft": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "appRight": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "appWhole": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "apply": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "applyN": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "ar": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "arp": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "arpWith": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "arrange": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "as": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "asNumber": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "asym": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "att": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "attack"
+    },
+    "attack": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "att"
+      ]
+    },
+    "band": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "bandf": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "bpf",
+      "synonyms": [
+        "bp"
+      ]
+    },
+    "bandq": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "bpq"
+    },
+    "bank": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "bbexpr": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "byteBeatExpression"
+    },
+    "bbst": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "byteBeatStartTime"
+    },
+    "beat": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "__beat"
+      ]
+    },
+    "begin": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "berlin": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "berlinWith": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "binary": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "binaryN": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "bind": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "bindWhole": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "binshift": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "bite": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "blshift": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "bor": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "bp": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "bpf",
+      "synonyms": [
+        "bandf"
+      ]
+    },
+    "bpa": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "bpattack"
+    },
+    "bpattack": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "bpa"
+      ]
+    },
+    "bpd": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "bpdecay"
+    },
+    "bpdecay": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "bpd"
+      ]
+    },
+    "bpe": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "bpenv"
+    },
+    "bpenv": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "bpe"
+      ]
+    },
+    "bpf": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "bandf",
+        "bp"
+      ]
+    },
+    "bpq": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "bandq"
+      ]
+    },
+    "bpr": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "bprelease"
+    },
+    "bprelease": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "bpr"
+      ]
+    },
+    "bps": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "bpsustain"
+    },
+    "bpsustain": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "bps"
+      ]
+    },
+    "brak": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "brand": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "brandBy": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "brshift": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "bxor": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "bypass": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "byteBeatExpression": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "bbexpr"
+      ]
+    },
+    "byteBeatStartTime": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "bbst"
+      ]
+    },
+    "cat": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "slowcat"
+      ]
+    },
+    "ccn": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "ccv": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "ceil": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "ch": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "channels"
+    },
+    "channel": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "channels": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "ch"
+      ]
+    },
+    "chebyshev": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "distAlgoNames"
+      ]
+    },
+    "choose": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "choose2": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "chooseCycles": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "randcat"
+      ]
+    },
+    "chooseIn": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "chooseInWith": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "chooseOut": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "choose"
+    },
+    "chooseWith": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "chop": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "chord": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "chorus": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "chunk": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "slowChunk",
+        "slowchunk",
+        "_chunk"
+      ]
+    },
+    "chunkBack": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "chunkback"
+      ]
+    },
+    "chunkBackInto": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "chunkbackinto"
+      ]
+    },
+    "chunkInto": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "chunkinto"
+      ]
+    },
+    "chunkback": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "chunkBack"
+    },
+    "chunkbackinto": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "chunkBackInto"
+    },
+    "chunkinto": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "chunkInto"
+    },
+    "clip": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "legato"
+      ]
+    },
+    "coarse": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "collect": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "color": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual",
+      "synonyms": [
+        "colour"
+      ]
+    },
+    "comb": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "compose": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "compress": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "compressSpan": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "compressor": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "compressorAttack": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "compressorKnee": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "compressorRatio": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "compressorRelease": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "compressspan": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "contract": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "control": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "cosine": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "cosine2": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "cpm": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "cps": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "createParam": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "createParams": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "crush": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "ctf": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "lpf",
+      "synonyms": [
+        "cutoff",
+        "lp"
+      ]
+    },
+    "ctlNum": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "ctranspose": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "cubic": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "curve": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "cut": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "cutoff": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "lpf",
+      "synonyms": [
+        "ctf",
+        "lp"
+      ]
+    },
+    "dec": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "decay"
+    },
+    "decay": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "dec"
+      ]
+    },
+    "defragmentHaps": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "degrade": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "degradeBy": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "degradeByWith": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "degree": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "delay": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "delayfb": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "delayfeedback",
+      "synonyms": [
+        "dfb"
+      ]
+    },
+    "delayfeedback": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "delayfb",
+        "dfb"
+      ]
+    },
+    "delayspeed": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "delayt",
+        "dt",
+        "delaytime"
+      ]
+    },
+    "delaysync": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "delayt",
+        "dt"
+      ]
+    },
+    "delayt": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "delayspeed",
+      "synonyms": [
+        "dt",
+        "delaytime"
+      ]
+    },
+    "delaytime": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "delayspeed",
+      "synonyms": [
+        "delayt",
+        "dt"
+      ]
+    },
+    "deltaSlide": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "density": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "det": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "detune"
+    },
+    "detune": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "det"
+      ]
+    },
+    "dfb": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "delayfeedback",
+      "synonyms": [
+        "delayfb"
+      ]
+    },
+    "dict": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "dictionary": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "diode": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "discreteOnly": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "dist": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "distort"
+    },
+    "distort": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "dist"
+      ]
+    },
+    "distorttype": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "disttype"
+      ]
+    },
+    "distortvol": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "distvol"
+      ]
+    },
+    "disttype": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "distorttype"
+    },
+    "distvol": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "distortvol"
+    },
+    "div": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "djf": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "dough": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "draw": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "drawLine": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "drive": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "drop": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "dry": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "superdirt"
+    },
+    "ds": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "dt": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "delayspeed",
+      "synonyms": [
+        "delayt",
+        "delaytime"
+      ]
+    },
+    "duck": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "duckorbit"
+    },
+    "duckatt": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "duckattack"
+    },
+    "duckattack": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "duckatt"
+      ]
+    },
+    "duckdepth": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "duckons": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "duckonset"
+    },
+    "duckonset": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "duckons"
+      ]
+    },
+    "duckorbit": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "duck"
+      ]
+    },
+    "dur": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "duration"
+    },
+    "duration": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "dur"
+      ]
+    },
+    "e": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "early": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "echo": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "echoWith": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "echowith",
+        "stutWith",
+        "stutwith"
+      ]
+    },
+    "echowith": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "echoWith",
+      "synonyms": [
+        "stutWith",
+        "stutwith"
+      ]
+    },
+    "eish": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "euclidish"
+    },
+    "end": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "enhance": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "eq": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "eqt": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "euclid": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "euclidLegato": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "_euclidLegato"
+      ]
+    },
+    "euclidLegatoRot": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "euclidRot": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "euclidish": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "eish"
+      ]
+    },
+    "euclidrot": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "evaluate": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "every": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "firstOf"
+      ]
+    },
+    "expand": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "expression": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "extend": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fadeInTime": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fadeOutTime": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fadeTime": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fanchor": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fast": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "density"
+      ]
+    },
+    "fastChunk": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "fastchunk"
+      ]
+    },
+    "fastGap": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "fastgap"
+      ]
+    },
+    "fastcat": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "seq",
+      "synonyms": [
+        "sequence"
+      ]
+    },
+    "fastchunk": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "fastChunk"
+    },
+    "fastgap": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "fastGap"
+    },
+    "fft": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "fill": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "filter": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "filterHaps": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "filterValues": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "filterWhen": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "firstCycle": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "firstCycleValues": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "firstOf": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fit": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "floor": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fm": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "fmi"
+      ]
+    },
+    "fmap": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fmattack": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fmdecay": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fmenv": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fmh": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fmi": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "fm"
+    },
+    "fmrelease": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fmsustain": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fmvelocity": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fmwave": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "focus": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "focusSpan": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "focusspan": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fold": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "frameRate": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "frames": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "freeze": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "freq": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "freqToMidi": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fromBipolar": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fscope": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "fshift": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fshiftnote": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "fshiftphase": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "ftype": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "func": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "gain": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "gap": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "gat": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "gate": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "getAudioContext": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "getFreq": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "getPainters": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "grow": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "gt": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "gte": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "h": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "hard": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "harmonic": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "hasSteps": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "hbrick": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "hcutoff": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "hpf",
+      "synonyms": [
+        "hp"
+      ]
+    },
+    "hold": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "hours": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "hp": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "hpf",
+      "synonyms": [
+        "hcutoff"
+      ]
+    },
+    "hpa": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "hpattack"
+    },
+    "hpattack": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "hpa"
+      ]
+    },
+    "hpd": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "hpdecay"
+    },
+    "hpdecay": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "hpd"
+      ]
+    },
+    "hpe": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "hpenv"
+    },
+    "hpenv": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "hpe"
+      ]
+    },
+    "hpf": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "hp",
+        "hcutoff"
+      ]
+    },
+    "hpq": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "hresonance"
+      ]
+    },
+    "hpr": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "hprelease"
+    },
+    "hprelease": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "hpr"
+      ]
+    },
+    "hps": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "hpsustain"
+    },
+    "hpsustain": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "hps"
+      ]
+    },
+    "hresonance": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "hpq"
+    },
+    "hsl": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "hsla": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "hurry": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "hush": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "id": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "imag": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "in": {
+      "category": "other",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "inhabit": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "pickSqueeze"
+      ]
+    },
+    "inhabitmod": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "pickmodSqueeze"
+      ]
+    },
+    "initAudioOnFirstClick": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "initStrudel": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "innerBind": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "innerJoin": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "inside": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "into": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "inv": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "invert"
+    },
+    "invert": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "inv"
+      ]
+    },
+    "ir": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "iresponse"
+    },
+    "irand": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "irbegin": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "ir"
+      ]
+    },
+    "iresponse": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "ir"
+      ]
+    },
+    "irspeed": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "isPattern": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "isaw": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "isaw2": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "iter": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "_iter"
+      ]
+    },
+    "iterBack": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "iterback"
+      ]
+    },
+    "iterback": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "iterBack"
+    },
+    "itri": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "itri2": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "join": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "jux": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "juxBy": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "juxby"
+      ]
+    },
+    "juxby": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "juxBy"
+    },
+    "kcutoff": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "keep": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "keepif": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "keyDown": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "krush": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "label": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual",
+      "synonyms": [
+        "activeLabel"
+      ]
+    },
+    "lastOf": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "late": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "layer": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "apply"
+      ]
+    },
+    "lbrick": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "legato": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "clip"
+    },
+    "leslie": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "superdirt"
+    },
+    "lfo": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "linger": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "lock": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "superdirt"
+    },
+    "log": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "log2": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "logValues": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "loop": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "loopAt": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "_loopAt"
+      ]
+    },
+    "loopAtCps": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "loopatcps"
+      ]
+    },
+    "loopBegin": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "loopb"
+      ]
+    },
+    "loopEnd": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "loope"
+      ]
+    },
+    "loopat": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "loopatcps": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "loopAtCps"
+    },
+    "loopb": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "loopBegin"
+    },
+    "loope": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "loopEnd"
+    },
+    "lp": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "lpf",
+      "synonyms": [
+        "cutoff",
+        "ctf"
+      ]
+    },
+    "lpa": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "lpattack"
+    },
+    "lpattack": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "lpa"
+      ]
+    },
+    "lpd": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "lpdecay"
+    },
+    "lpdecay": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "lpd"
+      ]
+    },
+    "lpe": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "lpenv"
+    },
+    "lpenv": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "lpe"
+      ]
+    },
+    "lpf": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "cutoff",
+        "ctf",
+        "lp"
+      ]
+    },
+    "lpq": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "resonance"
+      ]
+    },
+    "lpr": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "lprelease"
+    },
+    "lprelease": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "lpr"
+      ]
+    },
+    "lps": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "lpsustain"
+    },
+    "lpsustain": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "lps"
+      ]
+    },
+    "lrate": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "superdirt"
+    },
+    "lsize": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "superdirt"
+    },
+    "lt": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "lte": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "m": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "mask": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "maskAll": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "midi2note": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "midiToFreq": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "midibend": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "midichan": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "midicmd": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "midimap": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "midiport": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "miditouch": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "mini": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "minutes": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "mix": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "mod": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "mode": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "morph": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "mouseX": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "mouseY": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "mousex": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "mousey": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "_mouseY"
+      ]
+    },
+    "moveXY": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "mtranspose": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "mul": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "n": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "ne": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "net": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "never": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "noise": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "note": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "noteToMidi": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "nothing": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "nrpnn": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "nrpv": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "nudge": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "octave": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "superdirt"
+    },
+    "octaveR": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "octaves": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "octer": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "octersub": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "octersubsub": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "off": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "offset": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "often": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "onPaint": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "onTrigger": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "onTriggerTime": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "onsetsOnly": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "or": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "orbit": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "oschost": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "oscport": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "out": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "outerBind": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "outerJoin": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "outside": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "overgain": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "overshape": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pace": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "palindrome": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pan": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "panchor": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "panorient": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "panspan": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pansplay": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "panwidth": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "partials": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "patt": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "pattack"
+    },
+    "pattack": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "patt"
+      ]
+    },
+    "pcurve": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pdec": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "pdecay"
+    },
+    "pdecay": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "pdec"
+      ]
+    },
+    "penv": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "perlin": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "perlinWith": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "ph": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "phaser",
+      "synonyms": [
+        "phaserrate"
+      ]
+    },
+    "phasdp": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "phaserdepth",
+      "synonyms": [
+        "phd"
+      ]
+    },
+    "phaser": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "ph",
+        "phaserrate"
+      ]
+    },
+    "phasercenter": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "phc"
+      ]
+    },
+    "phaserdepth": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "phd",
+        "phasdp"
+      ]
+    },
+    "phaserrate": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "phaser",
+      "synonyms": [
+        "ph"
+      ]
+    },
+    "phasersweep": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "phs"
+      ]
+    },
+    "phc": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "phasercenter"
+    },
+    "phd": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "phaserdepth",
+      "synonyms": [
+        "phasdp"
+      ]
+    },
+    "phs": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "phasersweep"
+    },
+    "pianoroll": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual",
+      "synonyms": [
+        "punchcard"
+      ]
+    },
+    "pick": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pickF": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pickOut": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pickReset": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pickRestart": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pickSqueeze": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "inhabit"
+    },
+    "pickmod": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pickmodF": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pickmodOut": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pickmodReset": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pickmodRestart": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pickmodSqueeze": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "inhabitmod"
+    },
+    "pipe": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pitchJump": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pitchJumpTime": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pitchwheel": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "play": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "ply": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "plyForEach": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "plyforeach"
+      ]
+    },
+    "plyWith": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "plywith"
+      ]
+    },
+    "plyforeach": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "plyForEach"
+    },
+    "plywith": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "plyWith"
+    },
+    "pm": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "polymeter"
+    },
+    "poly": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "polyBind": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "polyTouch": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "polymeter": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "pm"
+      ]
+    },
+    "polyrhythm": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "stack",
+      "synonyms": [
+        "pr"
+      ]
+    },
+    "postgain": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pow": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pr": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "stack",
+      "synonyms": [
+        "polyrhythm"
+      ]
+    },
+    "prel": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "prelease"
+    },
+    "prelease": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "prel"
+      ]
+    },
+    "press": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pressBy": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "progNum": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "psus": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "psustain": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "punchcard": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual",
+      "aliasOf": "pianoroll"
+    },
+    "pure": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "pw": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pwrate": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "pwsweep": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "queryArc": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "r": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "rand": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "rand2": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "randcat": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "chooseCycles"
+    },
+    "randrun": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "range": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "range2": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "rangex": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "rarely": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "rate": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "ratio": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "rdim": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "roomdim"
+    },
+    "real": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "ref": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "register": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "registerSound": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "registerVoicings": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "reify": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "rel": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "release"
+    },
+    "release": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "rel"
+      ]
+    },
+    "removeUndefineds": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "repeatCycles": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "repeatTime": {
+      "category": "other",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "replicate": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "rescale": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "reset": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "resetAll": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "resetDefaults": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "resetJoin": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "resonance": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "lpq"
+    },
+    "restart": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "restartAll": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "restartJoin": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "rev": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "rfade": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "roomfade"
+    },
+    "rib": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "ribbon"
+    },
+    "ribbon": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "rib"
+      ]
+    },
+    "ring": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "ringdf": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "ringf": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "rlp": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "roomlp"
+    },
+    "room": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "roomdim": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "rdim"
+      ]
+    },
+    "roomfade": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "rfade"
+      ]
+    },
+    "roomlp": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "rlp"
+      ]
+    },
+    "roomsize": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "rsize",
+        "sz",
+        "size"
+      ]
+    },
+    "rootNotes": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "round": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "rsize": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "roomsize",
+      "synonyms": [
+        "sz",
+        "size"
+      ]
+    },
+    "run": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "s": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "sound"
+      ]
+    },
+    "s_add": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "take"
+    },
+    "s_alt": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "stepalt"
+    },
+    "s_cat": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "stepcat",
+      "synonyms": [
+        "timeCat",
+        "timecat"
+      ]
+    },
+    "s_contract": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "contract"
+    },
+    "s_expand": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "expand"
+    },
+    "s_extend": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "extend"
+    },
+    "s_polymeter": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "polymeter",
+      "synonyms": [
+        "pm"
+      ]
+    },
+    "s_sub": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "drop"
+    },
+    "s_taper": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "shrink"
+    },
+    "s_taperlist": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "shrinklist"
+    },
+    "s_tour": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "tour"
+    },
+    "s_zip": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "zip"
+    },
+    "samples": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "saw": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "saw2": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "scale": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "scaleTrans": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "scaleTranspose",
+      "synonyms": [
+        "strans"
+      ]
+    },
+    "scaleTranspose": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "scaleTrans",
+        "strans"
+      ]
+    },
+    "scope": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual",
+      "synonyms": [
+        "tscope",
+        "latestColor"
+      ]
+    },
+    "scram": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "scramble": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "scrub": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "scurve": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "seconds": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "seg": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "segment"
+    },
+    "segment": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "seg"
+      ]
+    },
+    "semitone": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "seq": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "sequence",
+        "fastcat"
+      ]
+    },
+    "seqPLoop": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "sequence": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "sequenceP": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "set": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "setContext": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "setDefault": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "setDefaultValue": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "setDefaultValues": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "setDefaultVoicings": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "setMaxPolyphony": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "setSteps": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "setVoicingRange": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "shape": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "showFirstCycle": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "shrink": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "shrinklist": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "shuffle": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "signal": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "silence": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "sine": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "sine2": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "sinefold": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "size": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "roomsize",
+      "synonyms": [
+        "rsize",
+        "sz"
+      ]
+    },
+    "slice": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "slide": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "slow": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "sparsity"
+      ]
+    },
+    "slowChunk": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "chunk",
+      "synonyms": [
+        "slowchunk",
+        "_chunk"
+      ]
+    },
+    "slowcat": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "cat"
+      ]
+    },
+    "slowcatPrime": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "slowchunk": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "chunk",
+      "synonyms": [
+        "slowChunk",
+        "_chunk"
+      ]
+    },
+    "smear": {
+      "category": "other",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "soft": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "someCycles": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "someCyclesBy": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "sometimes": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "sometimesBy": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "songPtr": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "sortHapsByPart": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "sound": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "s"
+    },
+    "soundAlias": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "source": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal",
+      "synonyms": [
+        "src"
+      ]
+    },
+    "sparsity": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "slow"
+    },
+    "speak": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "spectrum": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual",
+      "synonyms": [
+        "latestColor"
+      ]
+    },
+    "speed": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "spiral": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "splice": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "splitQueries": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "spread": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "square": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "square2": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "squeeze": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "squeezeBind": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "squeezeJoin": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "squeezeout": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "squiz": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "superdirt"
+    },
+    "src": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal",
+      "aliasOf": "source"
+    },
+    "stack": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "polyrhythm",
+        "pr"
+      ]
+    },
+    "stackBy": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "stackCentre": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "stackLeft": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "stackRight": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "steady": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "stepBind": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "stepJoin": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "stepalt": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "stepcat": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "timeCat",
+        "timecat"
+      ]
+    },
+    "steps": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "pace"
+    },
+    "stepsPerOctave": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "strans": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "scaleTranspose",
+      "synonyms": [
+        "scaleTrans"
+      ]
+    },
+    "stretch": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "striate": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "stripContext": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "struct": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "structAll": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "stut": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "stutWith": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "echoWith",
+      "synonyms": [
+        "echowith",
+        "stutwith"
+      ]
+    },
+    "stutwith": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "echoWith",
+      "synonyms": [
+        "echowith",
+        "stutWith"
+      ]
+    },
+    "sub": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "superimpose": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "supradough": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "sus": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "sustain"
+    },
+    "sustain": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "sus"
+      ]
+    },
+    "sustainpedal": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "swing": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "swingBy": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "sysex": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "sysexdata": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "sysexid": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "sz": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "roomsize",
+      "synonyms": [
+        "rsize",
+        "size"
+      ]
+    },
+    "tables": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "tag": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "take": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "time": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "timeCat": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "stepcat",
+      "synonyms": [
+        "timecat"
+      ]
+    },
+    "timecat": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "toBipolar": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "tour": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "trans": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "transpose"
+    },
+    "transpose": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "trans"
+      ]
+    },
+    "trem": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "tremolo"
+    },
+    "tremdepth": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "tremolodepth"
+    },
+    "tremolo": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "trem"
+      ]
+    },
+    "tremolodepth": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "tremdepth"
+      ]
+    },
+    "tremolophase": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "tremphase"
+      ]
+    },
+    "tremoloshape": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "tremshape"
+      ]
+    },
+    "tremoloskew": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "tremskew"
+      ]
+    },
+    "tremolosync": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "tremsync"
+      ]
+    },
+    "tremphase": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "tremolophase"
+    },
+    "tremshape": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "tremoloshape"
+    },
+    "tremskew": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "tremoloskew"
+    },
+    "tremsync": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "tremolosync"
+    },
+    "tri": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "tri2": {
+      "category": "signals",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "triode": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "tscope": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual",
+      "aliasOf": "scope",
+      "synonyms": [
+        "latestColor"
+      ]
+    },
+    "tsdelay": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "uid": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "undegrade": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "undegradeBy": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "unison": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "unit": {
+      "category": "sound",
+      "rank": 771,
+      "availability": "superdirt"
+    },
+    "unjoin": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "v": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "vib",
+      "synonyms": [
+        "vibrato"
+      ]
+    },
+    "val": {
+      "category": "math",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "valueToMidi": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "velocity": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "vib": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "vibrato",
+        "v"
+      ]
+    },
+    "vibmod": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "vmod"
+      ]
+    },
+    "vibrato": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "vib",
+      "synonyms": [
+        "v"
+      ]
+    },
+    "vmod": {
+      "category": "modulation",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "vibmod"
+    },
+    "voice": {
+      "category": "io",
+      "rank": 771,
+      "availability": "io"
+    },
+    "voicing": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "voicingAlias": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "voicings": {
+      "category": "pitch",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "vowel": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "w": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "warp": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "wavetableWarp"
+      ]
+    },
+    "warpatt": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "warpattack"
+    },
+    "warpattack": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "warpatt"
+      ]
+    },
+    "warpdc": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "warpdec": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "warpdecay"
+    },
+    "warpdecay": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "warpdec"
+      ]
+    },
+    "warpdepth": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "warpenv": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "warpmode": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "wavetableWarpMode"
+      ]
+    },
+    "warprate": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "warprel": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "warprelease"
+    },
+    "warprelease": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "warprel"
+      ]
+    },
+    "warpshape": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "warpskew": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "warpsus": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "warpsustain"
+    },
+    "warpsustain": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "warpsus"
+      ]
+    },
+    "warpsync": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "waveloss": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "wavetablePhaseRand": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "wtphaserand"
+    },
+    "wavetablePosition": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "wt"
+    },
+    "wavetableWarp": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "warp"
+    },
+    "wavetableWarpMode": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "warpmode"
+    },
+    "wchoose": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "wchooseCycles": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "wrandcat"
+      ]
+    },
+    "when": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "whenKey": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "withContext": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withHap": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withHapSpan": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withHapTime": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withHaps": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withLoc": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withQuerySpan": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withQuerySpanMaybe": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withQueryTime": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withState": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withSteps": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal"
+    },
+    "withValue": {
+      "category": "internal",
+      "rank": 771,
+      "availability": "internal",
+      "synonyms": [
+        "fmap"
+      ]
+    },
+    "within": {
+      "category": "transform",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "wordfall": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "wrandcat": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "wchooseCycles"
+    },
+    "wt": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "wavetablePosition"
+      ]
+    },
+    "wtatt": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "wtattack"
+    },
+    "wtattack": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "wtatt"
+      ]
+    },
+    "wtdc": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "wtdec": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "wtdecay"
+    },
+    "wtdecay": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "wtdec"
+      ]
+    },
+    "wtdepth": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "wtenv": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "wtphaserand": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "wavetablePhaseRand"
+      ]
+    },
+    "wtrate": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "wtrel": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "wtrelease"
+    },
+    "wtrelease": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "wtrel"
+      ]
+    },
+    "wtshape": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "wtskew": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "wtsus": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "aliasOf": "wtsustain"
+    },
+    "wtsustain": {
+      "category": "envelope",
+      "rank": 771,
+      "availability": "ok",
+      "synonyms": [
+        "wtsus"
+      ]
+    },
+    "wtsync": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "x": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual",
+      "aliasOf": "phase"
+    },
+    "xfade": {
+      "category": "dynamics",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "xsdelay": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "y": {
+      "category": "visual",
+      "rank": 771,
+      "availability": "visual"
+    },
+    "zcrush": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "zdelay": {
+      "category": "effects",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "zip": {
+      "category": "structure",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "zmod": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "znoise": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "zoom": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "zoomArc": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "zoomIn": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "zoomarc": {
+      "category": "time",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "zrand": {
+      "category": "randomness",
+      "rank": 771,
+      "availability": "ok"
+    },
+    "zzfx": {
+      "category": "synthesis",
+      "rank": 771,
+      "availability": "ok"
+    }
+  },
+  "after": {}
+}

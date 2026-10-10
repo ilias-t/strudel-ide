@@ -1,28 +1,28 @@
 // Smoke-test every song in src/songs/ and every genre starter in src/starters/ without a browser:
 //   1. createPattern() must not throw
 //   2. querying the first N cycles must not throw and must produce events
-//   3. every sound (s + bank) must exist in the sample maps main.ts loads
+//   3. every sound (s + bank) must exist: the sounds src/catalog/sounds.json lists, which are the
+//      sounds the stage registers (e2e/sound-registry.spec.ts) and the editor completes
 //   4. starters also export a `meta` ({ id, genre, blurb }) whose id matches the file
 //
-// Usage: node scripts/check-songs.mjs [song-id | starters/<id> ...] [--cycles 16] [--offline]
+// Usage: node scripts/check-songs.mjs [song-id | starters/<id> ...] [--cycles 16]
 
-import { readdirSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import * as core from "@strudel/core";
 import * as mini from "@strudel/mini";
 import * as tonal from "@strudel/tonal";
 import { KnobRegistry, installKnobGlobals } from "../src/engine/knobs.ts";
+import { knownSoundsFromCatalog, soundKey } from "./lib/catalog/known-sounds.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const songsDir = join(root, "src/songs");
 const startersDir = join(root, "src/starters");
-const cacheDir = join(root, "node_modules/.cache/strudel-samples");
 
 const args = process.argv.slice(2);
 const cyclesIdx = args.indexOf("--cycles");
 const cycles = cyclesIdx >= 0 ? Number(args[cyclesIdx + 1]) : 16;
-const offline = args.includes("--offline");
 const only = args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--cycles");
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -43,69 +43,11 @@ for (const fn of ["samples", "initStrudel", "aliasBank", "soundAlias"]) {
 installKnobGlobals(new KnobRegistry(), core.pure);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Known sounds
+// Known sounds: the generated catalog (npm run gen:catalog), so this check, the
+// library and the editor's completions agree on one list
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SAMPLE_MAPS = [
-  "tidal-drum-machines",
-  "piano",
-  "vcsl",
-  "uzu-drumkit",
-  "uzu-wavetables",
-  "mridangam",
-];
-
-const SYNTHS = [
-  "sine", "square", "triangle", "sawtooth", "saw", "tri", "sqr", "sin",
-  "supersaw", "pulse", "sbd", "bytebeat",
-  "white", "pink", "brown", "crackle",
-  "zzfx", "z_sine", "z_sawtooth", "z_triangle", "z_square", "z_tan", "z_noise",
-];
-
-async function loadJson(name) {
-  const file = join(cacheDir, `${name}.json`);
-  if (existsSync(file)) return JSON.parse(readFileSync(file, "utf8"));
-  if (offline) return null;
-  const res = await fetch(`https://strudel.b-cdn.net/${name}.json`);
-  if (!res.ok) throw new Error(`fetch ${name}: ${res.status}`);
-  const json = await res.json();
-  mkdirSync(cacheDir, { recursive: true });
-  writeFileSync(file, JSON.stringify(json));
-  return json;
-}
-
-const known = new Set(SYNTHS);
-let soundCheck = true;
-try {
-  for (const name of SAMPLE_MAPS) {
-    const map = await loadJson(name);
-    if (!map) { soundCheck = false; break; }
-    for (const key of Object.keys(map)) if (key !== "_base") known.add(key.toLowerCase());
-  }
-  // Short bank aliases (e.g. "TR808" → "RolandTR808")
-  const aliases = await loadJson("tidal-drum-machines-alias");
-  if (aliases) {
-    for (const key of [...known]) {
-      const [bank, suffix] = key.split("_");
-      if (!suffix) continue;
-      for (const [long, short] of Object.entries(aliases)) {
-        if (long.toLowerCase() !== bank) continue;
-        for (const s of [short].flat()) known.add(`${s}_${suffix}`.toLowerCase());
-      }
-    }
-  }
-} catch (e) {
-  console.warn(`⚠️  Sound-name check disabled: ${e.message}`);
-  soundCheck = false;
-}
-
-function soundKey(value) {
-  if (!value || typeof value !== "object") return null;
-  let s = value.s;
-  if (s === undefined) return value.note !== undefined || value.n !== undefined || value.freq !== undefined ? "triangle" : null;
-  s = String(s).split(":")[0];
-  return (value.bank ? `${value.bank}_${s}` : s).toLowerCase();
-}
+const known = knownSoundsFromCatalog(JSON.parse(readFileSync(join(root, "src/catalog/sounds.json"), "utf8")));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Run
@@ -159,7 +101,6 @@ for (const { path, id, name, starter } of files) {
     for (let c = 0; c < cycles; c++) {
       const haps = pattern.queryArc(c, c + 1);
       events += haps.length;
-      if (!soundCheck) continue;
       for (const hap of haps) {
         const key = soundKey(hap.value);
         if (key && !known.has(key)) unknown.set(key, (unknown.get(key) ?? 0) + 1);
@@ -180,5 +121,4 @@ for (const { path, id, name, starter } of files) {
   }
 }
 
-if (!soundCheck) console.log("(sound names not verified)");
 process.exit(failed ? 1 : 0);

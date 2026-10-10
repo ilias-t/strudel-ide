@@ -1,6 +1,11 @@
-// Which sounds exist, the way scripts/check-songs.mjs decides it (that script stays self-contained;
-// keep the two in step): every sample-map key and synth, lowercased, plus "<alias>_<part>" for
-// each short bank alias. A hap's key is "<bank>_<s>" when it has a bank, else its s.
+// Which sounds exist: one rule, two inputs.
+//   knownSounds(inputs)              from the raw inputs (sample maps, bank aliases, synths): the
+//                                    generator's view, used to build and test sounds.json
+//   knownSoundsFromCatalog(sounds)   from the generated src/catalog/sounds.json: what check-songs reads,
+//                                    so it can't drift from the catalog (and the stage registers the same
+//                                    set: e2e/sound-registry.spec.ts)
+// A key is a lowercased sound name, or "<bank>_<part>" (also for each short bank alias). A hap's key
+// is "<bank>_<s>" when it has a bank, else its s (soundKey).
 
 /** @param {{ maps: Record<string, Record<string, unknown>>, aliasMap: Record<string, string | string[]>, synths: string[] }} input */
 export function knownSounds({ maps, aliasMap, synths }) {
@@ -15,6 +20,22 @@ export function knownSounds({ maps, aliasMap, synths }) {
       if (long.toLowerCase() !== bank) continue;
       for (const s of [short].flat()) known.add(`${s}_${suffix}`.toLowerCase());
     }
+  }
+  return known;
+}
+
+/**
+ * The same set from sounds.json: every sound that plays without a bank (it has files, or it's
+ * superdough's), and every bank part under the bank's name and each alias.
+ * @param {{ sounds: Record<string, { source?: string, count?: number }>, banks: Record<string, { aliases: string[], parts: string[] }> }} catalog
+ */
+export function knownSoundsFromCatalog({ sounds, banks }) {
+  const known = new Set();
+  for (const [name, info] of Object.entries(sounds)) {
+    if (info.count !== undefined || info.source === "superdough") known.add(name.toLowerCase());
+  }
+  for (const [bank, info] of Object.entries(banks)) {
+    for (const b of [bank, ...info.aliases]) for (const part of info.parts) known.add(`${b}_${part}`.toLowerCase());
   }
   return known;
 }

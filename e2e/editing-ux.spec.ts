@@ -483,3 +483,15 @@ test("the song picker shows a user song's new name after an edit renames it", as
   await page.keyboard.type(' Name After",');
   await expect(option).toHaveText("Before Name After");
 });
+
+test("F1 in the editor opens the help, not Monaco's command palette; Esc closes it", async ({ player, page }) => {
+  await player.boot();
+  expect(await player.select(FIXTURE_ID)).toBe(true);
+  await enterEdit(page);
+  await caretAfter(page, "createPattern");
+  await page.keyboard.press("F1");
+  await expect(page.getByTestId("help-overlay")).toBeVisible();
+  await expect(page.locator(".quick-input-widget:visible")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("help-overlay")).toBeHidden();
+});

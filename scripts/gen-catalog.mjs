@@ -49,6 +49,22 @@
 // { snippets: [{ id, role, title, description, code, tags?, bpm? }] }
 //   role is a TrackRole (src/engine/tracks.ts): name the track after it. code is one expression of
 //   string literals (it lights up when pasted). Curated in scripts/lib/catalog/snippets.mjs.
+// ─── completions.json ────────────────────────────────────────────────────────
+// { functions: { [name]: { category, rank, availability, aliasOf?, synonyms?, range?, docUrl? } },
+//   after: { [call]: string[] } }        // CompletionsCatalog in src/ui/discover/catalog.ts
+//   The editor's method list reads this instead of functions.json. rank: 0 = most used (usage in songs,
+//   starters, snippets and examples, blended with a core list); availability: "ok" | "superdirt" |
+//   "visual" | "io" | "internal" (sinks in lists, with the reason); after.s: methods most used right
+//   after s(…). Built in scripts/lib/catalog/completions.mjs.
+// ─── theory.json ─────────────────────────────────────────────────────────────
+// { scales: [{ name, intervals, common? }], chords: { [symbol]: intervals }, vowels, voicingDicts }
+//   Theory in src/ui/complete/types.ts; built in scripts/lib/catalog/theory.mjs.
+// ─── intents.json ────────────────────────────────────────────────────────────
+// { intents: [{ id, phrases, functions, recipe?, snippets?, tip?, role? }] }
+//   Search by sound ("wetter" → room, size, delay). Curated in scripts/lib/catalog/intents.mjs.
+//
+// strudel.cc links come from scripts/lib/catalog/strudel-docs.json, a committed snapshot of the docs'
+// heading anchors (refresh it by hand: node scripts/fetch-strudel-docs.mjs).
 
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";

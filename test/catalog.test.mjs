@@ -21,7 +21,7 @@ import { ideExample } from "../scripts/lib/catalog/examples.mjs";
 import ts from "typescript";
 import { CATEGORIES } from "../scripts/lib/catalog/function-categories.mjs";
 import { SNIPPETS } from "../scripts/lib/catalog/snippets.mjs";
-import { knownSounds, soundKey } from "../scripts/lib/catalog/known-sounds.mjs";
+import { knownSounds, knownSoundsFromCatalog, soundKey } from "../scripts/lib/catalog/known-sounds.mjs";
 import { loadCatalogInputs } from "../scripts/lib/catalog/inputs.mjs";
 import { generateCatalog, CATALOG_FILES } from "../scripts/lib/catalog/generate.mjs";
 
@@ -495,6 +495,33 @@ describe("snippets", () => {
       }
     });
   }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// One list of sounds: check-songs reads sounds.json, the same set the stage registers
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("known sounds", () => {
+  test("sounds.json gives exactly the sound keys the sample maps and synths give", () => {
+    const fromCatalog = knownSoundsFromCatalog(parsed["sounds.json"]);
+    const fromInputs = knownSounds(inputs);
+    // stray map keys that aren't sounds (superdough registers them, nothing plays them by name)
+    const junk = (key) => key.startsWith("_") || key.endsWith("_");
+    assert.deepEqual([...fromInputs].filter((k) => !junk(k) && !fromCatalog.has(k)).sort(), []);
+    assert.deepEqual([...fromCatalog].filter((k) => !fromInputs.has(k)).sort(), []);
+  });
+
+  test("zzfx and its z_* sounds are known (src/engine/strudel.ts registers them)", () => {
+    const known = knownSoundsFromCatalog(parsed["sounds.json"]);
+    for (const name of ["zzfx", "z_sine", "z_sawtooth", "z_triangle", "z_square", "z_tan", "z_noise"]) assert.ok(known.has(name), name);
+    assert.match(readFileSync(join(root, "src/engine/strudel.ts"), "utf8"), /engine\.registerZZFXSounds\(\)/);
+  });
+
+  test("check-songs reads sounds.json, not lists of its own", () => {
+    const src = readFileSync(join(root, "scripts/check-songs.mjs"), "utf8");
+    assert.match(src, /knownSoundsFromCatalog/);
+    assert.doesNotMatch(src, /const SYNTHS\b|const SAMPLE_MAPS\b/);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

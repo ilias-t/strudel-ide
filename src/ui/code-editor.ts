@@ -63,6 +63,8 @@ export interface CodeEditorOptions {
   onChipsChanged?: () => void;
   /** Escape with nothing else to close: leave edit mode */
   onEscape?: () => void;
+  /** F1: the stage's help (instead of Monaco's command palette) */
+  onHelp?: () => void;
 }
 
 interface Chip {
@@ -271,6 +273,8 @@ export class CodeEditor implements CodeSurface {
 
     // ⌘/Ctrl+Enter: evaluate now (Monaco would insert a line)
     this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => o.onCommit());
+    // F1: the stage's help, not Monaco's command palette
+    this.editor.addCommand(monaco.KeyCode.F1, () => o.onHelp?.());
     // Escape with no suggest/hover/find open: leave edit mode
     this.editor.addCommand(
       monaco.KeyCode.Escape,

@@ -21,7 +21,7 @@
 import { linkEditor, type EditorLink, type EditorLinkStatus } from "./live/editor-link";
 import * as player from "./engine/player";
 import { startLive } from "./engine/live";
-import { engine, guardDestination, loadSamples, type Repl, type Scheduler } from "./engine/strudel";
+import { engine, guardDestination, loadSamples, registerBuiltInSounds, type Repl, type Scheduler } from "./engine/strudel";
 import { mountStage } from "./ui/stage";
 import * as songsStore from "./songs-store";
 import { confirmSharedSong } from "./ui/share-confirm";
@@ -52,6 +52,7 @@ if (import.meta.hot) {
 // before anything makes a sound (Safari can report 0 output channels)
 guardDestination();
 const repl = await engine.initStrudel({ onToggle: () => player.changed() });
+registerBuiltInSounds();
 player.attachRepl(repl);
 
 // Debug hook (tests, devtools, editor bridges); usable while samples load
@@ -75,6 +76,7 @@ window.__strudel = {
   jumpToSection: player.jumpToSection,
   setLoop: player.setLoop,
   positionAt: player.positionAt,
+  sounds: () => Object.keys(engine.soundMap.get()),
   knobs: player.knobs,
   setKnob: player.setKnob,
   resetKnob: player.resetKnob,
@@ -182,6 +184,8 @@ declare global {
       jumpToSection: typeof player.jumpToSection;
       setLoop: typeof player.setLoop;
       positionAt: typeof player.positionAt;
+      /** Every sound name the engine has registered so far (superdough's soundMap keys) */
+      sounds: () => string[];
       /** The current song's knob() controls (live value, file default, range, dirty) */
       knobs: typeof player.knobs;
       /** Turn a knob (no rebuild, no swap) */

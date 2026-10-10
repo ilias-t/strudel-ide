@@ -159,6 +159,9 @@ if (fixtures.length) {
   copyFileSync(join(root, "scripts/check-songs.mjs"), join(scratch, "scripts/check-songs.mjs"));
   symlinkSync(join(root, "node_modules"), join(scratch, "node_modules"), "dir");
   symlinkSync(join(root, "src/engine"), join(scratch, "src/engine"), "dir"); // check-songs imports knobs.ts
+  // …and reads the known sounds from the catalog, with the shared rule
+  symlinkSync(join(root, "src/catalog"), join(scratch, "src/catalog"), "dir");
+  symlinkSync(join(root, "scripts/lib"), join(scratch, "scripts/lib"), "dir");
   try {
     for (const fx of fixtures) {
       const code = readFileSync(join(fixturesDir, `${fx}.js`), "utf8");

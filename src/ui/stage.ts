@@ -625,6 +625,7 @@ export function mountStage(): Stage {
       onChipsChanged: () => renderKnobs(),
       // hand the keyboard back to the stage's shortcuts
       onEscape: () => (document.activeElement as HTMLElement | null)?.blur(),
+      onHelp: () => showHelp(true),
     });
     ed.setColorResolver(colorOfRange);
     return ed;

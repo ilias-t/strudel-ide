@@ -96,6 +96,7 @@ async function shot(page: Page, name: string) {
 
 test("inside strings: sounds after a space (accepting keeps bd), variants after bd:, only the banks that fit, notes, scale types", async ({ player, page }) => {
   await editFixture(player);
+  const tsCalls = () => page.evaluate(() => window.__strudelComplete!.timings().tsCalls);
 
   // a space in s("bd |"): registered sounds, drums first, with counts and kinds
   await typeLine(page, 'const t1 = s("bd");');
@@ -124,7 +125,10 @@ test("inside strings: sounds after a space (accepting keeps bd), variants after 
   await typeLine(page, 'const t3 = s("bd cp").bank("");');
   await closeList(page);
   await caretAt(page, '.bank("');
+  await page.waitForTimeout(300); // a TypeScript request from typing the line settles first
+  const tsBefore = await tsCalls();
   await openList(page);
+  expect(await tsCalls(), "inside strings: our items only, no TypeScript round trip").toBe(tsBefore);
   const banks = await rows(page);
   for (const b of banks) expect(b.description, b.label).toMatch(/^\d+ parts$/);
   expect(banks[0].detail).toBe("");
@@ -144,6 +148,11 @@ test("inside strings: sounds after a space (accepting keeps bd), variants after 
   expect((await labels(page)).slice(0, 4)).toEqual(["major", "minor", "dorian", "mixolydian"]);
   await shot(page, "scale-types");
   await closeList(page);
+
+  // a space in code never pops a list
+  await typeLine(page, "const zz = ");
+  await page.waitForTimeout(400);
+  expect(await rows(page)).toEqual([]);
 });
 
 test("after a dot: the chain's common methods first, cutoff → lpf, the rest sinks with a reason; TypeScript still completes locals", async ({ player, page }) => {
@@ -243,7 +252,8 @@ test("hear while browsing: off by default; ⌥P, three fast arrows: one preview;
 
   // three fast arrows: one preview, of the row where they stopped
   const on = (await auditions(page)).length;
-  for (let i = 0; i < 3; i++) await page.keyboard.press("ArrowDown");
+  // sent back to back (no round trip to the test between them): a busy machine still delivers them within the 120 ms pause
+  await Promise.all([0, 1, 2].map(() => page.keyboard.press("ArrowDown")));
   await expect.poll(() => previewsSince(page, on).then((p) => p.length)).toBe(1);
   await page.waitForTimeout(500);
   const [one] = await previewsSince(page, on);

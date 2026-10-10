@@ -4,7 +4,7 @@
 // Run: node --test test/complete-browse.test.ts
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createBrowser, previewsOn, NAV_WINDOW_MS, PREVIEW_DELAY_MS } from "../src/ui/complete/browse.ts";
+import { composeDoc, createBrowser, previewsOn, HINT_OFF, HINT_ON, NAV_WINDOW_MS, NOTE_LOAD_FAILED, PREVIEW_DELAY_MS } from "../src/ui/complete/browse.ts";
 import type { SoundPreview } from "../src/ui/complete/values.ts";
 
 /** A browser over a fake clock; `on` is the setting */
@@ -108,6 +108,11 @@ test("closing the list stops what it played, and cancels what it was about to", 
   const n = log.length;
   b.hide(); // nothing played since: nothing to stop
   assert.equal(log.length, n);
+});
+
+test("composeDoc: the row's own text, a note about it, then the previews line", () => {
+  assert.equal(composeDoc("**bd** · kick", { hint: HINT_OFF }), "**bd** · kick\n\n*⌥P to hear sounds as you browse*");
+  assert.equal(composeDoc("**bd** · kick", { hint: HINT_ON, note: NOTE_LOAD_FAILED }), "**bd** · kick\n\n⚠ couldn't load this sample\n\n*♪ previews on arrow · ⌥P mutes*");
 });
 
 test("previewsOn: the setting, but a screen reader keeps them off unless turned on this session", () => {

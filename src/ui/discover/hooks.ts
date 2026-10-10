@@ -37,6 +37,13 @@ export interface DiscoveryHost {
    * toast says so): nothing may be inserted then.
    */
   editor(): Promise<CodeEditor | null>;
+  /**
+   * The song the editor is editing now and the editor, or null outside edit
+   * mode. An edit planned across an await must still find the same song here
+   * before it is applied: the hidden editor keeps the last song's text, and its
+   * edits would reach whichever song is current.
+   */
+  editing(): { songId: string; editor: CodeEditor } | null;
   exitEdit(): void;
   toast(text: string, kind?: ToastKind): void;
   showHelp(): void;
@@ -143,11 +150,16 @@ export function mountDiscovery(host: DiscoveryHost) {
       // no caret placed yet (a fresh editor has it at the very top): on its own line where the tracks are
       const spot = sel.start === 0 && sel.end === 0 ? defaultInsertSpot(text) : null;
       const refuse = () => {
-        host.toast("code doesn't go here: put the cursor where an expression starts (after =, in a call's parentheses)", "warn");
+        host.toast(
+          item.type === "function" && item.kind === "method"
+            ? `.${item.name}() chains onto a pattern: put the cursor right after one, like s("bd")|`
+            : "code doesn't go here: put the cursor where an expression starts (after =, in a call's parentheses)",
+          "warn"
+        );
         return false;
       };
       if (spot) {
-        const ins = insertionFor(text, spot.offset, item);
+        const ins = insertionFor(text, spot.offset, item, spot.offset, { ownLine: true });
         if (!ins) return refuse();
         const line = `${spot.indent}${ins.text}\n`;
         return ed.applyEdits([{ start: spot.offset, end: spot.offset, text: line }], {

@@ -144,7 +144,8 @@ test("▶ auditions while stopped, then while the song plays, without touching t
   await openLibrary(page);
 
   await sound(page, "bd").getByTestId("library-sound-play").click();
-  await expect.poll(async () => (await lastAudition(page))?.events[0]).toMatchObject({ s: "bd" });
+  // on the auditions' own orbit (src/ui/discover/audition-bus.ts), away from the song's orbit effects
+  await expect.poll(async () => (await lastAudition(page))?.events[0]).toMatchObject({ s: "bd", orbit: 64 });
   expect((await lastAudition(page))?.status).not.toBe("error");
 
   expect(await player.select(FIXTURE_ID)).toBe(true);

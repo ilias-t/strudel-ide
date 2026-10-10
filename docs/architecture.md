@@ -96,8 +96,10 @@ only the stage's own editor and its localStorage are left.
   (`CodeEditor.applyEdits`, one undo step): the song's `EditSession` takes the
   buffer, evaluates it as typing and the autosave keeps it. While your editor
   owns the buffer they refuse. The track builder plans its edit in the
-  compiler worker (`src/compile/add-track.ts`). Auditions play straight into
-  the engine's output, beside the scheduler, so the song plays on untouched.
+  compiler worker (`src/compile/add-track.ts`), and drops it if you've left
+  the song or edit mode by the time it's planned. Auditions play straight into
+  the engine's output, beside the scheduler and on an orbit of their own, so
+  the song plays on untouched.
 - **Editor extension** (`vscode-extension/`). A client of the bridge; see
   [its README](../vscode-extension/README.md#how-it-works) for the protocol.
 - **Scripts** (`scripts/`). Work on the same song files from the terminal:

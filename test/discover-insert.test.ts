@@ -91,6 +91,15 @@ describe("functions", () => {
   test("a method-only function outside a chain is still a method", () => {
     assert.equal(apply("|", fastMethod), ".fast(|)");
   });
+  test("on a line of its own (no caret placed): a new statement, never a method", () => {
+    // after a statement without a semicolon, a chain would glue it onto that statement
+    const text = 'const kick = s("bd")\n';
+    const at = text.length;
+    assert.equal(insertionFor(text, at, fastMethod, at, { ownLine: true }), null);
+    assert.equal(insertionFor(text, at, lpf, at, { ownLine: true })?.text, "lpf()");
+    assert.equal(insertionFor(text, at, bd, at, { ownLine: true })?.text, 's("bd")');
+    assert.equal(insertionFor("const k = 1;\n", 13, fastMethod, 13, { ownLine: true }), null);
+  });
   test("a value (signal) is its bare name", () => {
     assert.equal(apply(".pan(|)", sine), ".pan(sine|)");
   });

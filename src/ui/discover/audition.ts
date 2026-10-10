@@ -3,7 +3,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
 //
 // Straight into superdough (the engine's output), next to the scheduler rather
-// than through it: the song keeps playing untouched (no swap, no mute layer),
+// than through it, on an orbit of its own (./audition-bus.ts): the song keeps
+// playing untouched (no swap, no mute layer, none of its orbit effects),
 // and it works while stopped too, once the audio context runs. A click or a
 // key press is a user gesture, so the first audition can unlock audio.
 //
@@ -19,6 +20,7 @@
 
 import { bpmToCps, engine, warmOrbits } from "../../engine/strudel";
 import * as player from "../../engine/player";
+import { AuditionBus } from "./audition-bus";
 
 export interface AuditionRecord {
   id: number;
@@ -77,10 +79,14 @@ export function stopAudition() {
   current = null;
 }
 
+/** Auditions' own orbit, so their orbit effects never reach the song (./audition-bus.ts) */
+const bus = new AuditionBus();
+
 function play(rec: AuditionRecord, value: Record<string, unknown>, at: number, duration: number, cps: number) {
-  rec.events.push({ ...value });
+  const routed = bus.route(value);
+  rec.events.push({ ...routed });
   // superdough writes `duration` into the value: give it a copy
-  superdough({ ...value }, at, duration, cps).catch((err: unknown) => {
+  superdough({ ...routed }, at, duration, cps).catch((err: unknown) => {
     rec.status = "error";
     rec.error = err instanceof Error ? err.message : String(err);
   });

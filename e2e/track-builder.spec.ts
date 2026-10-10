@@ -159,3 +159,47 @@ test("the stage's shortcuts stay out of the builder: arrows and digits on its ke
   await expect(page.getByTestId("track-builder")).toBeHidden();
   await player.stop();
 });
+
+test("an add still planning when you leave edit mode and switch songs is dropped: the other song is left alone", async ({ player, page }) => {
+  // hold the worker's addTrack requests until the test lets them go
+  await page.addInitScript(() => {
+    const post = Worker.prototype.postMessage;
+    const held: (() => void)[] = [];
+    const w = window as unknown as { __addTrackHeld: () => number; __releaseAddTrack: () => void };
+    w.__addTrackHeld = () => held.length;
+    w.__releaseAddTrack = () => held.splice(0).forEach((send) => send());
+    Worker.prototype.postMessage = function (this: Worker, message: unknown, ...rest: unknown[]) {
+      if ((message as { op?: string } | null)?.op === "addTrack") {
+        held.push(() => post.call(this, message, ...(rest as [])));
+        return;
+      }
+      return post.call(this, message, ...(rest as []));
+    } as typeof post;
+  });
+  await player.boot();
+  const tour = readFileSync(resolve(ROOT, "src/songs/tour.ts"), "utf8");
+  // tour has been open in the editor once (it has an edit session), then the fixture
+  expect(await player.select("tour")).toBe(true);
+  await page.getByTestId("code-edit").click();
+  await expect.poll(() => buffer(page), { timeout: 30_000 }).toBe(tour);
+  expect(await player.select(FIXTURE_ID)).toBe(true);
+  await expect.poll(() => buffer(page)).toBe(fixtureSource());
+
+  await page.getByTestId("add-track").click();
+  await role(page, "hats").click();
+  await snippet(page, "hats-eighths").click();
+  await page.getByTestId("builder-add").click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __addTrackHeld: () => number }).__addTrackHeld())).toBe(1);
+
+  // meanwhile: back to the read-only view, and another song
+  await page.getByTestId("code-edit").click();
+  await expect(page.getByTestId("code-edit")).toHaveAttribute("aria-pressed", "false");
+  expect(await player.select("tour")).toBe(true);
+
+  await page.evaluate(() => (window as unknown as { __releaseAddTrack: () => void }).__releaseAddTrack());
+  await page.waitForTimeout(1000); // the plan lands, and the autosave's debounce passes
+  expect((await page.evaluate(() => window.__strudel!.store.getMySong("tour")))?.text ?? null, "nothing kept for tour").toBeNull();
+  expect((await player.state()).songId).toBe("tour");
+  expect(await page.evaluate(() => window.__strudel!.currentSource()?.text ?? null)).toBe(tour);
+  await expect(page.getByTestId("builder-message")).toContainText("changed");
+});

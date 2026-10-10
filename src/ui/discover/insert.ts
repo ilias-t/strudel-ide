@@ -129,15 +129,32 @@ function inString(text: string, offset: number, name: string): Insertion {
 
 const at = (text: string, caret = text.length): Insertion => ({ text, caret });
 
+export interface InsertOptions {
+  /**
+   * The insert goes on a line of its own (defaultInsertSpot): always a new
+   * expression, whatever the line above ends with, and a method-only function
+   * is refused
+   */
+  ownLine?: boolean;
+}
+
 /**
  * What to insert at `offset` (replacing [offset, selectionEnd) if given: the
  * context is read at the selection's start). null: it doesn't go there. Code
  * (a snippet, an example) only goes where an expression starts: inside a
  * string or right after an expression it would break the file.
  */
-export function insertionFor(text: string, offset: number, item: InsertItem, selectionEnd = offset): Insertion | null {
+export function insertionFor(
+  text: string,
+  offset: number,
+  item: InsertItem,
+  selectionEnd = offset,
+  { ownLine = false }: InsertOptions = {}
+): Insertion | null {
   const rest = text.slice(0, offset) + text.slice(selectionEnd);
-  const ctx = contextAt(rest, offset);
+  const ctx: Context = ownLine ? "expression" : contextAt(rest, offset);
+  // a method on a line of its own has nothing to chain on (or chains onto the statement above)
+  if (ownLine && item.type === "function" && item.kind === "method") return null;
   if (item.type === "code") return ctx === "expression" ? at(item.code) : null;
   if (ctx === "string") return inString(rest, offset, item.name);
   switch (item.type) {

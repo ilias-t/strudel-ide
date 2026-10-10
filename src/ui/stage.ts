@@ -957,6 +957,7 @@ export function mountStage(): Stage {
       }
       return editor;
     },
+    editing: () => (mode === "edit" && editor && surface === editor ? { songId: shownSongId, editor } : null),
     exitEdit,
     toast,
     showHelp: () => showHelp(true),

@@ -380,6 +380,7 @@ export function createTrackBuilder(d: Discovery): FeatureHandle {
         say("the editor isn't available, so nothing was added", "warn");
         return;
       }
+      const song = d.host.editing()?.songId;
       const file = player.currentSource()?.file ?? "song.ts";
       const { planAddTrack } = await import("../../compile/client");
       const attempt = async () => {
@@ -394,7 +395,12 @@ export function createTrackBuilder(d: Discovery): FeatureHandle {
       };
       let { text, plan } = await attempt();
       if (ed.value() !== text) ({ text, plan } = await attempt()); // edited while planning: once more
-      if (ed.value() !== text) plan = { ok: false, reason: "the song changed while the edit was planned: try again" };
+      // still editing the same song: out of edit mode the hidden editor keeps the
+      // old song's text, and an edit there would reach the song that's current now
+      const now = d.host.editing();
+      if (ed.value() !== text || !song || now?.editor !== ed || now.songId !== song) {
+        plan = { ok: false, reason: "the song changed while the edit was planned: try again" };
+      }
       if (!plan.ok) {
         say(plan.reason, "warn");
         d.host.toast(plan.reason, "warn");

@@ -104,6 +104,15 @@ describe("the record", () => {
     assert.equal(add(text, "hats"), song(`    const kick = s("bd*4");\n    const hats = ${HATS};\n    return mixdown({ kick, hats });`, head));
   });
 
+  test("a call's object argument is the record only when the call is the song's own helper (declared or imported)", () => {
+    const imported = `import { mixdown } from "./lib";\n`;
+    const text = song(`    const kick = s("bd*4");\n    return mixdown({ kick });`).replace('import type { Song } from ".";\n', `import type { Song } from ".";\n${imported}`);
+    assert.match(add(text, "hats"), /return mixdown\(\{ kick, hats \}\);/);
+    // a Strudel function taking an object is an event, not a track list: hats would become an event field
+    refused(song(`    return pure({ s: "bd", gain: 0.7 });`), "hats", /track list/);
+    refused(song(`    return n({ kick: 1 });`), "hats", /track list/);
+  });
+
   test("parenthesised, `as` and `satisfies` records", () => {
     for (const [ret, expected] of [
       ["return ({ kick });", "return ({ kick, hats });"],

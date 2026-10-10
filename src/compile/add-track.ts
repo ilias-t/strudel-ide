@@ -15,8 +15,9 @@
 // object literal, maybe `satisfies Song` / `as Song`, or an identifier bound to
 // one), its createPattern (a method, or a function / block-bodied arrow
 // property), the last `return` at the top level of its body, and that return's
-// record: an object literal, or the first argument of a call (`mixdown({ … })`),
-// through parentheses, `as`, `satisfies` and `!`. Anything else is refused with
+// record: an object literal, or the first argument of a call to a function the
+// file declares or imports (`mixdown({ … })`, never a Strudel global like
+// `pure({ … })`), through parentheses, `as`, `satisfies` and `!`. Anything else is refused with
 // a short reason, and so is a file with a syntax error: a broken file is never
 // touched.
 //
@@ -195,6 +196,8 @@ function identifiersIn(ts: Ts, node: TS.Node, out: Set<string>) {
 function analyze(ts: Ts, sf: TS.SourceFile): Analysis {
   const taken = new Set<string>();
   declaredIn(ts, sf.statements, taken);
+  /** The module's own names (declared or imported): a call to one of them may wrap the record, like mixdown */
+  const own = new Set(taken);
   const fail = (reason: string): Analysis => ({ found: null, reason, tracks: [], taken });
 
   // the default export, as an object literal
@@ -237,7 +240,11 @@ function analyze(ts: Ts, sf: TS.SourceFile): Analysis {
   const ret = returns[returns.length - 1];
   if (!ret?.expression) return fail(TRACK_LIST_REASON);
   let value = unwrap(ts, ret.expression);
-  if (ts.isCallExpression(value) && value.arguments.length) value = unwrap(ts, value.arguments[0]);
+  // `mixdown({ … })`: only the song's own helper. A Strudel global taking an object
+  // (pure({ s: "bd" }), n({ … })) makes events: a key added there is an event field, not a track
+  if (ts.isCallExpression(value) && value.arguments.length && ts.isIdentifier(value.expression) && own.has(value.expression.text)) {
+    value = unwrap(ts, value.arguments[0]);
+  }
   if (!ts.isObjectLiteralExpression(value)) return fail(TRACK_LIST_REASON);
   const props = value.properties;
   if (props.length && props.every(ts.isSpreadAssignment)) return fail(TRACK_LIST_REASON);
